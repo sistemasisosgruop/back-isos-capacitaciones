@@ -38,6 +38,11 @@ const TrabajadorSchema = {
         allowNull: false,
         type: DataTypes.INTEGER
     },
+    rol:{
+        allowNull: false,
+        type: DataTypes.STRING,
+        defaultValue: 'Trabajador'
+    },
     createdAt:{
         allowNull: false,
         type: DataTypes.DATE,

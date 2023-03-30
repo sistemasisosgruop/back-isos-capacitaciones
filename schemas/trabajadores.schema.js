@@ -8,6 +8,7 @@ const dni = Joi.string().min(8).max(8);
 const contraseña = Joi.string().min(8);
 const genero = Joi.string();
 const edad = Joi.number();
+const rol = Joi.string();
 
 const createTrabajadorSchema = Joi.object({
   //id: id.required(),
@@ -19,7 +20,7 @@ const createTrabajadorSchema = Joi.object({
  contraseña : contraseña.required(),
  genero : genero.required(),
  edad : edad.required(),
-
+ rol: rol
 });
 
 const updateTrabajadorSchema = Joi.object({
@@ -30,6 +31,7 @@ const updateTrabajadorSchema = Joi.object({
     contraseña : contraseña,
     genero : genero,
     edad : edad,
+    rol: rol
 });
 
 const getTrabajadorSchema = Joi.object({
