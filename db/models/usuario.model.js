@@ -14,7 +14,7 @@ const UsuarioSchema = {
     type: DataTypes.STRING,
     unique: true,
   },
-  password: {
+  contraseña: {
     allowNull: false,
     type: DataTypes.STRING
   },
@@ -41,6 +41,10 @@ class Usuario extends Model {
         as: 'trabajador',
         foreignKey: 'userId'
     });
+    this.hasOne(models.Administrador,{
+        as: 'administrador',
+        foreignKey: 'userId'
+    })
   }
 
   static config(sequelize) {

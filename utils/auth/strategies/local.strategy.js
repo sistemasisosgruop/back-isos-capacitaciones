@@ -2,16 +2,16 @@ const { Strategy } = require('passport-local');
 const boom = require('@hapi/boom');
 const bcrypt = require('bcrypt');
 
-const TrabajadorService = require('./../../../services/trabajador.service');
-const service = new TrabajadorService();
+const UsuarioService = require('./../../../services/usuario.service');
+const service = new UsuarioService();
 
 const LocalStrategy = new Strategy({
-    usernameField: 'dni',
+    usernameField: 'username',
     passwordField: 'contraseña'
   },
-  async (dni, contraseña, done) => {
+  async (username, contraseña, done) => {
     try {
-      const user = await service.findByDni(dni);
+      const user = await service.findByUsername(username);
       if (!user) {
         done(boom.unauthorized(), false);
       }

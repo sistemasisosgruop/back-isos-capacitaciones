@@ -7,17 +7,26 @@ class TrabajadorService{
     constructor(){}
 
     async create(data){
-        const hash = await bcrypt.hash(data.contraseña, 10)
-        const nuevo =  await models.Trabajador.create({
+        const hash = await bcrypt.hash(data.user.contraseña, 10)
+        const nuevoData = {
             ...data,
-            contraseña: hash
-        })
-        delete nuevo.dataValues.contraseña;
-        return nuevo;
+            user:{
+                ...data.user,
+                contraseña: hash
+            }
+        }
+        const nuevotrabajador = await models.Trabajador.create(nuevoData,{
+            include:['user']
+        });
+
+        delete nuevotrabajador.dataValues.user.dataValues.password;
+        return nuevotrabajador;
     }
 
     async find(){
-        const trabajador = await models.Trabajador.findAll();
+        const trabajador = await models.Trabajador.findAll({
+            include:['user']
+        });
         return trabajador
     }
 
