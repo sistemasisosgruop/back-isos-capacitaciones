@@ -54,7 +54,8 @@ const updateTrabajadorSchema = Joi.object({
 });
 
 const getTrabajadorSchema = Joi.object({
-  id: id.required(),
+  id: id,
+  dni: dni,
 });
 
 module.exports = { createTrabajadorSchema, updateTrabajadorSchema, getTrabajadorSchema }

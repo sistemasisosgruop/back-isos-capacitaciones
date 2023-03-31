@@ -16,6 +16,7 @@ router.get('/',async (req, res, next)=>{
   }
 });
 
+/*
 router.get('/:dni', async(req,res,next)=>{
   try {
     const {dni} = req.params;
@@ -25,6 +26,7 @@ router.get('/:dni', async(req,res,next)=>{
     next(error);
   }
 })
+*/
 
 router.get('/:id',
   validatorHandler(getTrabajadorSchema, 'params'),

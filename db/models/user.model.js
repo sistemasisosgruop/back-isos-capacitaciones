@@ -9,7 +9,7 @@ const UsuarioSchema = {
     primaryKey: true,
     type: DataTypes.INTEGER
   },
-  dni: {
+  username: {
     allowNull: false,
     type: DataTypes.STRING,
     unique: true,
@@ -37,6 +37,10 @@ class Usuario extends Model {
       as: 'customer',
       foreignKey: 'userId'
     });*/
+    this.hasOne(models.Trabajador,{
+        as: 'trabajador',
+        foreignKey: 'userId'
+    });
   }
 
   static config(sequelize) {
