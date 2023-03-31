@@ -1,4 +1,4 @@
-const { Model, DataTypes, Sequelize, UUIDV4 } = require('sequelize');
+const { Model, DataTypes, Sequelize } = require('sequelize');
 
 const TRABAJADOR_TABLE = 'trabajadores';
 
@@ -6,8 +6,8 @@ const TrabajadorSchema = {
     id: {
         allowNull: false,
         primaryKey: true,
-        type: DataTypes.UUID,
-        defaultValue: UUIDV4
+        autoIncrement: true,
+        type: DataTypes.INTEGER,
     },
     nombres:{
         allowNull: false,
@@ -38,6 +38,19 @@ const TrabajadorSchema = {
         allowNull: false,
         type: DataTypes.INTEGER
     },
+    fechadenac:{
+        allowNull: false,
+        type: DataTypes.DATEONLY,
+        defaultValue: null
+    },
+    areadetrabajo:{
+        allowNull: false,
+        type: DataTypes.STRING,
+    },
+    cargo:{
+        allowNull: false,
+        type: DataTypes.STRING
+    },
     rol:{
         allowNull: false,
         type: DataTypes.STRING,
@@ -60,7 +73,9 @@ class Trabajador extends Model{
             sequelize,
             tableName: TRABAJADOR_TABLE,
             modelName: 'Trabajador',
-            timestamps: false
+            timestamps: false,
+            updatedAt: false,
+            deletedAt: false,
         }
     }
 }

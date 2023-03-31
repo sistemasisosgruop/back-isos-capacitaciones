@@ -6,8 +6,8 @@ const authRouter = require('./auth.router');
 function routerApi(app){
     const router = express.Router();
     app.use('/api/v1', router);
-    router.use('/trabajador', trabajadorRouter);
-    router.use('/auth', authRouter);
+    router.use('/trabajadores', trabajadorRouter);//ruta /trabajadores
+    router.use('/auth', authRouter);              //ruta /auth 
 }
 
 module.exports = routerApi;

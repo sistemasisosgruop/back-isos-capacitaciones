@@ -16,6 +16,16 @@ router.get('/',async (req, res, next)=>{
   }
 });
 
+router.get('/:dni', async(req,res,next)=>{
+  try {
+    const {dni} = req.params;
+    const trabajador = await service.findByDni(dni);
+    res.json(trabajador);
+  } catch (error) {
+    next(error);
+  }
+})
+
 router.get('/:id',
   validatorHandler(getTrabajadorSchema, 'params'),
   async (req, res, next) => {
