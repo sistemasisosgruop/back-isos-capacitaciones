@@ -8,7 +8,7 @@ const port = process.env.PORT || 3005;
 
 app.use(express.json());
 
-
+app.use(cors())
 
 require('./utils/auth');
 
