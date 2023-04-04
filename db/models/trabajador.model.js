@@ -1,5 +1,8 @@
 const { Model, DataTypes, Sequelize } = require('sequelize');
 
+const {USUARIO_TABLE} = require('./usuario.model');
+const { EMPRESA_TABLE } = require('./empresa.model');
+
 const TRABAJADOR_TABLE = 'trabajadores';
 
 const TrabajadorSchema = {
@@ -26,10 +29,6 @@ const TrabajadorSchema = {
         unique: true,
         type: DataTypes.STRING
     },
-    contraseña:{
-        allowNull: false,
-        type: DataTypes.STRING
-    },
     genero:{
         allowNull: false,
         type: DataTypes.STRING 
@@ -51,22 +50,47 @@ const TrabajadorSchema = {
         allowNull: false,
         type: DataTypes.STRING
     },
-    rol:{
-        allowNull: false,
-        type: DataTypes.STRING,
-        defaultValue: 'Trabajador'
-    },
     createdAt:{
         allowNull: false,
         type: DataTypes.DATE,
         field: 'created_at',
         defaultValue: Sequelize.NOW
+    },
+    userId:{
+        field: 'user_id',
+        allowNull: false,
+        type: DataTypes.INTEGER,
+        unique: true,
+        references: {
+        model: USUARIO_TABLE,
+        key: 'id'
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL'
+    },
+    empresaId:{
+        field: 'empresa_id',
+        allowNull: false,
+        type: DataTypes.INTEGER,
+        unique: true,
+        references:{
+            model: EMPRESA_TABLE,
+            key: 'id'
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL'
     }
 }
 
 class Trabajador extends Model{
-    static associate(){
+    static associate(models){
         //wait
+        this.belongsTo(models.Usuario,{
+            as: 'user'
+        });
+        this.belongsTo(models.Empresa,{
+            as: 'empresa'
+        })
     }
     static config(sequelize){
         return{

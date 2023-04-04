@@ -9,12 +9,12 @@ const UsuarioSchema = {
     primaryKey: true,
     type: DataTypes.INTEGER
   },
-  dni: {
+  username: {
     allowNull: false,
     type: DataTypes.STRING,
     unique: true,
   },
-  password: {
+  contraseña: {
     allowNull: false,
     type: DataTypes.STRING
   },
@@ -37,6 +37,14 @@ class Usuario extends Model {
       as: 'customer',
       foreignKey: 'userId'
     });*/
+    this.hasOne(models.Trabajador,{
+        as: 'trabajador',
+        foreignKey: 'userId'
+    });
+    this.hasOne(models.Administrador,{
+        as: 'administrador',
+        foreignKey: 'userId'
+    })
   }
 
   static config(sequelize) {

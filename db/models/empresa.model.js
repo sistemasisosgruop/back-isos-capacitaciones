@@ -1,26 +1,39 @@
 const { Model, DataTypes, Sequelize } = require('sequelize');
 
+const EMPRESA_TABLE = 'empresas';
 
-const {USUARIO_TABLE} = require('./usuario.model');
-
-const ADMINISTRADOR_TABLE = 'administradores';
-
-const AdministradorSchema = {
+const EmpresaSchema = {
     id: {
         allowNull: false,
         primaryKey: true,
         autoIncrement: true,
         type: DataTypes.INTEGER,
     },
-    nombres:{
+    nombreEmpresa:{
         allowNull: false,
         type: DataTypes.STRING
     },
-    edad:{
+    direccion:{
+        allowNull: false,
+        type: DataTypes.STRING
+    },
+    nombreGerente:{
+        allowNull: false,
+        type: DataTypes.STRING
+    },
+    numeroContacto:{
         allowNull: false,
         type: DataTypes.INTEGER
     },
-    contacto:{
+    imagenLogo:{
+        allowNull: false,
+        type: DataTypes.STRING
+    },
+    imagenCertificado:{
+        allowNull: false,
+        type: DataTypes.STRING
+    },
+    RUC:{
         allowNull: false,
         type: DataTypes.INTEGER
     },
@@ -29,33 +42,21 @@ const AdministradorSchema = {
         type: DataTypes.DATE,
         field: 'created_at',
         defaultValue: Sequelize.NOW
-    },
-    userId:{
-        field: 'user_id',
-        allowNull: false,
-        type: DataTypes.INTEGER,
-        unique: true,
-        references: {
-        model: USUARIO_TABLE,
-        key: 'id'
-        },
-        onUpdate: 'CASCADE',
-        onDelete: 'SET NULL'
     }
 }
 
-class Administrador extends Model{
+class Empresa extends Model{
     static associate(models){
-        //wait
-        this.belongsTo(models.Usuario,{
-            as: 'user'
+        this.hasMany(models.Trabajador, {
+            as: 'trabajadores',
+            foreignKey: 'empresaId'
         })
     }
     static config(sequelize){
         return{
             sequelize,
-            tableName: ADMINISTRADOR_TABLE,
-            modelName: 'Administrador',
+            tableName: EMPRESA_TABLE,
+            modelName: 'Empresa',
             timestamps: false,
             updatedAt: false,
             deletedAt: false,
@@ -63,4 +64,4 @@ class Administrador extends Model{
     }
 }
 
-module.exports = {ADMINISTRADOR_TABLE, Administrador, AdministradorSchema}
+module.exports = {EMPRESA_TABLE,Empresa, EmpresaSchema}
