@@ -1,6 +1,7 @@
 const { Model, DataTypes, Sequelize } = require('sequelize');
 
 const {USUARIO_TABLE} = require('./usuario.model');
+const { EMPRESA_TABLE } = require('./empresa.model');
 
 const TRABAJADOR_TABLE = 'trabajadores';
 
@@ -66,6 +67,18 @@ const TrabajadorSchema = {
         },
         onUpdate: 'CASCADE',
         onDelete: 'SET NULL'
+    },
+    empresaId:{
+        field: 'empresa_id',
+        allowNull: false,
+        type: DataTypes.INTEGER,
+        unique: true,
+        references:{
+            model: EMPRESA_TABLE,
+            key: 'id'
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL'
     }
 }
 
@@ -74,6 +87,9 @@ class Trabajador extends Model{
         //wait
         this.belongsTo(models.Usuario,{
             as: 'user'
+        });
+        this.belongsTo(models.Empresa,{
+            as: 'empresa'
         })
     }
     static config(sequelize){
