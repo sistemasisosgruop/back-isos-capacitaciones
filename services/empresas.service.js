@@ -7,7 +7,15 @@ class EmpresaService{
 
     async create(data){
         
-        const newEmpresa = await models.Empresa.create(data);
+        const newEmpresa = await models.Empresa.create({
+            nombreEmpresa: data.nombreEmpresa,
+            direccion: data.direccion,
+            nombreGerente: data.nombreGerente,
+            numeroContacto: data.numeroContacto,
+            imagenLogo: data.imagenLogo ? data.imagenLogo[0].filename : null,
+            imagenCertificado: data.imagenCertificado ? data.imagenCertificado[0].filename : null,
+            RUC: data.RUC
+        });
         return newEmpresa;
     }
 
