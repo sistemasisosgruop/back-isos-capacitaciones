@@ -7,7 +7,18 @@ const app = express();
 const port = process.env.PORT || 3005;
 
 app.use(express.json());
-
+/*
+const whitelist = ['http://localhost:5500', 'http://127.0.0.1:5500'];
+const options = {
+  origin: (origin, callback) => {
+    if (whitelist.includes(origin) || !origin) {
+      callback(null, true);
+    } else {
+      callback(new Error('no permitido'));
+    }
+  }
+}
+*/
 app.use(cors())
 
 require('./utils/auth');
