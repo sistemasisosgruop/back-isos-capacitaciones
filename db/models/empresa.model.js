@@ -23,7 +23,7 @@ const EmpresaSchema = {
     },
     numeroContacto:{
         allowNull: false,
-        type: DataTypes.INTEGER
+        type: DataTypes.BIGINT
     },
     imagenLogo:{
         allowNull: false,
@@ -35,7 +35,7 @@ const EmpresaSchema = {
     },
     RUC:{
         allowNull: false,
-        type: DataTypes.INTEGER
+        type: DataTypes.BIGINT
     },
     createdAt:{
         allowNull: false,
@@ -50,6 +50,10 @@ class Empresa extends Model{
         this.hasMany(models.Trabajador, {
             as: 'trabajadores',
             foreignKey: 'empresaId'
+        })
+        this.hasMany(models.Test,{
+            as: 'tests',
+            foreignKey: 'empresaId' 
         })
     }
     static config(sequelize){
