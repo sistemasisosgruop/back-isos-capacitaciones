@@ -23,6 +23,11 @@ class TrabajadorService{
         return nuevotrabajador;
     }
 
+    async createExcel(data){
+        const trabajador = await models.Trabajador.bulkCreate(data);
+        return trabajador;
+    }
+
     async find(){
         const trabajador = await models.Trabajador.findAll({
             include:['user']

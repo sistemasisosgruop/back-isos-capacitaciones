@@ -35,13 +35,32 @@ router.post('/',
   async (req, res,next) => {
     try {
       const body = req.body;
-      const nuevotrabajador = await service.create(body);
-      res.status(201).json(nuevotrabajador);
+      
+      //const nuevotrabajador = await service.create(body);
+      //res.status(201).json(nuevotrabajador);
+      console.log(body.user.username);
+      const valdni = await service.findByDni(body.dni)
+      if(valdni){
+        res.status(400).json({
+          msg: `Ya existe un Dni igual`
+        })
+      }else{
+        const nuevotrabajador = await service.create(body);
+        res.status(201).json(nuevotrabajador);
+      }
+      
     } catch (error) {
       next(error);
     }
   }
 );
+
+router.post('/cargarexcel', async(req,res,next)=>{
+  const archivoBase64 = req.body.archivoExcel;
+  const archivoBuffer = Buffer.from(archivoBase64, 'base64');
+
+  
+})
 
 router.patch('/:id',
   validatorHandler(getTrabajadorSchema, 'params'),
