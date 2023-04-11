@@ -23,8 +23,16 @@ class TrabajadorService{
         return nuevotrabajador;
     }
 
-    async createExcel(data){
-        const trabajador = await models.Trabajador.bulkCreate(data);
+    async createExcel(datos, empreId ){
+        datos = datos.map(objeto => {
+            const { nombres, apellidoPaterno, apellidoMaterno, dni, genero, edad, areadetrabajo, cargo, fechadenac, contraseña } = objeto;
+            const empresaId = empreId;
+            const username = dni;
+            const newUser = { username, contraseña };
+            return { nombres, apellidoPaterno, apellidoMaterno, dni, genero, edad, areadetrabajo, cargo, fechadenac, user: newUser, empresaId };
+        });
+
+        const trabajador = await models.Trabajador.bulkCreate(datos);
         return trabajador;
     }
 
