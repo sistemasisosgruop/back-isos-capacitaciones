@@ -20,27 +20,27 @@ class EmpresaService{
     }
 
     async find(){
-        const trabajador = await models.Empresa.findAll();
-        return trabajador
+        const empresa = await models.Empresa.findAll();
+        return empresa
     }
 
     async findOne(id){
-        const trabajador =  await models.Empresa.findByPk(id);
-        if(!trabajador){
-            throw boom.notFound('Empresa no encontrado')
+        const empresa =  await models.Empresa.findByPk(id);
+        if(!empresa){
+            throw boom.notFound('Empresa no encontrado');
         }
-        return trabajador;
+        return empresa;
     }
 
     async update(id, changes){
-        const trabajador = await this.findOne(id);
-        const respuesta = await trabajador.update(changes);
+        const empresa = await this.findOne(id);
+        const respuesta = await empresa.update(changes);
         return respuesta;
     }
 
     async delete(id){
-        const trabajador = await this.findOne(id);
-        await trabajador.destroy();
+        const empresa = await this.findOne(id);
+        await empresa.destroy();
         return {id};
     }
 
