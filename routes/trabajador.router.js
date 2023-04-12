@@ -3,9 +3,13 @@ const express = require('express');
 const TrabajadorService = require('./../services/trabajador.service');
 const validatorHandler = require('./../middlewares/validator.handler');
 const {updateTrabajadorSchema, createTrabajadorSchema, getTrabajadorSchema} = require('./../schemas/trabajadores.schema');
-const xlsx = require('xlsx')
+const xlsx = require('xlsx');
+const multer = require('multer');
 const router = express.Router();
 const service = new TrabajadorService();
+const upload = multer({dest: 'excel/'});
+const EmpresasService = require('../services/empresas.service.js');
+const serviceEmpresa = new EmpresasService();
 
 router.get('/',async (req, res, next)=>{
   try {
@@ -55,29 +59,32 @@ router.post('/',
   }
 );
 
-router.post('/cargarexcel/:empresaId', async(req,res,next)=>{
-  const archivoBase64 = req.body.archivoExcel;
-  const archivoBuffer = Buffer.from(archivoBase64, 'base64');
-
-  const workbook = xlsx.read(archivoBuffer, { type: 'buffer' });
-  const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-  const datos = xlsx.utils.sheet_to_json(worksheet, { header: 1, range: 4, defval: '' });
-
-/*
-  const columnas = datos[0];
-  const filas = datos.slice(1);
-  const datosJSON = filas.map((fila) => {
-    return fila.reduce((obj, valor, indice) => {
-      obj[columnas[indice]] = valor;
-      return obj;
-    }, {});
-  });*/
+router.post('/cargaexcel/:empresaId',
+  upload.single('file') ,
+  async(req,res,next)=>{
+    const id = req.params.empresaId;
+      const empresa = await serviceEmpresa.findOne(id);
+      
+    const file = req.file;
+    const workbook = xlsx.readFile(file.path);
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const datos = xlsx.utils.sheet_to_json(worksheet, { header: 1, range: 3});
+    const datosFiltrados = datos.filter(arr=>arr.length>0);    
+    const headers = datosFiltrados[0];
+    const rows = datosFiltrados.slice(1);
+    const trabajadores = rows.map(row => {
+      const trabajador = {};
+      headers.forEach((header, index) => {
+        trabajador[header] = row[index];
+      });
+      return trabajador;
+    })
 
   try{
-    const id = req.params.empresaId;
-    console.log(archivoBuffer);
-    //const trabajadores = await service.createExcel(datos, id);
-    res.status(201)
+    //console.log(trabajadores);
+    const trabajadoresbd = await service.createExcel(trabajadores, Number(id));
+    //console.log(trabajadoresbd);
+    res.status(201).json({ msg: "se ingresaron todos los datos" })
   }catch(error){
     next(error);
   }

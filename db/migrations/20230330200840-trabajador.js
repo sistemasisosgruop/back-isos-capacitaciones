@@ -20,7 +20,7 @@ module.exports = {
     await queryInterface.dropTable(TRABAJADOR_TABLE);
     await queryInterface.dropTable(ADMINISTRADOR_TABLE);
     await queryInterface.dropTable(USUARIO_TABLE);
-    await queryInterface.dropTable(EMPRESA_TABLE);
     await queryInterface.dropTable(TEST_TABLE);
+    await queryInterface.dropTable(EMPRESA_TABLE);
   }
 };

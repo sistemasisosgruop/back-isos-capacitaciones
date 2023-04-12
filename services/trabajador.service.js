@@ -31,8 +31,9 @@ class TrabajadorService{
             const newUser = { username, contraseña };
             return { nombres, apellidoPaterno, apellidoMaterno, dni, genero, edad, areadetrabajo, cargo, fechadenac, user: newUser, empresaId };
         });
-
-        const trabajador = await models.Trabajador.bulkCreate(datos);
+        const trabajador = await models.Trabajador.bulkCreate(datos,{
+            include:['user']
+        });
         return trabajador;
     }
 
