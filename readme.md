@@ -73,35 +73,129 @@ respuesta de post ejemplo y devolución en get
         "RUC": "201001234"
     }
 ```
+#### PATCH /api/v1/empresas/1
 
+```bash
+    {
+        "nombreEmpresa":"reto",
+    }
+```
+Puedes mandar cualquier de los datos y patch lo cambiará 
+
+#### GET /api/v1/empresas
+Usa la ruta GET para traer todas las empresas
+#### GET /api/v1/empresas/id
+Usa la ruta para traer la empresa con el ID
+#### GET /api/v1/empresas/id/logo y GET /api/v1/empresas/id/certificado
+Usa la ruta para pedir el archivo de logo
+
+Ejemplo de como hacer la petición
+```bash
+    const response = await fetch(`${url}/api/v1/empresas/${id}/${logo o certificado}`)
+    const logo = await response.blob();
+    return logo
+```
+Ejemplo de mostrar el logo
+```bash
+    const url = URL.createObjectURL(new Blob([logo]));
+    const logoElement = document.getElementById("logo");
+    logoElement.src = url;
+```
 
 
 
 ### Ruta de trabajadores
 ```bash
-   GET/POST/PATCH/DELETE   /api/v1/trabajadores
-   GET /api/v1/trabajadores/id
+   GET/POST   /api/v1/trabajadores
+   GET/PATCH/DELETE /api/v1/trabajadores/id
 ```
+
+#### POST /api/v1/trabajadores
+
 Ejemplo de petición:
 
-en post(obligatorio) y patch(cualquiera de los valores), en los demás la query id
+El DNI es unico e igual el username, sí se repite te dirá error
 
 ```bash
     {
-        "nombres":"",
-        "apellidoPaterno":"",
-        "apellidoMaterno":"",
-        "dni": "",
-        "genero": "masculino", 
-        "edad": 18,
+        "nombres":"Emerson",
+        "apellidoPaterno":"Vilallta",
+        "apellidoMaterno":"Quispe",
+        "dni": "72895310",
+        "genero": "M",
+        "edad": 25,
         "areadetrabajo": "IT",
         "cargo": "Empleado",
         "fechadenac": "08/12/1998",
         "user":{
-            "username": "",
-            "contraseña": ""
+            "username": "72895310",
+            "contraseña": "72895382"
         },
-        "empresaId": 1
+        "empresaId":1
+    }
+```
+
+Respuesta de petición:
+
+```bash
+    {
+        "createdAt": "2023-04-13T07:15:43.297Z",
+        "id": 9,
+        "nombres": "Emerson",
+        "apellidoPaterno": "Vilallta",
+        "apellidoMaterno": "Quispe",
+        "dni": "72895310",
+        "genero": "M",
+        "edad": 25,
+        "areadetrabajo": "IT",
+        "cargo": "Empleado",
+        "fechadenac": "1998-08-12",
+        "user": {
+            "rol": "Trabajador",
+            "createdAt": "2023-04-13T07:15:43.299Z",
+            "id": 10,
+            "username": "72895310",
+            "contraseña": "$2b$10$cpZU6KkqhLPZJrnBbnxPMOyGHbdq4oHF8eq0E/lSI9uhWN8HNkl6q"
+        },
+        "empresaId": 1,
+        "userId": 10
+    }
+```
+
+#### PATCH /api/v1/trabajadores/id
+
+Manda varios cambios o un solo cambio
+
+```bash
+    {
+        "edad": 40
+    }
+```
+
+#### GET /api/v1/trabajadores o GET /api/v1/trabajadores/id
+
+Trae todos los trabajadores o bien solo uno depende del ID
+
+#### POST /api/v1/trabajadores/cargaexcel/empresaId
+
+Manda el archivo excel predeterminado, y crea todos los trabajadores
+del id de la empresa
+
+Ejemplo de petición:
+
+```bash
+    const url = `${prod}api/v1/trabajadores/cargaexcel/${empresaId}`
+    const formData = new FormData();
+        formData.append('file', archivo);
+        fetch(url, {
+          method: 'POST',
+          body: formData
+        })
+```
+Respuesta
+```bash
+    {
+        "msg": "Creados correctamente"
     }
 ```
 
