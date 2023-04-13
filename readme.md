@@ -2,9 +2,16 @@
 
 API isos CAPACITACIÓN
 
+## Demo backend railway
 
+```bash
+    https://expressjs-postgres-production-9d5a.up.railway.app/
 
-## Installation
+    ejemplo:
+    https://expressjs-postgres-production-9d5a.up.railway.app/api/v1/empresas
+```
+
+## Installation local
 
 Clona el repositorio
 
@@ -29,37 +36,44 @@ Configura el .env con el archivo .env.example
 ```bash
    GET/POST   /api/v1/empresas
    GET/PATCH/DELETE /api/v1/empresas/id
+   GET /api/v1/id/logo
+   GET /api/v1/id/certificado 
 ```
-Ejemplo de petición:
+Ejemplos de peticiones:
 
-primero crear una empresa antes de crear trabajadores
+Primero crear una empresa antes de crear trabajadores
+
+#### POST /api/v1/empresas
 
 ```bash
     {
         "nombreEmpresa":"prueba",
         "direccion":"alguna vez",
         "nombreGerente":"prueba",
-        "numeroContacto":928924575,
-        "imagenLogo":"prueba.png",
-        "imagenCertificado":"prueba.png",
-        "RUC": 20012318904
+        "numeroContacto": "928924575",
+        "imagenLogo": foto.png ,
+        "imagenCertificado": foto.png,
+        "RUC": "20012318904"
     }
 ```
+Recordar que en imagenLogo e imagenCertificado son archivos los que recibe
+
 respuesta de post ejemplo y devolución en get
 
 ```bash
     {
-        "createdAt": "2023-04-04T22:27:23.482Z",
+        "createdAt": "2023-04-13T06:48:36.718Z",
         "id": 1,
-        "nombreEmpresa": "prueba",
-        "direccion": "alguna vez",
-        "nombreGerente": "prueba",
-        "numeroContacto": 928924575,
-        "imagenLogo": "prueba.png",
-        "imagenCertificado": "prueba.png",
-        "RUC": 20012318904
+        "nombreEmpresa": "isos",
+        "direccion": "avenida siempre viva",
+        "nombreGerente": "emerson",
+        "numeroContacto": "928924575",
+        "imagenLogo": "f0a8f03cf1589f571afd988bf1513f85",
+        "imagenCertificado": "26b56c20645548df5cbfb70aa69ba406",
+        "RUC": "201001234"
     }
 ```
+
 
 
 
