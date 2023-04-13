@@ -72,7 +72,6 @@ const TrabajadorSchema = {
         field: 'empresa_id',
         allowNull: false,
         type: DataTypes.INTEGER,
-        unique: true,
         references:{
             model: EMPRESA_TABLE,
             key: 'id'

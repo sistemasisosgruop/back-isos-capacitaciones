@@ -12,7 +12,6 @@ const UsuarioSchema = {
   username: {
     allowNull: false,
     type: DataTypes.STRING,
-    unique: true,
   },
   contraseña: {
     allowNull: false,

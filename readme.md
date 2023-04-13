@@ -24,6 +24,44 @@ Configura el .env con el archivo .env.example
     
 ## Rutas hasta el momento
 
+### Ruta de empresas
+
+```bash
+   GET/POST   /api/v1/empresas
+   GET/PATCH/DELETE /api/v1/empresas/id
+```
+Ejemplo de petición:
+
+primero crear una empresa antes de crear trabajadores
+
+```bash
+    {
+        "nombreEmpresa":"prueba",
+        "direccion":"alguna vez",
+        "nombreGerente":"prueba",
+        "numeroContacto":928924575,
+        "imagenLogo":"prueba.png",
+        "imagenCertificado":"prueba.png",
+        "RUC": 20012318904
+    }
+```
+respuesta de post ejemplo y devolución en get
+
+```bash
+    {
+        "createdAt": "2023-04-04T22:27:23.482Z",
+        "id": 1,
+        "nombreEmpresa": "prueba",
+        "direccion": "alguna vez",
+        "nombreGerente": "prueba",
+        "numeroContacto": 928924575,
+        "imagenLogo": "prueba.png",
+        "imagenCertificado": "prueba.png",
+        "RUC": 20012318904
+    }
+```
+
+
 
 ### Ruta de trabajadores
 ```bash
@@ -48,7 +86,8 @@ en post(obligatorio) y patch(cualquiera de los valores), en los demás la query 
         "user":{
             "username": "",
             "contraseña": ""
-        }
+        },
+        "empresaId": 1
     }
 ```
 
