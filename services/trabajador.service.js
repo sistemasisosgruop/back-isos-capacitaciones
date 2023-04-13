@@ -16,22 +16,25 @@ class TrabajadorService{
                 contraseña: hash
             }
         }
-        const nuevotrabajador = await models.Trabajador.create(nuevoData,{
-            include:['user']
-        });
+        const comprobarUsuario = await models.Usuario.findOne({
+            where: {username: nuevoData.user.username}
+        })
+        if (!comprobarUsuario) {
+            
+            const nuevotrabajador = await models.Trabajador.create(nuevoData,{
+                include:['user']
+            });   
+                
+            delete nuevotrabajador.dataValues.user.dataValues.password;
+            return nuevotrabajador;
+        } else {
+            return false;
+        }
 
-        delete nuevotrabajador.dataValues.user.dataValues.password;
-        return nuevotrabajador;
     }
 
     async createExcel(datos, empreId ){
-        /*datos = datos.map(objeto => {
-            const { nombres, apellidoPaterno, apellidoMaterno, dni, genero, edad, areadetrabajo, cargo, fechadenac, contraseña } = objeto;
-            const empresaId = empreId;
-            const username = dni;
-            const newUser = { username, contraseña };
-            return { nombres, apellidoPaterno, apellidoMaterno, dni, genero, edad, areadetrabajo, cargo, fechadenac, user: newUser, empresaId };
-        });*/
+        
         datos = datos.map(objeto=>{
             const nombres = objeto.NOMBRES?objeto.NOMBRES:'corregir nombre';
             const apellidoPaterno = objeto['APELLIDO PATERNO']?objeto['APELLIDO PATERNO']:'corregir apellido';
@@ -49,17 +52,23 @@ class TrabajadorService{
             const empresaId = empreId;
             return { nombres, apellidoPaterno, apellidoMaterno, dni, genero, edad, areadetrabajo, cargo, fechadenac, user: newUser, empresaId };
         })
+        
 
         const nuevosTrabajadores = [];
         for(const i of datos){
             const trabajadorExistente = await this.findByDni(i.dni.toString());
-            if(!trabajadorExistente){
+            const usuarioExistente = await models.Usuario.findOne({
+                where: {username: i.user.username.toString()}
+            })
+            if(!trabajadorExistente && !usuarioExistente){
                 nuevosTrabajadores.push(i);
             }
         }
         console.log(nuevosTrabajadores);
         if (nuevosTrabajadores.length > 0) {
-            
+            for (const usuario of nuevosTrabajadores) {
+                usuario.user.contraseña = await bcrypt.hash(usuario.user.contraseña.toString(), 10);
+            }
             const trabajador = await models.Trabajador.bulkCreate(nuevosTrabajadores,{
                 include:['user']
             });

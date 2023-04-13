@@ -51,7 +51,7 @@ router.post('/',
         })
       }else{
         const nuevotrabajador = await service.create(body);
-        res.status(201).json(nuevotrabajador);
+        res.status(201).json(nuevotrabajador?nuevotrabajador:{msg:'ya existe el usuario'});
       }
       
     } catch (error) {
