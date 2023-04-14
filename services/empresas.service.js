@@ -25,7 +25,9 @@ class EmpresaService{
     }
 
     async findOne(id){
-        const empresa =  await models.Empresa.findByPk(id);
+        const empresa =  await models.Empresa.findByPk(id,{
+            include: ['trabajadores']
+        });
         if(!empresa){
             throw boom.notFound('Empresa no encontrado');
         }
