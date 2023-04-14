@@ -16,6 +16,8 @@ RUN npm ci
 
 COPY . .
 
+RUN npm run migrations:delete
+
 RUN npm run migrations:run
 
 EXPOSE 8080
