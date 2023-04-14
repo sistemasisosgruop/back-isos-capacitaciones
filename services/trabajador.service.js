@@ -80,20 +80,23 @@ class TrabajadorService{
 
     async find(){
         const trabajador = await models.Trabajador.findAll({
-            include:['user']
+            include:['user','empresa']
         });
         return trabajador
     }
 
     async findByDni(dni){
         const trabajador = await models.Trabajador.findOne({
-            where: {dni}
+            where: {dni},
+            include: ['user', 'empresa']
         });
         return trabajador
     }
 
     async findOne(id){
-        const trabajador =  await models.Trabajador.findByPk(id);
+        const trabajador =  await models.Trabajador.findByPk(id,{
+            include: ['user', 'empresa']
+        });
         if(!trabajador){
             throw boom.notFound('Trabajador no encontrado')
         }
@@ -102,6 +105,7 @@ class TrabajadorService{
 
     async update(id, changes){
         const trabajador = await this.findOne(id);
+        console.log(trabajador)
         const respuesta = await trabajador.update(changes);
         return respuesta;
     }
