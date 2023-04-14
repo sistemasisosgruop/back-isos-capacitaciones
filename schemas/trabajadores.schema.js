@@ -14,7 +14,7 @@ const fechadenac = Joi.string().custom((value, helpers)=>{
 const date = moment(value, 'YYYY/MM/DD', true);
   if(!date.isValid()){
     return helpers.message({
-      custom: 'La fecha de nacimiento debe estar en el formato DD/MM/YYYY o tiene una mal fecha 32/02/1990'
+      custom: 'La fecha de nacimiento debe estar en el formato YYYY/MM/DD o tiene una mal fecha 32/02/1990'
     })
   }else if (date.isAfter(moment())) {
     return helpers.message({
