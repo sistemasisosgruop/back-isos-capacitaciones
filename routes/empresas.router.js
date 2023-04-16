@@ -81,12 +81,15 @@ router.get('/:id/certificado', async (req, res, next) => {
 
 router.patch('/:id',
   validatorHandler(getEmpresaSchema, 'params'),
-  validatorHandler(updateEmpresaSchema, 'body'),
+  //validatorHandler(updateEmpresaSchema, 'body'),
+  upload.fields([{name: 'imagenLogo', maxCount: 1},{name:'imagenCertificado', maxCount:1}]),
+  
   async (req, res, next) => {
     try {
       const { id } = req.params;
       const body = req.body;
-      const Empresa = await service.update(id, body);
+      const files = req.files;
+      const Empresa = await service.update(id, {...body, ...files});
       res.json(Empresa);
     } catch (error) {
       next(error);

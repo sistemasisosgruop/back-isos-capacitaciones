@@ -36,8 +36,11 @@ class EmpresaService{
 
     async update(id, changes){
         const empresa = await this.findOne(id);
-        const respuesta = await empresa.update(changes);
-        return respuesta;
+        console.log(id);
+        console.log(changes.imagenCertificado[0].filename);
+        //const respuesta = await empresa.update(changes);
+        
+        return empresa;
     }
 
     async delete(id){
