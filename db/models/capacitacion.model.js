@@ -40,6 +40,31 @@ const CapacitacionSchema = {
     fechaFinAplaza:{
         allowNull: false,
         type: DataTypes.DATEONLY
+    },
+    createdAt:{
+        allowNull: falsem,
+        type: DataTypes.DATE,
+        field: 'created_at',
+        defaultValue: Sequelize.NOW
     }
-
 }
+
+class Capacitacion extends Model{
+    static associate(models){
+        this.belongsToMany(models.Empresa,{
+            through: 'capacitacion_empresa'
+        })
+    }
+    static config(sequelize){
+        return{
+            sequelize,
+            tableName: CAPACITACION_TABLE,
+            modelName: 'Capacitacion',
+            timestamps: false,
+            updatedAt: false,
+            deletedAt: false,
+        }
+    }
+}
+
+module.exports = {CAPACITACION_TABLE, Capacitacion, CapacitacionSchema}
