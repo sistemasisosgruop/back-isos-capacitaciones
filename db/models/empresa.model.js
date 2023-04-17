@@ -23,7 +23,7 @@ const EmpresaSchema = {
     },
     numeroContacto:{
         allowNull: false,
-        type: DataTypes.BIGINT
+        type: DataTypes.STRING
     },
     imagenLogo:{
         allowNull: false,
@@ -35,7 +35,7 @@ const EmpresaSchema = {
     },
     RUC:{
         allowNull: false,
-        type: DataTypes.BIGINT
+        type: DataTypes.STRING
     },
     createdAt:{
         allowNull: false,

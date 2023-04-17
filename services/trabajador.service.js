@@ -56,6 +56,7 @@ class TrabajadorService{
 
         const nuevosTrabajadores = [];
         for(const i of datos){
+            console.log(i);
             const trabajadorExistente = await this.findByDni(i.dni.toString());
             const usuarioExistente = await models.Usuario.findOne({
                 where: {username: i.user.username.toString()}
