@@ -55,10 +55,10 @@ class Empresa extends Model{
             as: 'tests',
             foreignKey: 'empresaId' 
         })
-        /*this.belongsToMany(models.Capacitacion,{
-            through: 'capacitacion_empresa',
-            foreignKey: 'capacitacionId'
-        })*/
+        this.belongsToMany(models.Capacitacion, {
+            through: models.CapacitacionEmpresa,
+            foreignKey: 'empresaId',
+        });
     }
     static config(sequelize){
         return{

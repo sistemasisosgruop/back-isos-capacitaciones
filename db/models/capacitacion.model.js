@@ -9,40 +9,32 @@ const CapacitacionSchema = {
         autoIncrement: true,
         type: DataTypes.INTEGER,
     },
-    nombreCap:{
+    nombre:{
         allowNull: false,
         type: DataTypes.STRING,
     },
-    nombreEmp:{
+    instructor:{
         allowNull: false,
         type: DataTypes.STRING,
     },
-    nombreIns:{
-        allowNull: false,
-        type: DataTypes.STRING,
+    fechaInicio: {
+      type: DataTypes.DATEONLY,
+      allowNull: false,
     },
-    firmaIns:{
-        allowNull: false,
-        type: DataTypes.STRING,
+    fechaCulminacion: {
+      type: DataTypes.DATEONLY,
+      allowNull: false,
     },
-    examenDoc:{
-        allowNull: false,
-        type: DataTypes.STRING,
+    urlVideo: {
+      type: DataTypes.STRING,
+      allowNull: false,
     },
-    fechaIni:{
-        allowNull: false,
-        type: DataTypes.DATEONLY
-    },
-    fechafin:{
-        allowNull: false,
-        type: DataTypes.DATEONLY
-    },
-    fechaFinAplaza:{
-        allowNull: false,
-        type: DataTypes.DATEONLY
+    certificado: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
     createdAt:{
-        allowNull: falsem,
+        allowNull: false,
         type: DataTypes.DATE,
         field: 'created_at',
         defaultValue: Sequelize.NOW
@@ -51,8 +43,13 @@ const CapacitacionSchema = {
 
 class Capacitacion extends Model{
     static associate(models){
-        this.belongsToMany(models.Empresa,{
-            through: 'capacitacion_empresa'
+        this.belongsToMany(models.Empresa, {
+            through: models.CapacitacionEmpresa,
+            foreignKey: 'capacitacionId',
+          });
+        this.hasOne(models.Examen,{
+            as: 'examen',
+            foreignKey: 'capacitacionId'
         })
     }
     static config(sequelize){
