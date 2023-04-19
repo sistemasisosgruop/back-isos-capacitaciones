@@ -19,6 +19,7 @@ router.get('/', async(req, res, next)=>{
 
 router.get('/:id', async(req,res,next)=>{
     try {
+        const {id} = req.params;
         const capacitacion = await models.Capacitacion.findByPk(id,{
             include: ['examen', 'Empresas']
         });
