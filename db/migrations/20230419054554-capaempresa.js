@@ -1,7 +1,5 @@
 'use strict';
 
-const { EXAMEN_TABLE, ExamenSchema } = require('../models/examen.model');
-const { PREGUNTA_TABLE, PreguntaSchema } = require('../models/pregunta.model');
 const {CAPACITACION_EMPRESA_TABLE, CapacitacionEmpresaSchema} = require('../models/capacitacionEmpresa.model')
 
 /** @type {import('sequelize-cli').Migration} */
@@ -13,10 +11,8 @@ module.exports = {
      * Example:
      * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
      */
-    
     await queryInterface.createTable(CAPACITACION_EMPRESA_TABLE, CapacitacionEmpresaSchema);
-    await queryInterface.createTable(EXAMEN_TABLE, ExamenSchema);
-    await queryInterface.createTable(PREGUNTA_TABLE, PreguntaSchema);
+    
   },
 
   async down (queryInterface, Sequelize) {
@@ -26,7 +22,5 @@ module.exports = {
      * Example:
      * await queryInterface.dropTable('users');
      */
-    await queryInterface.dropTable(PREGUNTA_TABLE);
-    await queryInterface.dropTable(EXAMEN_TABLE)
   }
 };
