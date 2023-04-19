@@ -176,9 +176,6 @@ router.post('/',
     try {
       const body = req.body;
       
-      //const nuevotrabajador = await service.create(body);
-      //res.status(201).json(nuevotrabajador);
-      console.log(body.user.username);
       const valdni = await service.findByDni(body.dni)
       if(valdni){
         res.status(400).json({
@@ -235,7 +232,6 @@ router.post('/cargaexcel/:empresaId',
     const workbook = xlsx.readFile(file.path);
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
     const datos = xlsx.utils.sheet_to_json(worksheet, { header: 1, range: 4});
-    console.log(datos);
     const datosFiltrados = datos.filter(arr=>arr.length>0);    
     const headers = datosFiltrados[0];
     const rows = datosFiltrados.slice(1);
@@ -255,7 +251,7 @@ router.post('/cargaexcel/:empresaId',
       });
       return trabajador;
     })
-    console.log(trabajadores);
+    
   try{
     const empresa = await serviceEmpresa.findOne(id);
     

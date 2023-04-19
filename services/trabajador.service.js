@@ -56,7 +56,6 @@ class TrabajadorService{
 
         const nuevosTrabajadores = [];
         for(const i of datos){
-            console.log(i);
             const trabajadorExistente = await this.findByDni(i.dni.toString());
             const usuarioExistente = await models.Usuario.findOne({
                 where: {username: i.user.username.toString()}
@@ -65,7 +64,6 @@ class TrabajadorService{
                 nuevosTrabajadores.push(i);
             }
         }
-        console.log(nuevosTrabajadores);
         if (nuevosTrabajadores.length > 0) {
             for (const usuario of nuevosTrabajadores) {
                 usuario.user.contraseña = await bcrypt.hash(usuario.user.contraseña.toString(), 10);
@@ -106,7 +104,6 @@ class TrabajadorService{
 
     async update(id, changes){
         const trabajador = await this.findOne(id);
-        console.log(trabajador)
         const respuesta = await trabajador.update(changes);
         return respuesta;
     }

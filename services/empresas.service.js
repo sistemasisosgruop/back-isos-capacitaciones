@@ -56,10 +56,8 @@ class EmpresaService{
         const empresa = await models.Empresa.findByPk(id,{
             include: ['trabajadores']
         });
-        //console.log(empresa);
         if(!empresa.dataValues.trabajadores.length>0){
             await empresa.destroy();
-            console.log('Borrado');
             return {id}
         }else{
             throw new Error('Existen trabajadores en la empresa')

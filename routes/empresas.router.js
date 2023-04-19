@@ -326,7 +326,6 @@ router.patch('/:id',
       const { id } = req.params;
       const body = req.body;
       const files = req.files;
-      console.log(body);
       const Empresa = await service.update(id, {...body, ...files});
       res.json(Empresa);
     } catch (error) {

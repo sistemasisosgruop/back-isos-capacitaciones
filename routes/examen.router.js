@@ -9,13 +9,33 @@ router.get('/', async (req,res, next)=>{
         const examenes = await models.Examen.findAll({
             include: ['capacitacion', 'pregunta']
         });
-        const associations = await models.Examen.associations;
-        const methods = await models.Examen.sequelize;
-        console.log(methods);
-        console.log(associations);
         res.json(examenes);
     } catch (error) {
         next(error)
+    }
+})
+
+router.get('/preguntas', async (req,res, next)=>{
+    try {
+        const preguntas = await models.Pregunta.findAll()
+        res.json(preguntas);
+    } catch (error) {
+        next(error)
+    }
+})
+
+router.get('/:id', async(req,res, next)=>{
+    try {
+        const id = req.params.id;
+        const examenes = await models.Examen.findByPk(id, {
+            include: ['capacitacion', 'pregunta']
+        });
+        if(!examenes){
+            res.status(404).json({message: 'No existe el examen'})
+        }
+        res.json(examenes)
+    } catch (error) {
+        next(error)        
     }
 })
 
