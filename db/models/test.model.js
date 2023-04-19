@@ -8,7 +8,7 @@ const TestSchema = {
     id: {
         allownull: false,
         primaryKey: true,
-        autoincrement: true,
+        autoIncrement: true,
         type: DataTypes.INTEGER,
     },
     detalle:{
@@ -37,7 +37,6 @@ const TestSchema = {
         field: 'empresa_id',
         allowNull: false,
         type: DataTypes.INTEGER,
-        unique: true,
         references:{
             model: EMPRESA_TABLE,
             key: 'id'
@@ -48,11 +47,13 @@ const TestSchema = {
 };
 
 class Test extends Model{
-    static associate(models){
-        this.belongsTo(models.Empresa,{
-            as: 'empresa'
-        })
-    }
+    static associate(models) {
+        this.belongsToMany(models.Empresa, {
+            through: models.TestEmpresa,
+            foreignKey: 'testId',
+        });
+      }
+    
     static config(sequelize){
         return {
             sequelize,

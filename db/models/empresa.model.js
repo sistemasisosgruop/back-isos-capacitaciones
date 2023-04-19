@@ -51,8 +51,8 @@ class Empresa extends Model{
             as: 'trabajadores',
             foreignKey: 'empresaId'
         })
-        this.hasMany(models.Test,{
-            as: 'tests',
+        this.belongsToMany(models.Test,{
+            through: models.TestEmpresa,
             foreignKey: 'empresaId' 
         })
         this.belongsToMany(models.Capacitacion, {
