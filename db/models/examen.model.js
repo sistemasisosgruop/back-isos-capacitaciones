@@ -13,10 +13,10 @@ const ExamenSchema = {
     type: DataTypes.STRING,
     allowNull: false
   },
-  puntaje:{
-    type: DataTypes.INTEGER,
+  fechadeExamen:{
+    type: DataTypes.DATEONLY,
     allowNull: false,
-    defaultValue: 0
+    defaultValue: Sequelize.NOW
   },
   createdAt:{
       allowNull: false,
