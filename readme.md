@@ -260,3 +260,337 @@ respuesta:
     }
 
 ```
+
+### Ruta de capacitaciones
+
+```bash
+   GET/POST   /api/v1/capacitaciones
+   GET/PATCH/DELETE /api/v1/capacitaciones/id
+   POST /api/v1/capacitaciones/:idcapacitacion/examen
+   GET /api/v1/id/certificado 
+```
+Ejemplos de peticiones:
+
+Primero crear una empresa antes de crear trabajadores
+
+#### POST /api/v1/capacitaciones
+
+```bash
+    {
+        "nombre":"prueba",
+        "instructor":"alguna vez",
+        "fechaInicio":"prueba",
+        "fechaCulminacion": "928924575",
+        "urlVideo": "https://example.com" ,
+        "certificado": "archivo imagen",
+        "examen": {
+                "titulo": "Ejemplo de examen",
+                "preguntas": [
+                    {
+                    "texto": "¿Cuál es la capital de Francia?",
+                    "opcion1": "Madrid",
+                    "opcion2": "París",
+                    "opcion3": "Londres",
+                    "opcion4": "Roma",
+                    "opcion5": "Berlín",
+                    "respuesta_correcta": 2,
+                    "puntajeDePregunta": 4
+                    },
+                    {
+                    "texto": "¿Quién pintó la Mona Lisa?",
+                    "opcion1": "Vincent van Gogh",
+                    "opcion2": "Leonardo da Vinci",
+                    "opcion3": "Pablo Picasso",
+                    "opcion4": "Claude Monet",
+                    "opcion5": "Salvador Dalí",
+                    "respuesta_correcta": 2,
+                    "puntajeDePregunta": 5
+                    },
+                    {
+                    "texto": "¿Cuál es el animal más rápido del mundo?",
+                    "opcion1": "Cebra",
+                    "opcion2": "Leopardo",
+                    "opcion3": "Guepardo",
+                    "opcion4": "León",
+                    "opcion5": "Tigre",
+                    "respuesta_correcta": 3,
+                    "puntajeDePregunta": 7
+                    }
+                ]
+            }
+
+    }
+```
+Recordar que en certificado son imagenes, usted puede crear el examen ahí junto a la capacitación o aparte
+
+#### POST api/v1/capacitaciones/:idcapacitacion/examen
+```bash
+{
+  "titulo": "Ejemplo de examen",
+  "preguntas": [
+    {
+      "texto": "¿Cuál es la capital de Francia?",
+      "opcion1": "Madrid",
+      "opcion2": "París",
+      "opcion3": "Londres",
+      "opcion4": "Roma",
+      "opcion5": "Berlín",
+      "respuesta_correcta": 2,
+			"puntajeDePregunta": 4
+    },
+    {
+      "texto": "¿Quién pintó la Mona Lisa?",
+      "opcion1": "Vincent van Gogh",
+      "opcion2": "Leonardo da Vinci",
+      "opcion3": "Pablo Picasso",
+      "opcion4": "Claude Monet",
+      "opcion5": "Salvador Dalí",
+      "respuesta_correcta": 2,
+			"puntajeDePregunta": 5
+    },
+    {
+      "texto": "¿Cuál es el animal más rápido del mundo?",
+      "opcion1": "Cebra",
+      "opcion2": "Leopardo",
+      "opcion3": "Guepardo",
+      "opcion4": "León",
+      "opcion5": "Tigre",
+      "respuesta_correcta": 3,
+			"puntajeDePregunta": 7
+    }
+  ]
+}
+
+```
+Ejemplos de capacitaciones
+LINK DEMO
+```bash
+    https://expressjs-postgres-production-9d5a.up.railway.app/api/v1/capacitaciones
+```
+
+#### PATCH /api/v1/capacitaciones/1
+
+```bash
+    {
+        "nombre":"reto",
+    }
+```
+Puedes mandar cualquier de los datos y patch lo cambiará 
+
+#### GET /api/v1/capacitaciones
+Usa la ruta GET para traer todas las empresas
+#### GET /api/v1/capacitaciones/id
+Usa la ruta para traer la empresa con el ID
+
+
+### Ruta de examenes
+
+    ```bash
+        GET api/v1/examenes
+        GET api/v1/examenes/preguntas
+        GET api/v1/examenes/:examenid
+    ```
+
+Todas las rutas para pedir examenes o las preguntas
+
+Ejemplo de examenes en GET
+```bash
+    [
+	{
+		"id": 1,
+		"titulo": "Ejemplo de examen",
+		"puntaje": 0,
+		"createdAt": "2023-04-20T04:14:29.271Z",
+		"capacitacionId": 1,
+		"capacitacion": {
+			"id": 1,
+			"nombre": "Administrativa",
+			"instructor": "Miguel",
+			"fechaInicio": "2023-04-06",
+			"fechaCulminacion": "2023-04-19",
+			"urlVideo": "https://www.youtube.com/watch?v=HrRruQIC6gY",
+			"certificado": "firmas\\3af67b4cdc27a432888adea4f6d632b3",
+			"createdAt": "2023-04-20T04:10:24.553Z"
+		},
+		"pregunta": [
+			{
+				"id": 3,
+				"texto": "¿Cuál es el animal más rápido del mundo?",
+				"opcion1": "Cebra",
+				"opcion2": "Leopardo",
+				"opcion3": "Guepardo",
+				"opcion4": "León",
+				"opcion5": "Tigre",
+				"respuesta_correcta": 3,
+				"puntajeDePregunta": 7,
+				"examenId": 1
+			},
+			{
+				"id": 2,
+				"texto": "¿Quién pintó la Mona Lisa?",
+				"opcion1": "Vincent van Gogh",
+				"opcion2": "Leonardo da Vinci",
+				"opcion3": "Pablo Picasso",
+				"opcion4": "Claude Monet",
+				"opcion5": "Salvador Dalí",
+				"respuesta_correcta": 2,
+				"puntajeDePregunta": 5,
+				"examenId": 1
+			},
+			{
+				"id": 1,
+				"texto": "¿Cuál es la capital de Francia?",
+				"opcion1": "Madrid",
+				"opcion2": "París",
+				"opcion3": "Londres",
+				"opcion4": "Roma",
+				"opcion5": "Berlín",
+				"respuesta_correcta": 2,
+				"puntajeDePregunta": 4,
+				"examenId": 1
+			}
+		]
+	}
+]
+```
+
+### RUTA REPORTE
+
+```bash
+    GET api/v1/reporte
+    POST api/v1/darexamen/:apacitacionesId/:trabajadorId/:examenId
+
+```
+#### POST dar examem
+
+Ejemplo de post dar examen, genera reporte automaticamente
+
+```bash
+    /api/v1/reporte/darexamen/1/12/1
+
+    {
+	"respuestas": [2,3,3] 
+    }
+```
+
+respuesta a la peticion POST
+```bash
+{
+	"asistenciaCapacitación": false,
+	"createdAt": "2023-04-20T10:32:39.900Z",
+	"id": 1,
+	"notaExamen": 11,
+	"asistenciaExamen": true,
+	"rptpregunta1": 2,
+	"rptpregunta2": 3,
+	"rptpregunta3": 3,
+	"rptpregunta4": 0,
+	"rptpregunta5": 0,
+	"trabajadorId": 12,
+	"examenId": 1,
+	"capacitacionId": 1
+}
+```
+
+#### Peticion GET de reporte
+
+Ejemplo de respuesta
+```bash
+[
+	{
+		"id": 1,
+		"notaExamen": 11,
+		"asistenciaCapacitación": false,
+		"asistenciaExamen": true,
+		"rptpregunta1": 2,
+		"rptpregunta2": 3,
+		"rptpregunta3": 3,
+		"rptpregunta4": 0,
+		"rptpregunta5": 0,
+		"createdAt": "2023-04-20T10:32:39.900Z",
+		"trabajadorId": 12,
+		"examenId": 1,
+		"capacitacionId": 1,
+		"examen": {
+			"id": 1,
+			"titulo": "Ejemplo de examen",
+			"puntaje": 0,
+			"createdAt": "2023-04-20T04:14:29.271Z",
+			"capacitacionId": 1
+		},
+		"capacitacion": {
+			"id": 1,
+			"nombre": "Administrativa",
+			"instructor": "Miguel",
+			"fechaInicio": "2023-04-06",
+			"fechaCulminacion": "2023-04-19",
+			"urlVideo": "https://www.youtube.com/watch?v=HrRruQIC6gY",
+			"certificado": "firmas\\3af67b4cdc27a432888adea4f6d632b3",
+			"createdAt": "2023-04-20T04:10:24.553Z"
+		},
+		"trabajador": {
+			"id": 12,
+			"nombres": "EMERSON EDWARD",
+			"apellidoPaterno": "VILLALTA",
+			"apellidoMaterno": "QUISPE",
+			"dni": "12345876",
+			"genero": "M",
+			"edad": 25,
+			"fechadenac": "1998-12-08",
+			"areadetrabajo": "MINA",
+			"cargo": "TÉCNICO DE CAMPO",
+			"habilitado": true,
+			"createdAt": "2023-04-20T04:04:29.040Z",
+			"userId": 13,
+			"empresaId": 1
+		}
+	}
+]
+```
+
+### RUTA TEST
+
+```bash
+    GET/POST  api/v1/test
+    GET/PATCH/DELETE api/v1/test/:id
+
+```
+
+#### POST test
+
+Mandas los detalles del test, y los ID de las empresas
+```bash
+    { 
+	"detalle": "pruebaT", 
+ 	"urlTest": "https://www.youtube.com/watch?v=7JqeQM_9h_8",
+	"fechaCr": "2023-04-18",
+	"fechaVen":"2023-04-17",
+	"empresas": [
+		1,3
+	] 
+}
+```
+
+#### PATCH api/v1/test/:id
+
+Mandas lo que quieras cambiar del test
+
+```bash
+{ 
+	"detalle": "pruebaTest", 
+ 	"urlTest": "https://www.youtube.com/watch?v=7JqeQM_9h_8",
+	"fechaCr": "2023-04-14",
+	"fechaVen":"2023-04-19",
+	"empresas": [
+		1,2
+	] 
+}
+```
+
+#### GET
+
+Ambos get te generan todos los test y si mandas un ID el test con el ID
+
+#### DELETE
+
+Puedes borrar los tests
