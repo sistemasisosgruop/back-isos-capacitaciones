@@ -50,6 +50,11 @@ const TrabajadorSchema = {
         allowNull: false,
         type: DataTypes.STRING
     },
+    habilitado:{
+        allowNull: false,
+        type: DataTypes.BOOLEAN,
+        defaultValue: true,
+    },
     createdAt:{
         allowNull: false,
         type: DataTypes.DATE,
@@ -89,7 +94,11 @@ class Trabajador extends Model{
         });
         this.belongsTo(models.Empresa,{
             as: 'empresa'
-        })
+        });
+        this.hasOne(models.Reporte,{
+            as: 'reporte',
+            foreignKey: 'trabajadorId'
+        });
     }
     static config(sequelize){
         return{

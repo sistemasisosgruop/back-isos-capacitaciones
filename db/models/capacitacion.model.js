@@ -50,7 +50,12 @@ class Capacitacion extends Model{
         this.hasOne(models.Examen,{
             as: 'examen',
             foreignKey: 'capacitacionId'
-        })
+        });
+        this.hasOne(models.Reporte,{
+            as: 'reporte',
+            foreignKey: 'capacitacionId'
+        });
+
     }
     static config(sequelize){
         return{

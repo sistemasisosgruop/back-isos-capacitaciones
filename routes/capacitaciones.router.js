@@ -50,8 +50,8 @@ router.post('/', upload.single('certificado'), async (req, res) => {
       const examenCreado = await capacitacion.createExamen({ titulo: examen.titulo });
         
       for (const pregunta of examen.preguntas) {
-        const { texto, opcion1, opcion2, opcion3, opcion4, opcion5, respuesta_correcta } = pregunta;
-        const preguntaCreada = await models.Pregunta.create({ texto, examenId: examenCreado.id,texto, opcion1, opcion2, opcion3, opcion4, opcion5, respuesta_correcta });
+        const { texto, opcion1, opcion2, opcion3, opcion4, opcion5, respuesta_correcta, puntajeDePregunta } = pregunta;
+        const preguntaCreada = await models.Pregunta.create({ texto, examenId: examenCreado.id,texto, opcion1, opcion2, opcion3, opcion4, opcion5, respuesta_correcta, puntajeDePregunta });
       }
     }
       
@@ -79,8 +79,8 @@ router.post('/:capacitacionId/examen', async (req, res) => {
       const examenCreado = await capacitacion.createExamen({ titulo });
       
       for (const pregunta of preguntas) {
-        const { texto, opcion1, opcion2, opcion3, opcion4, opcion5, respuesta_correcta } = pregunta;
-        const preguntaCreada = await models.Pregunta.create({ texto, examenId: examenCreado.id,texto, opcion1, opcion2, opcion3, opcion4, opcion5, respuesta_correcta });
+        const { texto, opcion1, opcion2, opcion3, opcion4, opcion5, respuesta_correcta, puntajeDePregunta } = pregunta;
+        const preguntaCreada = await models.Pregunta.create({ texto, examenId: examenCreado.id,texto, opcion1, opcion2, opcion3, opcion4, opcion5, respuesta_correcta, puntajeDePregunta });
       }
       res.status(201).json(examenCreado);
     }

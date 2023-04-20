@@ -45,7 +45,11 @@ class Examen extends Model{
     this.hasMany(models.Pregunta,{
         foreignKey: 'examenId',
         as: 'pregunta'
-    })
+    });
+    this.hasOne(models.Reporte,{
+      as: 'reporte',
+      foreignKey: 'examenId'
+  });
   }
 
   static config(sequelize){

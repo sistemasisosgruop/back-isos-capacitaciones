@@ -40,6 +40,10 @@ const PreguntaSchema = {
     allowNull: false,
     defaultValue: 1
   },
+  puntajeDePregunta:{
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
   examenId: {
     field: 'examen_id',
     type: DataTypes.INTEGER,
