@@ -13,6 +13,11 @@ const ExamenSchema = {
     type: DataTypes.STRING,
     allowNull: false
   },
+  fechadeExamen:{
+    type: DataTypes.DATEONLY,
+    allowNull: false,
+    defaultValue: Sequelize.NOW
+  },
   createdAt:{
       allowNull: false,
       type: DataTypes.DATE,
@@ -40,7 +45,11 @@ class Examen extends Model{
     this.hasMany(models.Pregunta,{
         foreignKey: 'examenId',
         as: 'pregunta'
-    })
+    });
+    this.hasOne(models.Reporte,{
+      as: 'reporte',
+      foreignKey: 'examenId'
+  });
   }
 
   static config(sequelize){

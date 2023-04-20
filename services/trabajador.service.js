@@ -79,7 +79,7 @@ class TrabajadorService{
 
     async find(){
         const trabajador = await models.Trabajador.findAll({
-            include:['user','empresa']
+            include:['user','empresa', 'reporte']
         });
         return trabajador
     }
