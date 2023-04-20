@@ -273,6 +273,8 @@ Ejemplos de peticiones:
 
 Primero crear una empresa antes de crear trabajadores
 
+No es necesario que mandes un examen la primera vez, por eso genera otra ruta para mandar el examen 
+
 #### POST /api/v1/capacitaciones
 
 ```bash
