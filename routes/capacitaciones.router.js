@@ -104,7 +104,7 @@ router.patch('/:id', upload.single('certificado'), async (req, res) => {
       }
   
       // Actualizar los datos de la capacitación
-      const { nombre, instructor, fechaInicio, fechaCulminacion, urlVideo } = req.body;
+      const { nombre, instructor, fechaInicio, fechaCulminacion, urlVideo, fechaAplazo, horas } = req.body;
       const certificado = req.file ? req.file.path : capacitacion.certificado;
   
       await capacitacion.update({
@@ -113,26 +113,20 @@ router.patch('/:id', upload.single('certificado'), async (req, res) => {
         fechaInicio: fechaInicio ?? capacitacion.fechaInicio,
         fechaCulminacion: fechaCulminacion ?? capacitacion.fechaCulminacion,
         urlVideo: urlVideo ?? capacitacion.urlVideo,
+        fechaAplazo: fechaAplazo ?? capacitacion.fechaAplazo,
+        horas: horas?? capacitacion.horas,
         certificado,
       });
-  
-      // Obtener las empresas asociadas a la capacitación
-      const empresasActuales = await capacitacion.getEmpresas();
-  
-      // Obtener las empresas nuevas
-      const nuevasEmpresas = req.body.empresas ? Array.isArray(req.body.empresas) ? req.body.empresas : [req.body.empresas] : [];
-  
-      // Obtener las empresas a eliminar
-      const empresasAEliminar = empresasActuales.filter(empresa => !nuevasEmpresas.includes(empresa.id));
-  
-      // Obtener las empresas a agregar
-      const empresasAAgregar = nuevasEmpresas.filter(empresa => !empresasActuales.map(e => e.id).includes(empresa));
-  
-      // Eliminar las empresas que ya no están asociadas a la capacitación
-      await Promise.all(empresasAEliminar.map(empresa => capacitacion.removeEmpresa(empresa)));
-  
-      // Agregar las empresas nuevas a la capacitación
-      await Promise.all(empresasAAgregar.map(empresaId => capacitacion.addEmpresa(empresaId)));
+      
+      if (req.body.empresas) {
+        const empresasActuales = await capacitacion.getEmpresas();
+        const nuevasEmpresas = req.body.empresas ? Array.isArray(req.body.empresas) ? req.body.empresas : [req.body.empresas] : [];
+        const empresasAEliminar = empresasActuales.filter(empresa => !nuevasEmpresas.includes(empresa.id));
+        const empresasAAgregar = nuevasEmpresas.filter(empresa => !empresasActuales.map(e => e.id).includes(empresa));
+        const elimina =await Promise.all(empresasAEliminar.map(empresa => capacitacion.removeEmpresa(empresa)));  
+        const add = await Promise.all(empresasAAgregar.map(empresaId => capacitacion.addEmpresa(empresaId)));  
+      }
+      
   
       // Crear el examen si no existe
       if (!capacitacion.examen && req.body.examen) {

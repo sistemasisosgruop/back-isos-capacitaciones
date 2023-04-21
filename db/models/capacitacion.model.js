@@ -33,6 +33,15 @@ const CapacitacionSchema = {
       type: DataTypes.STRING,
       allowNull: true,
     },
+    horas:{
+        type: DataTypes.INTEGER,
+        allowNull: true
+    },
+    fechaAplazo: {
+       type: DataTypes.STRING,
+       allowNull: true,
+       defaultValue: null
+    },
     createdAt:{
         allowNull: false,
         type: DataTypes.DATE,

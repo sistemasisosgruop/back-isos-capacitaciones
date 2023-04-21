@@ -69,11 +69,14 @@ router.patch('/:id', async(req,res,next)=>{
       })
       const empresasActuales = await tes.getEmpresas();
   
-      const nuevasEmpresas = req.body.empresas ? Array.isArray(req.body.empresas) ? req.body.empresas : [req.body.empresas] : [];
-      const empresasAEliminar = empresasActuales.filter(empresa => !nuevasEmpresas.includes(empresa.id));
-      const empresasAAgregar = nuevasEmpresas.filter(empresa => !empresasActuales.map(e => e.id).includes(empresa));
-      const elimina = await Promise.all(empresasAEliminar.map(empresa => tes.removeEmpresa(empresa)));
-      const add = await Promise.all(empresasAAgregar.map(empresaId => tes.addEmpresa(empresaId)));
+      if (req.body.empresas) {
+        const nuevasEmpresas = req.body.empresas ? Array.isArray(req.body.empresas) ? req.body.empresas : [req.body.empresas] : [];
+        const empresasAEliminar = empresasActuales.filter(empresa => !nuevasEmpresas.includes(empresa.id));
+        const empresasAAgregar = nuevasEmpresas.filter(empresa => !empresasActuales.map(e => e.id).includes(empresa));
+        const elimina = await Promise.all(empresasAEliminar.map(empresa => tes.removeEmpresa(empresa)));
+        const add = await Promise.all(empresasAAgregar.map(empresaId => tes.addEmpresa(empresaId)));
+          
+      }
       res.status(200).json({message: 'actualizado'})
       
 
