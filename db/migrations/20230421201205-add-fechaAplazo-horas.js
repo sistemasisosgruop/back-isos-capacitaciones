@@ -11,8 +11,9 @@ module.exports = {
      * Example:
      * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
      */
-    await queryInterface.addColumn(CAPACITACION_TABLE, 'fechaAplazo', CapacitacionSchema.fechaAplazo);
-    await queryInterface.addColumn(CAPACITACION_TABLE, 'horas', CapacitacionSchema.horas);
+    
+    //await queryInterface.addColumn(CAPACITACION_TABLE, 'fechaAplazo', CapacitacionSchema.fechaAplazo);
+    //await queryInterface.addColumn(CAPACITACION_TABLE, 'horas', CapacitacionSchema.horas);
     
   },
 
