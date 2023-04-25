@@ -31,7 +31,7 @@ router.get('/:id', async(req,res,next)=>{
 
 router.post('/', upload.single('certificado'), async (req, res) => {
   try {
-    const { nombre, instructor, fechaInicio, fechaCulminacion, urlVideo, empresas, examen } = req.body;
+    const { nombre, instructor, fechaInicio, fechaCulminacion, urlVideo, empresas, examentitulo, preguntas } = req.body;
     const certificado = req.file ? req.file.path : null;
     
     const capacitacion = await models.Capacitacion.create({
@@ -46,10 +46,11 @@ router.post('/', upload.single('certificado'), async (req, res) => {
     const empresasArray = Array.isArray(empresas) ? empresas : [empresas];
     await Promise.all(empresasArray.map(empresaId => capacitacion.addEmpresa(empresaId)));
     
-    if (examen) {
-      const examenCreado = await capacitacion.createExamen({ titulo: examen.titulo });
-        
-      for (const pregunta of examen.preguntas) {
+    //console.log('EXAMNE', examentitulo);
+    //console.log('preguntas:', typeof(preguntas));
+    if (examentitulo && Array.isArray(preguntas)) {
+      const examenCreado = await capacitacion.createExamen({ titulo: examentitulo });
+      for (const pregunta of preguntas) {
         const { texto, opcion1, opcion2, opcion3, opcion4, opcion5, respuesta_correcta, puntajeDePregunta } = pregunta;
         const preguntaCreada = await models.Pregunta.create({ texto, examenId: examenCreado.id,texto, opcion1, opcion2, opcion3, opcion4, opcion5, respuesta_correcta, puntajeDePregunta });
       }
