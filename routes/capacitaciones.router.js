@@ -31,7 +31,7 @@ router.get('/:id', async(req,res,next)=>{
 
 router.post('/', upload.single('certificado'), async (req, res) => {
   try {
-    const { nombre, instructor, fechaInicio, fechaCulminacion, urlVideo, empresas, examentitulo, preguntas } = req.body;
+    const { nombre, instructor, fechaInicio, fechaCulminacion, urlVideo, empresas, examen, horas } = req.body;
     const certificado = req.file ? req.file.path : null;
     
     const capacitacion = await models.Capacitacion.create({
@@ -40,17 +40,27 @@ router.post('/', upload.single('certificado'), async (req, res) => {
       fechaInicio,
       fechaCulminacion,
       urlVideo,
+      horas,
       certificado,
     });
-
-    const empresasArray = Array.isArray(empresas) ? empresas : [empresas];
+    
+    const splitempresa = empresas.split(',')
+    const empresasArray = Array.isArray(empresas) ? empresas : splitempresa;
     await Promise.all(empresasArray.map(empresaId => capacitacion.addEmpresa(empresaId)));
     
-    //console.log('EXAMNE', examentitulo);
-    //console.log('preguntas:', typeof(preguntas));
-    if (examentitulo && Array.isArray(preguntas)) {
-      const examenCreado = await capacitacion.createExamen({ titulo: examentitulo });
-      for (const pregunta of preguntas) {
+    console.log('EXAMNE', examen);
+    console.log('preguntas:', typeof(examen));
+    console.log('EMPRESA', empresasArray);
+    console.log('TIPOEMPRESA:', typeof(empresasArray));
+
+
+    const examenfinal = JSON.parse(examen)
+    console.log("examenfinal", examenfinal);
+    console.log("tipo",typeof(examenfinal));
+
+    if (examenfinal&& examenfinal.titulo && Array.isArray(examenfinal.preguntas)) {
+      const examenCreado = await capacitacion.createExamen({ titulo: examenfinal.titulo });
+      for (const pregunta of examenfinal.preguntas) {
         const { texto, opcion1, opcion2, opcion3, opcion4, opcion5, respuesta_correcta, puntajeDePregunta } = pregunta;
         const preguntaCreada = await models.Pregunta.create({ texto, examenId: examenCreado.id,texto, opcion1, opcion2, opcion3, opcion4, opcion5, respuesta_correcta, puntajeDePregunta });
       }
@@ -98,7 +108,9 @@ router.patch('/:id', upload.single('certificado'), async (req, res) => {
     const { id } = req.params;
     try {
       // Obtener la capacitación a actualizar
-      const capacitacion = await models.Capacitacion.findByPk(id);
+      const capacitacion = await models.Capacitacion.findByPk(id,{
+        include: ['examen', 'Empresas']
+      });
   
       if (!capacitacion) {
         return res.status(404).json({ message: 'No se encontró la capacitación' });
@@ -108,6 +120,7 @@ router.patch('/:id', upload.single('certificado'), async (req, res) => {
       const { nombre, instructor, fechaInicio, fechaCulminacion, urlVideo, fechaAplazo, horas } = req.body;
       const certificado = req.file ? req.file.path : capacitacion.certificado;
   
+      
       await capacitacion.update({
         nombre: nombre ?? capacitacion.nombre,
         instructor: instructor ?? capacitacion.instructor,
@@ -116,28 +129,36 @@ router.patch('/:id', upload.single('certificado'), async (req, res) => {
         urlVideo: urlVideo ?? capacitacion.urlVideo,
         fechaAplazo: fechaAplazo ?? capacitacion.fechaAplazo,
         horas: horas?? capacitacion.horas,
-        certificado,
+        certificado: certificado ?? capacitacion.certificado,
       });
       
-      if (req.body.empresas) {
+      const empresasdecap = req.body.empresas
+
+      if (empresasdecap) {
         const empresasActuales = await capacitacion.getEmpresas();
-        const nuevasEmpresas = req.body.empresas ? Array.isArray(req.body.empresas) ? req.body.empresas : [req.body.empresas] : [];
+        const nuevasEmpresas = empresasdecap ? Array.isArray(empresasdecap) ? empresasdecap : empresasdecap.split(',') : [];
+        console.log(nuevasEmpresas);
+        console.log('actuales', empresasActuales);
+        const nuevas = nuevasEmpresas.map(empresa => parseInt(empresa))
+        console.log('NUEVAS',nuevas);
         const empresasAEliminar = empresasActuales.filter(empresa => !nuevasEmpresas.includes(empresa.id));
         const empresasAAgregar = nuevasEmpresas.filter(empresa => !empresasActuales.map(e => e.id).includes(empresa));
         const elimina =await Promise.all(empresasAEliminar.map(empresa => capacitacion.removeEmpresa(empresa)));  
         const add = await Promise.all(empresasAAgregar.map(empresaId => capacitacion.addEmpresa(empresaId)));  
       }
-      
+        
   
       // Crear el examen si no existe
+      console.log('EXISTE EXAMEN DEL BODY', req.body.examen);
       if (!capacitacion.examen && req.body.examen) {
-        const examenCreado = await capacitacion.createExamen({ titulo: req.body.examen.titulo });
+        const parseexamen = JSON.parse(req.body.examen)
+        console.log(parseexamen);
+        const examenCreado = await capacitacion.createExamen({ titulo: parseexamen.titulo });
           
         // Crear las preguntas y asociarlas con el examen
-        for (const pregunta of req.body.examen.preguntas) {
-          const { texto, opcion1, opcion2, opcion3, opcion4, opcion5, respuesta_correcta } = pregunta;
-          const preguntaCreada = await models.Pregunta.create({ texto, examenId: examenCreado.id,texto, opcion1, opcion2, opcion3, opcion4, opcion5, respuesta_correcta });
-
+        for (const pregunta of parseexamen.preguntas) {
+          const { texto, opcion1, opcion2, opcion3, opcion4, opcion5, respuesta_correcta, puntajeDePregunta } = pregunta;
+          const preguntaCreada = await models.Pregunta.create({ texto, examenId: examenCreado.id,texto, opcion1, opcion2, opcion3, opcion4, opcion5, respuesta_correcta, puntajeDePregunta });
         }
       }
   
@@ -171,7 +192,7 @@ router.delete('/:id', async(req,res,next)=>{
       }
     });
     await capacitacion.destroy();
-    res.status(201).json({msg: 'eliminados'});
+    res.status(201).json({message: 'eliminados'});
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Error al eliminar la capacitación.' });
