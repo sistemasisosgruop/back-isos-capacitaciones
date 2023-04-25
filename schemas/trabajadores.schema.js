@@ -23,6 +23,7 @@ const date = moment(value, 'YYYY/MM/DD', true);
   return value;
 });
 
+const habilitado = Joi.boolean()
 const userId = Joi.number().integer()
 const username = Joi.string()
 const contraseña = Joi.string().min(8);
@@ -57,6 +58,7 @@ const updateTrabajadorSchema = Joi.object({
     areadetrabajo: areadetrabajo,
     cargo: cargo,
     fechadenac: fechadenac,
+    habilitado: habilitado,
     user: Joi.object({
       username: username,
       contraseña: contraseña,

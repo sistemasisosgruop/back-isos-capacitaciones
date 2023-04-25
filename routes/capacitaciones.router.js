@@ -23,7 +23,12 @@ router.get('/:id', async(req,res,next)=>{
         const capacitacion = await models.Capacitacion.findByPk(id,{
             include: ['examen', 'Empresas']
         });
-        res.json(capacitacion)
+        console.log(capacitacion.examen.id);
+        const preguntas = await models.Pregunta.findAll({
+          where: {examenId: capacitacion.examen.id}
+        });
+        console.log(preguntas);
+        res.json({capacitacion, preguntas})
     } catch (error) {
         next(error)
     }
