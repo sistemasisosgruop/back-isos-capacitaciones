@@ -70,7 +70,24 @@ router.post('/', upload.single('certificado'), async (req, res) => {
         const preguntaCreada = await models.Pregunta.create({ texto, examenId: examenCreado.id,texto, opcion1, opcion2, opcion3, opcion4, opcion5, respuesta_correcta, puntajeDePregunta });
       }
     }
-      
+    /*
+    const capacitacionempre = await models.Capacitacion.
+    const allworkofempresa = await models.Empresa.findAll({
+      include: ['trabajadores']
+    })
+    const generareporte = await models.Reporte.create({
+      notaExamen: 0,
+      asistenciaExamen: false,
+      rptpregunta1: 2,
+      rptpregunta2: 3,
+      rptpregunta3: 3,
+      rptpregunta4: 0,
+      rptpregunta5: 0,
+      trabajadorId: 1,
+      examenId: 1,
+      capacitacionId: 1
+    })*/
+
     res.status(201).json(capacitacion);
   } catch (err) {
     console.error(err);
