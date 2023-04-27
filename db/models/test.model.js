@@ -27,6 +27,10 @@ const TestSchema = {
         allownull: false,
         type: DataTypes.STRING,
     },
+    fechaAplazo:{
+        type: DataTypes.DATEONLY,
+        defaultValue: Sequelize.NOW
+    },
     createdAt:{
         allowNull: false,
         type: DataTypes.DATE,
