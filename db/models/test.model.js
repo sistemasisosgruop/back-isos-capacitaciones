@@ -29,7 +29,7 @@ const TestSchema = {
     },
     fechaAplazo:{
         type: DataTypes.DATEONLY,
-        defaultValue: Sequelize.NOW
+        defaultValue: null
     },
     createdAt:{
         allowNull: false,
