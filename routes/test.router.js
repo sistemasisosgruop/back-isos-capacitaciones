@@ -60,12 +60,13 @@ router.patch('/:id', async(req,res,next)=>{
         return res.status(404).json({message: 'No existe el test'})
       }   
 
-      const { detalle, urlTest, fechaCr, fechaVen } = req.body;
+      const { detalle, urlTest, fechaCr, fechaVen, fechaAplazo } = req.body;
       await tes.update({
         detalle: detalle ?? tes.detalle,
         urlTest: urlTest ?? tes.urlTest,
         fechaCr: fechaCr ?? tes.fechaCr,
-        fechaVen: fechaVen ?? tes.fechaVen
+        fechaVen: fechaVen ?? tes.fechaVen,
+        fechaAplazo: fechaAplazo ?? tes.fechaAplazo
       })
       const empresasActuales = await tes.getEmpresas();
   
@@ -77,7 +78,7 @@ router.patch('/:id', async(req,res,next)=>{
         const add = await Promise.all(empresasAAgregar.map(empresaId => tes.addEmpresa(empresaId)));
           
       }
-      res.status(200).json({message: 'actualizado'})
+      res.status(200).json(tes)
       
 
     } catch (error) {

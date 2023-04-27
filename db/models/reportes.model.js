@@ -17,11 +17,6 @@ const ReportesSchema = {
         type: DataTypes.INTEGER,
         
     },
-    asistenciaCapacitación:{
-        type: DataTypes.BOOLEAN,
-        allowNull: false,
-        defaultValue: false
-    },
     asistenciaExamen: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
@@ -62,7 +57,6 @@ const ReportesSchema = {
       field: 'trabajador_id',
       allowNull: false,
       type: DataTypes.INTEGER,
-      unique: true,
       references: {
         model: TRABAJADOR_TABLE,
         key: 'id'
@@ -74,7 +68,6 @@ const ReportesSchema = {
       field: 'examen_id',
       allowNull: false,
       type: DataTypes.INTEGER,
-      unique: true,
       references: {
         model: EXAMEN_TABLE,
         key: 'id'
@@ -86,7 +79,6 @@ const ReportesSchema = {
       field: 'capacitacion_id',
       allowNull: false,
       type: DataTypes.INTEGER,
-      unique: true,
       references: {
         model: CAPACITACION_TABLE,
         key: 'id'

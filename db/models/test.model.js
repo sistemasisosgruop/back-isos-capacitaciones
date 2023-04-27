@@ -27,6 +27,10 @@ const TestSchema = {
         allownull: false,
         type: DataTypes.STRING,
     },
+    fechaAplazo:{
+        type: DataTypes.DATEONLY,
+        defaultValue: null
+    },
     createdAt:{
         allowNull: false,
         type: DataTypes.DATE,

@@ -52,16 +52,9 @@ router.post('/', upload.single('certificado'), async (req, res) => {
     const splitempresa = empresas.split(',')
     const empresasArray = Array.isArray(empresas) ? empresas : splitempresa;
     await Promise.all(empresasArray.map(empresaId => capacitacion.addEmpresa(empresaId)));
-    
-    console.log('EXAMNE', examen);
-    console.log('preguntas:', typeof(examen));
-    console.log('EMPRESA', empresasArray);
-    console.log('TIPOEMPRESA:', typeof(empresasArray));
 
 
     const examenfinal = JSON.parse(examen)
-    console.log("examenfinal", examenfinal);
-    console.log("tipo",typeof(examenfinal));
 
     if (examenfinal&& examenfinal.titulo && Array.isArray(examenfinal.preguntas)) {
       const examenCreado = await capacitacion.createExamen({ titulo: examenfinal.titulo });
@@ -70,23 +63,6 @@ router.post('/', upload.single('certificado'), async (req, res) => {
         const preguntaCreada = await models.Pregunta.create({ texto, examenId: examenCreado.id,texto, opcion1, opcion2, opcion3, opcion4, opcion5, respuesta_correcta, puntajeDePregunta });
       }
     }
-    /*
-    const capacitacionempre = await models.Capacitacion.
-    const allworkofempresa = await models.Empresa.findAll({
-      include: ['trabajadores']
-    })
-    const generareporte = await models.Reporte.create({
-      notaExamen: 0,
-      asistenciaExamen: false,
-      rptpregunta1: 2,
-      rptpregunta2: 3,
-      rptpregunta3: 3,
-      rptpregunta4: 0,
-      rptpregunta5: 0,
-      trabajadorId: 1,
-      examenId: 1,
-      capacitacionId: 1
-    })*/
 
     res.status(201).json(capacitacion);
   } catch (err) {
@@ -159,10 +135,7 @@ router.patch('/:id', upload.single('certificado'), async (req, res) => {
       if (empresasdecap) {
         const empresasActuales = await capacitacion.getEmpresas();
         const nuevasEmpresas = empresasdecap ? Array.isArray(empresasdecap) ? empresasdecap : empresasdecap.split(',') : [];
-        console.log(nuevasEmpresas);
-        console.log('actuales', empresasActuales);
         const nuevas = nuevasEmpresas.map(empresa => parseInt(empresa))
-        console.log('NUEVAS',nuevas);
         const empresasAEliminar = empresasActuales.filter(empresa => !nuevasEmpresas.includes(empresa.id));
         const empresasAAgregar = nuevasEmpresas.filter(empresa => !empresasActuales.map(e => e.id).includes(empresa));
         const elimina =await Promise.all(empresasAEliminar.map(empresa => capacitacion.removeEmpresa(empresa)));  
@@ -171,10 +144,8 @@ router.patch('/:id', upload.single('certificado'), async (req, res) => {
         
   
       // Crear el examen si no existe
-      console.log('EXISTE EXAMEN DEL BODY', req.body.examen);
-      if (!capacitacion.examen && req.body.examen) {
+      if (!capacitacion.examen) {
         const parseexamen = JSON.parse(req.body.examen)
-        console.log(parseexamen);
         const examenCreado = await capacitacion.createExamen({ titulo: parseexamen.titulo });
           
         // Crear las preguntas y asociarlas con el examen
@@ -182,8 +153,26 @@ router.patch('/:id', upload.single('certificado'), async (req, res) => {
           const { texto, opcion1, opcion2, opcion3, opcion4, opcion5, respuesta_correcta, puntajeDePregunta } = pregunta;
           const preguntaCreada = await models.Pregunta.create({ texto, examenId: examenCreado.id,texto, opcion1, opcion2, opcion3, opcion4, opcion5, respuesta_correcta, puntajeDePregunta });
         }
+      }else{
+        const parseexamen = JSON.parse(req.body.examen)
+        capacitacion.examen.titulo = parseexamen.titulo;
+        await capacitacion.examen.save();
+
+        const preguntaExistente = await capacitacion.examen.getPregunta();
+
+        console.log(preguntaExistente.length);
+        for (const pregunt of preguntaExistente){
+          await pregunt.destroy();
+        }
+          
+        for (const pregunta of parseexamen.preguntas){
+          const { texto, opcion1, opcion2, opcion3, opcion4, opcion5, respuesta_correcta, puntajeDePregunta } = pregunta;
+          const preguntaCreada = await models.Pregunta.create({ texto,examenId: capacitacion.examen.id, opcion1, opcion2, opcion3, opcion4, opcion5, respuesta_correcta, puntajeDePregunta });
+          await capacitacion.examen.addPregunta(preguntaCreada);
+        }
+
+      
       }
-  
       res.status(200).json(capacitacion);
     } catch (err) {
       console.error(err);

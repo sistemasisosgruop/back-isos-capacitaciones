@@ -2,9 +2,12 @@ const {Router} = require('express');
 
 const router = Router();
 const {models} = require('./../libs/sequelize');
+const generarReporte = require('./../services/reporte.service')
 
 router.get('/', async(req,res)=>{
     try {
+        await generarReporte()
+
         const reportes = await models.Reporte.findAll({
             include: ['examen', 'capacitacion', 'trabajador']
             
@@ -16,7 +19,7 @@ router.get('/', async(req,res)=>{
     }
 })
 
-router.post('/darexamen/:capacitacionId/:trabajadorId/:examenId', async (req,res, next)=>{
+router.patch('/darexamen/:capacitacionId/:trabajadorId/:examenId', async (req,res, next)=>{
     const { capacitacionId, trabajadorId, examenId } = req.params;
     const respuestas = req.body.respuestas;
 
@@ -36,7 +39,7 @@ router.post('/darexamen/:capacitacionId/:trabajadorId/:examenId', async (req,res
         }
     }
 
-    const reporte = await models.Reporte.create({
+    const reporte = await models.Reporte.update({
         notaExamen,
         asistenciaExamen: true,
         rptpregunta1: respuestas[0]?respuestas[0]:0,
