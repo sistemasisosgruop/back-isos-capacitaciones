@@ -12,12 +12,37 @@ router.get('/', async(req,res)=>{
             include: ['examen', 'capacitacion', 'trabajador']
             
         });
+        const associate = await models.Reporte.associations
+        console.log(associate);
         res.json(reportes)
     } catch (error) {
         console.log(error);
-        res.json({msg:'no encuentra reportes'})
+        res.json({message:'no encuentra reportes'})
     }
 })
+
+
+router.get('/:id', async(req,res)=>{
+    try {
+        await generarReporte()
+        const {id} = req.params;
+        const reporte = await models.Reporte.findByPk(id,{
+            include: ['examen', 'capacitacion', 'trabajador']
+        });
+        console.log(reporte.trabajador.empresaId);
+        if (!reporte) {
+            res.status(404).json({message:'No existe reporte'})
+        }else{
+            const empresaid = reporte.trabajador.empresaId;
+            const empresa = await models.Empresa.findByPk(empresaid)
+            res.json({reporte, empresa})
+        }
+    } catch (error) {
+        res.json({message:'No existe ese reporte'})        
+    }
+
+})
+
 
 router.patch('/darexamen/:capacitacionId/:trabajadorId/:examenId', async (req,res, next)=>{
     const { capacitacionId, trabajadorId, examenId } = req.params;
@@ -76,7 +101,6 @@ router.patch('/darexamen/:capacitacionId/:trabajadorId/:examenId', async (req,re
         res.status(500).json({ error: 'No se pudo conectar el reporte', });
     }
 })
-
 
 
 

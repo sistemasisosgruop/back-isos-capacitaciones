@@ -64,7 +64,7 @@ router.patch('/:id', async(req,res, next)=>{
             res.status(404).json({message: 'No existe el examen'})
         }else{
             const exameneditado = await examen.update(body);
-            res.status(200).json({message:'Examen editado'})
+            res.status(200).json(exameneditado)
         }
     } catch (error) {
         res.status(500).json({message:'Examen no editado'})        
