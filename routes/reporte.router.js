@@ -12,6 +12,8 @@ router.get('/', async(req,res)=>{
             include: ['examen', 'capacitacion', 'trabajador']
             
         });
+        const associate = await models.Reporte.associations
+        console.log(associate);
         res.json(reportes)
     } catch (error) {
         console.log(error);
