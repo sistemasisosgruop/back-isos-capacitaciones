@@ -195,7 +195,7 @@ Ejemplo de petición:
 Respuesta
 ```bash
     {
-        "msg": "Creados correctamente"
+        "messsage": "Creados correctamente"
     }
 ```
 

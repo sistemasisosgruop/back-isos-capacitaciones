@@ -15,7 +15,7 @@ router.get('/', async(req,res)=>{
         res.json(reportes)
     } catch (error) {
         console.log(error);
-        res.json({msg:'no encuentra reportes'})
+        res.json({message:'no encuentra reportes'})
     }
 })
 

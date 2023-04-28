@@ -179,11 +179,11 @@ router.post('/',
       const valdni = await service.findByDni(body.dni)
       if(valdni){
         res.status(400).json({
-          msg: `Ya existe un Dni igual`
+          message: `Ya existe un Dni igual`
         })
       }else{
         const nuevotrabajador = await service.create(body);
-        res.status(201).json(nuevotrabajador?nuevotrabajador:{msg:'ya existe el usuario'});
+        res.status(201).json(nuevotrabajador?nuevotrabajador:{message:'ya existe el usuario'});
       }
       
     } catch (error) {
@@ -261,9 +261,9 @@ router.post('/cargaexcel/:empresaId',
     else{
       const trabajadoresbd = await service.createExcel(trabajadores, Number(id));
       if (trabajadoresbd) {
-        res.status(201).json({msg: 'ccreado correctamente'})
+        res.status(201).json({message: 'ccreado correctamente'})
       } else {
-        res.status(500).json({msg: 'hubo un error'})
+        res.status(500).json({message: 'hubo un error'})
       }
     }
     
