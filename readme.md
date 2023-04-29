@@ -596,3 +596,247 @@ Ambos get te generan todos los test y si mandas un ID el test con el ID
 #### DELETE
 
 Puedes borrar los tests
+
+
+### RUTA REPORTE
+
+Esta ruta genera reportes sí existe una capacitación y un examen, y un trabajador perteneciente a la empresa de la capacitacion 
+
+```bash
+    GET  api/v1/reporte
+    GET  api/v1/reporte/:id
+    PATCH api/v1/reporte/darexamen/:capacitacionId/:trabajadorId/:examenId
+
+```
+
+#### GET 
+
+Mandas los detalles de reporte, y reporte ID sí manda
+
+Report all
+```bash
+    [
+	{
+		"id": 2,
+		"notaExamen": 0,
+		"asistenciaExamen": false,
+		"rptpregunta1": 0,
+		"rptpregunta2": 0,
+		"rptpregunta3": 0,
+		"rptpregunta4": 0,
+		"rptpregunta5": 0,
+		"createdAt": "2023-04-27T13:25:49.078Z",
+		"trabajadorId": 2,
+		"examenId": 1,
+		"capacitacionId": 1,
+		"examen": {
+			"id": 1,
+			"titulo": "Ejemplo de examen",
+			"fechadeExamen": "2023-04-27",
+			"createdAt": "2023-04-27T13:25:36.322Z",
+			"capacitacionId": 1
+		},
+		"capacitacion": {
+			"id": 1,
+			"nombre": "Admin",
+			"instructor": "algunavezenpostman",
+			"fechaInicio": "2023-02-28",
+			"fechaCulminacion": "2023-04-24",
+			"urlVideo": "https://example.com",
+			"certificado": "firmas\\0f0dc7b4cdd4065dd114b94f33a5b0c9",
+			"horas": 72,
+			"fechaAplazo": null,
+			"createdAt": "2023-04-27T13:25:36.288Z"
+		},
+		"trabajador": {
+			"id": 2,
+			"nombres": "MODESTO ENRIQUE",
+			"apellidoPaterno": "AYALA",
+			"apellidoMaterno": "NINASIVINCHA",
+			"dni": "29329147",
+			"genero": "M",
+			"edad": 53,
+			"fechadenac": "1969-08-13",
+			"areadetrabajo": "MINA",
+			"cargo": "TÉCNICO DE CAMPO",
+			"habilitado": true,
+			"createdAt": "2023-04-27T13:22:51.144Z",
+			"userId": 2,
+			"empresaId": 1
+		}
+	},
+	{
+		"id": 3,
+		"notaExamen": 0,
+		"asistenciaExamen": false,
+		"rptpregunta1": 0,
+		"rptpregunta2": 0,
+		"rptpregunta3": 0,
+		"rptpregunta4": 0,
+		"rptpregunta5": 0,
+		"createdAt": "2023-04-27T13:25:49.080Z",
+		"trabajadorId": 3,
+		"examenId": 1,
+		"capacitacionId": 1,
+		"examen": {
+			"id": 1,
+			"titulo": "Ejemplo de examen",
+			"fechadeExamen": "2023-04-27",
+			"createdAt": "2023-04-27T13:25:36.322Z",
+			"capacitacionId": 1
+		},
+		"capacitacion": {
+			"id": 1,
+			"nombre": "Admin",
+			"instructor": "algunavezenpostman",
+			"fechaInicio": "2023-02-28",
+			"fechaCulminacion": "2023-04-24",
+			"urlVideo": "https://example.com",
+			"certificado": "firmas\\0f0dc7b4cdd4065dd114b94f33a5b0c9",
+			"horas": 72,
+			"fechaAplazo": null,
+			"createdAt": "2023-04-27T13:25:36.288Z"
+		},
+		"trabajador": {
+			"id": 3,
+			"nombres": "JAIME LINCOLN SCOTT",
+			"apellidoPaterno": "COLQUE",
+			"apellidoMaterno": "VARGAS",
+			"dni": "71637483",
+			"genero": "M",
+			"edad": 28,
+			"fechadenac": "1993-10-08",
+			"areadetrabajo": "MINA",
+			"cargo": "TÉCNICO DE CAMPO",
+			"habilitado": true,
+			"createdAt": "2023-04-27T13:22:51.144Z",
+			"userId": 3,
+			"empresaId": 1
+		}
+	},
+	{ ... ...
+```
+
+Cuando manda con un id
+
+```bash
+    {
+	"reporte": {
+		"id": 1,
+		"notaExamen": 7,
+		"asistenciaExamen": true,
+		"rptpregunta1": 3,
+		"rptpregunta2": 5,
+		"rptpregunta3": 4,
+		"rptpregunta4": 1,
+		"rptpregunta5": 3,
+		"createdAt": "2023-04-27T13:25:49.074Z",
+		"trabajadorId": 1,
+		"examenId": 1,
+		"capacitacionId": 1,
+		"examen": {
+			"id": 1,
+			"titulo": "Ejemplo de examen",
+			"fechadeExamen": "2023-04-27",
+			"createdAt": "2023-04-27T13:25:36.322Z",
+			"capacitacionId": 1
+		},
+		"capacitacion": {
+			"id": 1,
+			"nombre": "Admin",
+			"instructor": "algunavezenpostman",
+			"fechaInicio": "2023-02-28",
+			"fechaCulminacion": "2023-04-24",
+			"urlVideo": "https://example.com",
+			"certificado": "firmas\\0f0dc7b4cdd4065dd114b94f33a5b0c9",
+			"horas": 72,
+			"fechaAplazo": null,
+			"createdAt": "2023-04-27T13:25:36.288Z"
+		},
+		"trabajador": {
+			"id": 1,
+			"nombres": "ERIKA VANESA",
+			"apellidoPaterno": "AVENDAÑO",
+			"apellidoMaterno": "QUISPE",
+			"dni": "72220521",
+			"genero": "F",
+			"edad": 29,
+			"fechadenac": "1993-09-12",
+			"areadetrabajo": "MINA",
+			"cargo": "TÉCNICO DE CAMPO",
+			"habilitado": true,
+			"createdAt": "2023-04-27T13:22:51.143Z",
+			"userId": 1,
+			"empresaId": 1
+		}
+	},
+	"empresa": {
+		"id": 1,
+		"nombreEmpresa": "isos group",
+		"direccion": "avenida siempre viva",
+		"nombreGerente": "emerson",
+		"numeroContacto": "928924575",
+		"imagenLogo": "8d1b0483475226db0857c6550502ffd6",
+		"imagenCertificado": "b7a09c6e954774e69f6d79caf5951ba3",
+		"RUC": "201001234",
+		"createdAt": "2023-04-27T13:21:35.230Z"
+	}
+}
+
+```
+
+
+#### PATCH dar Examen
+
+Mandas lo que quieras cambiar del test
+
+```bash
+
+api/v1/reporte/darexamen/5/1/5
+capacitacion 5
+trabajador 1
+examen 5
+
+{
+  "respuestas": [
+    {
+      "preguntaId": 25,
+      "respuesta": 3
+    },
+    {
+      "preguntaId": 27,
+      "respuesta": 1
+    },
+    {
+      "preguntaId": 29,
+      "respuesta": 3
+    },
+    {
+      "preguntaId": 28,
+      "respuesta": 4
+    },
+    {
+      "preguntaId": 26,
+      "respuesta": 5
+    }
+  ]
+}
+
+```
+RESPUESTA
+```bash
+{
+	"id": 27,
+	"notaExamen": 7,
+	"asistenciaExamen": true,
+	"rptpregunta1": 3,
+	"rptpregunta2": 5,
+	"rptpregunta3": 1,
+	"rptpregunta4": 4,
+	"rptpregunta5": 3,
+	"createdAt": "2023-04-27T23:36:37.625Z",
+	"trabajadorId": "1",
+	"examenId": "5",
+	"capacitacionId": "5"
+}
+```
