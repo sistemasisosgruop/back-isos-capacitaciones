@@ -39,6 +39,10 @@ router.post('/', upload.single('certificado'), async (req, res) => {
     const { nombre, instructor, fechaInicio, fechaCulminacion, urlVideo, empresas, examen, horas } = req.body;
     const certificado = req.file ? req.file.path : null;
     
+    
+    if (!empresas) {
+      res.json({message: "Faltan empresas" })
+    }
     const capacitacion = await models.Capacitacion.create({
       nombre,
       instructor,
@@ -57,11 +61,18 @@ router.post('/', upload.single('certificado'), async (req, res) => {
     const examenfinal = JSON.parse(examen)
 
     if (examenfinal&& examenfinal.titulo && Array.isArray(examenfinal.preguntas)) {
-      const examenCreado = await capacitacion.createExamen({ titulo: examenfinal.titulo });
-      for (const pregunta of examenfinal.preguntas) {
-        const { texto, opcion1, opcion2, opcion3, opcion4, opcion5, respuesta_correcta, puntajeDePregunta } = pregunta;
-        const preguntaCreada = await models.Pregunta.create({ texto, examenId: examenCreado.id,texto, opcion1, opcion2, opcion3, opcion4, opcion5, respuesta_correcta, puntajeDePregunta });
+
+      if (examenfinal.preguntas.length === 5) {
+        
+        const examenCreado = await capacitacion.createExamen({ titulo: examenfinal.titulo });
+        for (const pregunta of examenfinal.preguntas) {
+          const { texto, opcion1, opcion2, opcion3, opcion4, opcion5, respuesta_correcta, puntajeDePregunta } = pregunta;
+          const preguntaCreada = await models.Pregunta.create({ texto, examenId: examenCreado.id,texto, opcion1, opcion2, opcion3, opcion4, opcion5, respuesta_correcta, puntajeDePregunta });
+        } 
+      }else{
+        res.json({message: "Debes tener 5 preguntas, no menos ni más"})
       }
+
     }
 
     res.status(201).json(capacitacion);
@@ -146,12 +157,17 @@ router.patch('/:id', upload.single('certificado'), async (req, res) => {
       // Crear el examen si no existe
       if (!capacitacion.examen) {
         const parseexamen = JSON.parse(req.body.examen)
-        const examenCreado = await capacitacion.createExamen({ titulo: parseexamen.titulo });
-          
-        // Crear las preguntas y asociarlas con el examen
-        for (const pregunta of parseexamen.preguntas) {
-          const { texto, opcion1, opcion2, opcion3, opcion4, opcion5, respuesta_correcta, puntajeDePregunta } = pregunta;
-          const preguntaCreada = await models.Pregunta.create({ texto, examenId: examenCreado.id,texto, opcion1, opcion2, opcion3, opcion4, opcion5, respuesta_correcta, puntajeDePregunta });
+        
+        if(parseexamen.preguntas.length === 5){    
+          const examenCreado = await capacitacion.createExamen({ titulo: parseexamen.titulo });
+            
+          // Crear las preguntas y asociarlas con el examen
+          for (const pregunta of parseexamen.preguntas) {
+            const { texto, opcion1, opcion2, opcion3, opcion4, opcion5, respuesta_correcta, puntajeDePregunta } = pregunta;
+            const preguntaCreada = await models.Pregunta.create({ texto, examenId: examenCreado.id,texto, opcion1, opcion2, opcion3, opcion4, opcion5, respuesta_correcta, puntajeDePregunta });
+          }
+        }else{
+          res.json({message: "Debes tener 5 preguntas, no más ni menos"})
         }
       }else{
         const parseexamen = JSON.parse(req.body.examen)
