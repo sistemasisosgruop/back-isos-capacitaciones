@@ -80,7 +80,7 @@ router.patch('/darexamen/:capacitacionId/:trabajadorId/:examenId', async (req,re
             }
     })
     console.log('ID reporte', reporte.id)
-    const busquedaReporte = await models.Reporte.findByPk(reporte.id);
+    //const busquedaReporte = await models.Reporte.findByPk(reporte.id);
 
     const reporteact = await reporte.update({
         notaExamen: notaExamen,
