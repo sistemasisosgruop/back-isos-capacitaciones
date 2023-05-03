@@ -48,8 +48,6 @@ router.patch('/darexamen/:capacitacionId/:trabajadorId/:examenId', async (req,re
     const { capacitacionId, trabajadorId, examenId } = req.params;
     const respuestas = req.body.respuestas;
 
-    console.log('TIPO', typeof(respuestas))
-    console.log(respuestas);
     try{
     const capacitacion = await models.Capacitacion.findByPk(capacitacionId);
     const trabajador = await models.Trabajador.findByPk(trabajadorId);
@@ -64,32 +62,27 @@ router.patch('/darexamen/:capacitacionId/:trabajadorId/:examenId', async (req,re
 
     let notaExamen = 0;
 
-
     examen.pregunta.forEach(pregunta => {
         const respuesta = respuestasPorPregunta[pregunta.id];
-        console.log('pregunta-respuesta',typeof(respuesta))
         if (respuesta === pregunta.respuesta_correcta) {
             notaExamen += pregunta.puntajeDePregunta;
         }
     });
-    console.log('NOTA EXAMEN:', notaExamen);
     const reporte = await models.Reporte.findOne({
         where:{trabajadorId : trabajador.id,
                 capacitacionId: capacitacion.id,
                 examenId: examen.id
             }
     })
-    console.log('ID reporte', reporte.id)
-    //const busquedaReporte = await models.Reporte.findByPk(reporte.id);
 
     const reporteact = await reporte.update({
         notaExamen: notaExamen,
         asistenciaExamen: true,
-        rptpregunta1: respuestasPorPregunta[examen.pregunta[0].id]?respuestasPorPregunta[examen.pregunta[0].id]:0,
-        rptpregunta2: respuestasPorPregunta[examen.pregunta[1].id]?respuestasPorPregunta[examen.pregunta[1].id]:0,
-        rptpregunta3: respuestasPorPregunta[examen.pregunta[2].id]?respuestasPorPregunta[examen.pregunta[2].id]:0,
-        rptpregunta4: respuestasPorPregunta[examen.pregunta[3].id]?respuestasPorPregunta[examen.pregunta[3].id]:0,
-        rptpregunta5: respuestasPorPregunta[examen.pregunta[4].id]?respuestasPorPregunta[examen.pregunta[4].id]:0,
+        rptpregunta1: examen.pregunta[0] ? (respuestasPorPregunta[examen.pregunta[0].id] ? respuestasPorPregunta[examen.pregunta[0].id] : 0) : 0,
+        rptpregunta2: examen.pregunta[1] ? (respuestasPorPregunta[examen.pregunta[1].id] ? respuestasPorPregunta[examen.pregunta[1].id] : 0) : 0,
+        rptpregunta3: examen.pregunta[2] ? (respuestasPorPregunta[examen.pregunta[2].id] ? respuestasPorPregunta[examen.pregunta[2].id] : 0) : 0,
+        rptpregunta4: examen.pregunta[3] ? (respuestasPorPregunta[examen.pregunta[3].id] ? respuestasPorPregunta[examen.pregunta[3].id] : 0) : 0,
+        rptpregunta5: examen.pregunta[4] ? (respuestasPorPregunta[examen.pregunta[4].id] ? respuestasPorPregunta[examen.pregunta[4].id] : 0) : 0,
         trabajadorId: trabajadorId,
         examenId: examenId,
         capacitacionId: capacitacionId
