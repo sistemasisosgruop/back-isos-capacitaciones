@@ -1,5 +1,6 @@
 const { Router } = require('express');
 const multer = require('multer');
+const path = require('path');
 
 const upload = multer({ dest: 'firmas/' });
 const {models} = require('../libs/sequelize');
@@ -23,16 +24,29 @@ router.get('/:id', async(req,res,next)=>{
         const capacitacion = await models.Capacitacion.findByPk(id,{
             include: ['examen', 'Empresas']
         });
-        console.log(capacitacion.examen.id);
         const preguntas = await models.Pregunta.findAll({
           where: {examenId: capacitacion.examen.id}
         });
-        console.log(preguntas);
         res.json({capacitacion, preguntas})
     } catch (error) {
-        next(error)
+        res.json({message: "No existe la capacitacion"})
     }
 })
+
+router.get('/:id/certificado', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const capacitacion = await models.Capacitacion.findByPk(id);
+    if (capacitacion.certificado) {
+      const filePath = path.join(__dirname, '..', '', capacitacion.certificado);
+      res.sendFile(filePath);
+    } else {
+      res.status(404).send('Imagen no encontrada');
+    }
+  } catch (error) {
+    next(error);
+  }
+});
 
 router.post('/', upload.single('certificado'), async (req, res) => {
   try {
