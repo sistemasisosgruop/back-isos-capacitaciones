@@ -24,7 +24,7 @@ app.use(cors())
 require('./utils/auth');
 
 app.get('/', (req, res)=>{
-    res.send('Hola mi servidor en express');
+    res.send('VISITA LA RUTA api-docs and github');
 });
 
 routerApi(app);
