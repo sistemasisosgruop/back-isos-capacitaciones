@@ -4,6 +4,7 @@ const router=express.Router();
 const jwt = require('jsonwebtoken');
 
 const {config} = require('./../config/config');
+const {models} = require('../libs/sequelize');
 
 router.post('/login',
     passport.authenticate('local',{session:false}),
@@ -18,10 +19,23 @@ router.post('/login',
                 role: user.rol,
             }
             const token = jwt.sign(payload, config.jwtSecret, jwtconfig);
-            res.json({
-                user,
-                token
-            });
+
+            if (user.rol==="Trabajador") {
+                const worker = await models.Trabajador.findOne({where: {userId : user.id}})
+                res.json({
+                    user,
+                    token,
+                    worker
+                });
+            }else if(user.rol==="Administrador"){
+                const admin = await models.Administrador.findOne({where: {userId : user.id}})
+                
+                res.json({
+                    user,
+                    token,
+                    admin
+                });
+            }
         }catch(error){
             next(error);
         }
