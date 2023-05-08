@@ -24,9 +24,12 @@ router.get('/:id', async(req,res,next)=>{
         const capacitacion = await models.Capacitacion.findByPk(id,{
             include: ['examen', 'Empresas']
         });
-        const preguntas = await models.Pregunta.findAll({
-          where: {examenId: capacitacion.examen.id}
-        });
+        let preguntas = null;
+        if (capacitacion.examen) {
+            preguntas = await models.Pregunta.findAll({
+              where: {examenId: capacitacion.examen.id}
+            });
+        }
         res.json({capacitacion, preguntas})
     } catch (error) {
         res.json({message: "No existe la capacitacion"})
