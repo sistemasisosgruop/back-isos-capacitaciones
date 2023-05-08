@@ -27,7 +27,7 @@ const generarReporte = async() => {
             if (!reporteExistente) {
                 i= i+1;
               //  console.log('Reportes nuevos');
-              const examen = capacitacion.examen ? capacitacion.examen.id : null;
+              const examen = capacitacion.examen ? capacitacion.examen.id : 0;
                     
             // Si no existe un reporte previo, crear uno nuevo con los datos por defecto
             const reporte = await models.Reporte.create({
