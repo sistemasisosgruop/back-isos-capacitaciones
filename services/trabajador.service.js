@@ -87,14 +87,24 @@ class TrabajadorService{
                 [Op.in]: trabajadoresIds
               }
             },
-            include: ['user', 'empresa', 'reporte']
+            include: ['user', 'empresa']
           });
 
-          const trabajadorIds = trabajadoresUnicos.map(trabajador => trabajador.id);
-        console.log('Trabajadores obtenidos por el servicio:',trabajadorIds);
+          //const trabajadorIds = trabajadoresUnicos.map(trabajador => trabajador.id);
+          const trabajadoresUnicosSinDuplicados = trabajadoresUnicos.reduce((lista, trabajador) => {
+            // Verifica si ya hemos agregado este trabajador a la lista
+            const existe = lista.some((t) => t.id === trabajador.id);
+            if (!existe) {
+              // Agrega el trabajador a la lista
+              lista.push(trabajador);
+            }
+            return lista;
+          }, []);
+          //console.log(trabajadoresUnicosSinDuplicados);
+        console.log('Trabajadores obtenidos por el servicio:',trabajadoresUnicosSinDuplicados);
 
           //console.log('Trabajadores obtenidos por el servicio:', trabajadoresUnicos[0]);
-return trabajadoresUnicos;
+return trabajadoresUnicosSinDuplicados;
         // const trabajador = await models.Trabajador.findAll({
         //     include:['user','empresa', 'reporte'],
         //     distinct: true,
