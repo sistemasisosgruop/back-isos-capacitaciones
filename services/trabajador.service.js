@@ -1,6 +1,7 @@
 const boom = require('@hapi/boom');
 const bcrypt = require('bcrypt');
 const moment = require('moment')
+const { Op } = require('sequelize');
 
 const {models} = require('./../libs/sequelize')
 
@@ -78,11 +79,28 @@ class TrabajadorService{
     }
 
     async find(){
-        const trabajador = await models.Trabajador.findAll({
-            include:['user','empresa', 'reporte'],
-            group: ['Trabajador.id']
-        });
-        return trabajador
+        const trabajadores = await models.Trabajador.aggregate('id', 'DISTINCT', { plain: false });
+        const trabajadoresIds = trabajadores.map(trabajador => trabajador.DISTINCT);
+        const trabajadoresUnicos = await models.Trabajador.findAll({
+            where: {
+              id: {
+                [Op.in]: trabajadoresIds
+              }
+            },
+            include: ['user', 'empresa', 'reporte']
+          });
+
+          const trabajadorIds = trabajadoresUnicos.map(trabajador => trabajador.id);
+        console.log('Trabajadores obtenidos por el servicio:',trabajadorIds);
+
+          //console.log('Trabajadores obtenidos por el servicio:', trabajadoresUnicos[0]);
+return trabajadoresUnicos;
+        // const trabajador = await models.Trabajador.findAll({
+        //     include:['user','empresa', 'reporte'],
+        //     distinct: true,
+        //     group: ['Trabajador.id']
+        // });
+        // return trabajador
     }
 
     async findByDni(dni){
