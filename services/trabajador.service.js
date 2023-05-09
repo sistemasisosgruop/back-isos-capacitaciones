@@ -80,7 +80,7 @@ class TrabajadorService{
     async find(){
         const trabajador = await models.Trabajador.findAll({
             include:['user','empresa', 'reporte'],
-            distinct: true
+            group: ['Trabajador.id']
         });
         return trabajador
     }
