@@ -63,11 +63,16 @@ router.post('/login',
 
             if (user.rol==="Trabajador") {
                 const worker = await models.Trabajador.findOne({where: {userId : user.id}})
+                if (worker.habilitado === false) {
+                    res.json({message: 'Usted está deshabilitado'})
+                }else{
                 res.json({
                     user,
                     token,
                     worker
                 });
+
+                }
             }else if(user.rol==="Administrador"){
                 const admin = await models.Administrador.findOne({where: {userId : user.id}})
                 
