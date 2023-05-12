@@ -6,6 +6,47 @@ const jwt = require('jsonwebtoken');
 const {config} = require('./../config/config');
 const {models} = require('../libs/sequelize');
 
+
+/**
+ * @swagger
+ * api/v1/login:
+ *   post:
+ *     summary: Iniciar sesión
+ *     tags: [LOGIN]
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             properties:
+ *               username:
+ *                 type: string
+ *               contraseña:
+ *                 type: string
+ *             required:
+ *               - username
+ *               - contraseña
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               anyOf:
+ *                 - $ref: '#/components/schemas/LoginValidoWorker'
+ *                 - $ref: '#/components/schemas/LoginValidoAdmin'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               properties:
+ *                 message:
+ *                   type: string
+ *               required:
+ *                 - message
+ *     security: []
+ */
+
 router.post('/login',
     passport.authenticate('local',{session:false}),
     async(req,res,next)=>{

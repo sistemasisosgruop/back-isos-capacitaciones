@@ -272,6 +272,89 @@ router.post('/cargaexcel/:empresaId',
   }
 })
 
+/**
+ * @swagger
+ * /api/v1/trabajadores/{id}:
+ *   patch:
+ *     summary: Actualiza un trabajador existente.
+ *     tags: [Trabajadores]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         description: ID del trabajador a actualizar.
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       description: Datos del trabajador a actualizar.
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nombres:
+ *                 type: string
+ *                 description: Nombres del trabajador.
+ *               apellidoPaterno:
+ *                 type: string
+ *                 description: Apellido paterno del trabajador.
+ *               apellidoMaterno:
+ *                 type: string
+ *                 description: Apellido materno del trabajador.
+ *               dni:
+ *                 type: string
+ *                 description: DNI del trabajador.
+ *               genero:
+ *                 type: string
+ *                 description: Género del trabajador.
+ *               edad:
+ *                 type: integer
+ *                 description: Edad del trabajador.
+ *               areadetrabajo:
+ *                 type: string
+ *                 description: Área de trabajo del trabajador.
+ *               cargo:
+ *                 type: string
+ *                 description: Cargo del trabajador.
+ *               habilitado:
+ *                 type: boolean
+ *                 description: Actualiza para dar examen el trabajador.
+ *               fechadenac:
+ *                 type: string
+ *                 format: date
+ *                 description: Fecha de nacimiento del trabajador.
+ *               user:
+ *                 type: object
+ *                 description: Datos de acceso del trabajador.
+ *                 properties:
+ *                   username:
+ *                     type: string
+ *                     description: Nombre de usuario.
+ *                   contraseña:
+ *                     type: string
+ *                     description: Contraseña del usuario.
+ *               empresaId:
+ *                 type: integer
+ *                 description: ID de la empresa a la que pertenece el trabajador.
+ *             
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       200:
+ *         description: Trabajador actualizado correctamente.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Trabajador'
+ *       400:
+ *         description: Error de validación en los datos enviados.
+ *       404:
+ *         description: No se encontró un trabajador con el ID especificado.
+ *       500:
+ *         description: Error interno del servidor.
+ */
+
 router.patch('/:id',
   validatorHandler(getTrabajadorSchema, 'params'),
   validatorHandler(updateTrabajadorSchema, 'body'),
@@ -286,7 +369,27 @@ router.patch('/:id',
     }
   }
 );
-
+/**
+ * @swagger
+ * /api/v1/trabajadores/{id}:
+ *   delete:
+ *     summary: Elimina un trabajador con el usuario existente por su ID.
+ *     tags: [Trabajadores]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: El ID del trabajador a eliminar.
+ *     responses:
+ *       200:
+ *         description: El trabajador ha sido eliminada exitosamente.
+ *       404:
+ *         description: No se encontró el trabajador.
+ *       500:
+ *         description: Error interno del servidor.
+ */
 router.delete('/:id',
   validatorHandler(getTrabajadorSchema, 'params'),
   async (req,res, next)=>{

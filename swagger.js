@@ -12,6 +12,7 @@ const options = {
         tags: [
           { name: 'Trabajadores', description: 'Endpoints para gestionar trabajadores' },
           { name: 'Empresas', description: 'Endpoints para gestionar empresas' },
+          { name: 'LOGIN', description: 'Endpoint para login'}
         ],
         components: {
             schemas: {
@@ -25,6 +26,7 @@ const options = {
                   email: { type: 'string' },
                   direccion: { type: 'string' },
                   fecha_nacimiento: { type: 'string' },
+                  habilitado: {type: 'boolean'},
                   createdAt: { type: 'string' },
                   updatedAt: { type: 'string' },
                 },
@@ -68,10 +70,88 @@ const options = {
                   RUC: { type: 'string' },
                 },
                 required: ['nombreEmpresa', 'direccion', 'nombreGerente', 'numeroContacto', 'RUC'],
-              }
-            },
+              },
+              LoginValidoWorker:{
+                type: 'object',
+                properties:{
+                  user:{
+                    type: 'object',
+                    properties:{
+                      id: {type: 'integer'},
+                      username: {type: 'string'},
+                      rol: {type: 'string'}
+                    }
+                  },
+                  token:   {type: 'string'},
+                  worker:{
+                    type: 'object',
+                    properties:{
+                        id:
+                          {type: 'integer'},
+                        nombres:
+                          {type: 'string'},
+                        apellidoPaterno:
+                          {type: 'string'},
+                        apellidoMaterno:
+                          {type: 'string'},
+                        dni:
+                          {type: 'string'},
+                        genero:
+                          {type: 'string'},
+                        edad:
+                          {type: 'integer'},
+                        areadetrabajo:
+                          {type: 'string'},
+                        cargo:
+                          {type: 'string'},
+                        habilitado:
+                          {type: 'boolean'},
+                        fechadenac:
+                          {type: 'string'},
+                        empresaId:
+                          {type: 'integer'}
+                        }
+                      }
+                  }
+              },
+              LoginValidoAdmin:{
+                type: 'object',
+                properties:{
+                  user:{
+                    type: 'object',
+                    properties:{
+                      id: {type: 'integer'},
+                      username: {type: 'string'},
+                      rol: {type: 'string'}
+                    }
+                  },
+                  token:   {type: 'string'},
+                  admin:{
+                    type: 'object',
+                    properties:{
+                      id:
+                        {type: 'integer'},
+                      nombres:
+                        {type: 'string'},
+                      apellidoPaterno:
+                        {type: 'string'},
+                      apellidoMaterno:
+                        {type: 'string'},
+                      dni:
+                        {type: 'string'},
+                      genero:
+                        {type: 'string'},
+                      edad:
+                        {type: 'integer'},
+                      fechadenac:
+                        {type: 'string'}
+                        }
+                      }
+                  }   
+              },
           },
-    },
+        }
+      },
     apis: ['./routes/*.js'], // Rutas de la API
 };
 

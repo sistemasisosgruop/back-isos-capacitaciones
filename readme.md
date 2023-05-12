@@ -149,6 +149,7 @@ Respuesta de petición:
         "edad": 25,
         "areadetrabajo": "IT",
         "cargo": "Empleado",
+		"habilitado":true
         "fechadenac": "1998-08-12",
         "user": {
             "rol": "Trabajador",
@@ -750,6 +751,7 @@ Cuando manda con un id
 			"urlVideo": "https://example.com",
 			"certificado": "firmas\\0f0dc7b4cdd4065dd114b94f33a5b0c9",
 			"horas": 72,
+			"habilitado":true,
 			"fechaAplazo": null,
 			"createdAt": "2023-04-27T13:25:36.288Z"
 		},
@@ -790,12 +792,17 @@ Cuando manda con un id
 
 Mandas lo que quieras cambiar del test
 
+Debes enviar el token que te dio en el login
+
+BearerToken
+
+
 ```bash
 
-api/v1/reporte/darexamen/5/1/5
-capacitacion 5
+api/v1/reporte/darexamen/1/1/1
+capacitacion 1
 trabajador 1
-examen 5
+examen 1
 
 {
   "respuestas": [

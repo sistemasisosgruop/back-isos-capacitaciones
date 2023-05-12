@@ -152,7 +152,8 @@ return trabajadoresUnicosSinDuplicados;
 
     async delete(id){
         const trabajador = await this.findOne(id);
-        await trabajador.destroy();
+        const usuario = await trabajador.getUser();
+        await Promise.all([trabajador.destroy(), usuario.destroy()]);
         return {id};
     }
 
