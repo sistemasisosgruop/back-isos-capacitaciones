@@ -43,7 +43,7 @@ const CapacitacionSchema = {
        defaultValue: null
     },
     habilitado:{
-        type: DataTypes.STRING,
+        type: DataTypes.BOOLEAN,
         allowNull: false,
         defaultValue: true
     },
