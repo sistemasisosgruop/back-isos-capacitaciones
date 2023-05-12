@@ -143,7 +143,7 @@ router.patch('/:id', upload.single('certificado'), async (req, res) => {
       }
   
       // Actualizar los datos de la capacitación
-      const { nombre, instructor, fechaInicio, fechaCulminacion, urlVideo, fechaAplazo, horas } = req.body;
+      const { nombre, instructor, fechaInicio, fechaCulminacion, urlVideo, fechaAplazo, horas, habilitado } = req.body;
       const certificado = req.file ? req.file.path : capacitacion.certificado;
   
       
@@ -156,6 +156,7 @@ router.patch('/:id', upload.single('certificado'), async (req, res) => {
         fechaAplazo: fechaAplazo ?? capacitacion.fechaAplazo,
         horas: horas?? capacitacion.horas,
         certificado: certificado ?? capacitacion.certificado,
+        habilitado: habilitado ?? capacitacion.habilitado
       });
       
       const empresasdecap = req.body.empresas
@@ -193,7 +194,6 @@ router.patch('/:id', upload.single('certificado'), async (req, res) => {
 
         const preguntaExistente = await capacitacion.examen.getPregunta();
 
-        console.log(preguntaExistente.length);
         for (const pregunt of preguntaExistente){
           await pregunt.destroy();
         }

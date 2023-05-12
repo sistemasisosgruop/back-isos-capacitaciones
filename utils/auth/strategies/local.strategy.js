@@ -18,6 +18,7 @@ const LocalStrategy = new Strategy({
       const isMatch = await bcrypt.compare(contraseña, user.contraseña);
       if (!isMatch) {
         done(boom.unauthorized(), false);
+        
       }
       delete user.dataValues.contraseña;
       done(null, user);

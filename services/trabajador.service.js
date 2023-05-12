@@ -90,27 +90,17 @@ class TrabajadorService{
             include: ['user', 'empresa']
           });
 
-          //const trabajadorIds = trabajadoresUnicos.map(trabajador => trabajador.id);
           const trabajadoresUnicosSinDuplicados = trabajadoresUnicos.reduce((lista, trabajador) => {
-            // Verifica si ya hemos agregado este trabajador a la lista
             const existe = lista.some((t) => t.id === trabajador.id);
             if (!existe) {
-              // Agrega el trabajador a la lista
               lista.push(trabajador);
             }
             return lista;
           }, []);
-          //console.log(trabajadoresUnicosSinDuplicados);
-        console.log('Trabajadores obtenidos por el servicio:',trabajadoresUnicosSinDuplicados);
-
-          //console.log('Trabajadores obtenidos por el servicio:', trabajadoresUnicos[0]);
+        
+        
 return trabajadoresUnicosSinDuplicados;
-        // const trabajador = await models.Trabajador.findAll({
-        //     include:['user','empresa', 'reporte'],
-        //     distinct: true,
-        //     group: ['Trabajador.id']
-        // });
-        // return trabajador
+      
     }
 
     async findByDni(dni){
@@ -133,8 +123,31 @@ return trabajadoresUnicosSinDuplicados;
 
     async update(id, changes){
         const trabajador = await this.findOne(id);
-        const respuesta = await trabajador.update(changes);
-        return respuesta;
+        const userChanges = changes.user || {};
+        const respuestaTrabajador = await trabajador.update({
+            nombres: changes.nombres ?? trabajador.nombres,
+            apellidoPaterno: changes.apellidoPaterno ?? trabajador.apellidoPaterno,
+            apellidoMaterno: changes.apellidoMaterno ?? trabajador.apellidoMaterno,
+            dni: changes.dni ?? trabajador.dni,
+            genero: changes.genero ?? trabajador.genero,
+            edad: changes.edad ?? trabajador.edad,
+            fechadenac: changes.fechadenac ?? trabajador.fechadenac,
+            areadetrabajo: changes.areadetrabajo ?? trabajador.areadetrabajo,
+            cargo: changes.cargo ?? trabajador.cargo,
+            habilitado: changes.habilitado ?? trabajador.habilitado,
+        });
+        if (userChanges.username || userChanges.contraseña || userChanges.rol) {
+            const user = await trabajador.getUser();
+            const hash = await bcrypt.hash(userChanges.contraseña, 10)
+            
+             const respuestaUsuario = await user.update({
+                 username: userChanges.username ?? user.username,
+                 contraseña: hash ?? user.contraseña,
+                 rol: userChanges.rol ?? user.rol,
+             });
+             
+        }
+        return respuestaTrabajador;
     }
 
     async delete(id){

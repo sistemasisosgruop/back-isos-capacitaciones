@@ -11,4 +11,23 @@ function checkApiKey(req, res, next) {
   }
 }
 
-module.exports = { checkApiKey }
+function checkWorkRol(req, res, next){
+    const user = req.user;
+    if (user.role === 'Trabajador') {
+        next();
+    } else {
+        next(boom.unauthorized())
+    }
+}
+function checkRoles(...roles){
+    return(req,res,next)=>{
+      const user=req.user;
+      if(roles.includes(user.role)){
+        next();
+      }else{
+        next(boom.unauthorized());
+      }
+    }
+  }
+
+module.exports = { checkApiKey, checkWorkRol }

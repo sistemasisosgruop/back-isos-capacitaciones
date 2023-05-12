@@ -42,6 +42,11 @@ const CapacitacionSchema = {
        allowNull: true,
        defaultValue: null
     },
+    habilitado:{
+        type: DataTypes.STRING,
+        allowNull: false,
+        defaultValue: true
+    },
     createdAt:{
         allowNull: false,
         type: DataTypes.DATE,

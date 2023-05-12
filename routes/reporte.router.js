@@ -3,6 +3,9 @@ const {Router} = require('express');
 const router = Router();
 const {models} = require('./../libs/sequelize');
 const generarReporte = require('./../services/reporte.service')
+const passport = require('passport')
+
+const {checkWorkRol} = require('./../middlewares/auth.handler')
 
 router.get('/', async(req,res)=>{
     try {
@@ -13,10 +16,8 @@ router.get('/', async(req,res)=>{
             
         });
         const associate = await models.Reporte.associations
-        console.log(associate);
         res.json(reportes)
     } catch (error) {
-        console.log(error);
         res.json({message:'no encuentra reportes'})
     }
 })
@@ -29,7 +30,6 @@ router.get('/:id', async(req,res)=>{
         const reporte = await models.Reporte.findByPk(id,{
             include: ['examen', 'capacitacion', 'trabajador']
         });
-        console.log(reporte.trabajador.empresaId);
         if (!reporte) {
             res.status(404).json({message:'No existe reporte'})
         }else{
@@ -44,8 +44,12 @@ router.get('/:id', async(req,res)=>{
 })
 
 
-router.patch('/darexamen/:capacitacionId/:trabajadorId/:examenId', async (req,res, next)=>{
+router.patch('/darexamen/:capacitacionId/:trabajadorId/:examenId',
+    passport.authenticate('jwt',{session:false}),
+    checkWorkRol,
+    async (req,res, next)=>{
     const { capacitacionId, trabajadorId, examenId } = req.params;
+    
     const respuestas = req.body.respuestas;
 
     try{
@@ -54,6 +58,18 @@ router.patch('/darexamen/:capacitacionId/:trabajadorId/:examenId', async (req,re
     const examen = await models.Examen.findByPk(examenId, {
         include: ['pregunta']
     })
+    if (!trabajador) {
+        res.json({message: 'No existe el trabajador'})
+    }
+    if (!examen) {
+        res.json({message: 'No existe el examen'})
+    }
+    if (!capacitacion) {
+        res.json({message: 'No existe la capacitacion'})
+    }
+    if (trabajador && trabajador.habilitado === false) {
+        res.json({message: 'No puede dar el examen porque está deshabilitado'})
+    }
 
     const respuestasPorPregunta = {};
         respuestas.forEach(respuesta => {
@@ -87,11 +103,9 @@ router.patch('/darexamen/:capacitacionId/:trabajadorId/:examenId', async (req,re
         examenId: examenId,
         capacitacionId: capacitacionId
     })
-    console.log(reporteact);
     res.json(reporte)
     }catch(err){
-        console.log(err);
-        res.status(500).json({ error: 'No se pudo conectar el reporte', });
+        res.status(500).json({ message: 'Error interno', });
     }
 })
 
