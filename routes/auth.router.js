@@ -88,4 +88,17 @@ router.post('/login',
     }
 );
 
+router.get('/verify-token', (req, res) => {
+    const token = req.headers.authorization.split(' ')[1]; // obtén el token del encabezado de autorización
+  
+    try {
+      const decodedToken = jwt.verify(token, process.env.JWT_SECRET); // verifica la validez del token
+  
+      res.status(200).json({ message: 'Token válido' });
+    } catch (err) {
+      res.status(401).json({ message: 'Sesion no válida o ha expirado, ingresé de nuevp' });
+    }
+});
+
+
 module.exports=router;
