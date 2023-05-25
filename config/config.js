@@ -8,6 +8,8 @@ const config = {
   apiKey: process.env.API_KEY,
   jwtSecret: process.env.JWT_SECRET
   //modificacion de prueba
+  //modificacion para prueba 2
+  
 }
 
 module.exports = { config };
