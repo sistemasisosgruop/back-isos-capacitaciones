@@ -11,7 +11,7 @@ if (config.isProd) {
     rejectUnauthorized: false
   };
 }
-
+//prueba
 const pool = new Pool(options);
 
 module.exports = pool;
