@@ -33,6 +33,10 @@ const TrabajadorSchema = {
         allowNull: false,
         type: DataTypes.STRING 
     },
+    celular:{
+        allowNull: false,
+        type: DataTypes.STRING 
+    },
     edad:{
         allowNull: false,
         type: DataTypes.INTEGER

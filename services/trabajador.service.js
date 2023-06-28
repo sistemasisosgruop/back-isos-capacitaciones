@@ -35,47 +35,61 @@ class TrabajadorService{
     }
 
     async createExcel(datos, empreId ){
-        
-        datos = datos.map(objeto=>{
-            const nombres = objeto.NOMBRES?objeto.NOMBRES:'corregir nombre';
-            const apellidoPaterno = objeto['APELLIDO PATERNO']?objeto['APELLIDO PATERNO']:'corregir apellido';
-            const apellidoMaterno = objeto['APELLIDO  MATERNO']?objeto['APELLIDO  MATERNO']:'corregir apellido';
-            const dni = objeto.DNI?objeto.DNI:undefined;
-            const genero = objeto['SEXO (F/M)']?objeto['SEXO (F/M)']:'corregir sexo';
-            const edad = objeto.EDAD;
-            const areadetrabajo = objeto['Tipo de trabajo']?objeto['Tipo de trabajo']:'corregir tipo de trabajo';
-            const cargo = objeto.CARGO?objeto.CARGO:'corregir cargo';
-            const fechadenaci = objeto['FECHA DE NACIMIENTO']?objeto['FECHA DE NACIMIENTO']:'01/01/2000';
-            const fechadenac = moment(fechadenaci, 'DD/MM/YYYY').format('YYYY-MM-DD');
-            const username = dni;
-            const contraseña = objeto.CONTRASEÑA?objeto.CONTRASEÑA:username;
-            const newUser = {username, contraseña}
-            const empresaId = empreId;
-            return { nombres, apellidoPaterno, apellidoMaterno, dni, genero, edad, areadetrabajo, cargo, fechadenac, user: newUser, empresaId };
-        })
-        
+        try {
+            const dnisSet = new Set(); // Conjunto para almacenar los DNIs
+            let duplicateDNI = false;
+            datos = datos.map(objeto=>{
+                const dniData = objeto.DNI ? objeto.DNI.toString() : undefined;
 
-        const nuevosTrabajadores = [];
-        for(const i of datos){
-            const trabajadorExistente = await this.findByDni(i.dni.toString());
-            const usuarioExistente = await models.Usuario.findOne({
-                where: {username: i.user.username.toString()}
-            })
-            if(!trabajadorExistente && !usuarioExistente){
-                nuevosTrabajadores.push(i);
+                if (dniData && dnisSet.has(dniData)) {
+                    console.log(`DNI duplicado encontrado: ${dniData}`);
+                    duplicateDNI = true;
+                }
+              
+                dnisSet.add(dniData); // Agrega el DNI al conjunto
+                const nombres = objeto.NOMBRES?objeto.NOMBRES:'corregir nombre';
+                const apellidoPaterno = objeto['APELLIDO PATERNO']?objeto['APELLIDO PATERNO']:'corregir apellido';
+                const apellidoMaterno = objeto['APELLIDO  MATERNO']?objeto['APELLIDO  MATERNO']:'corregir apellido';
+                const dni = objeto.DNI?objeto.DNI.toString():undefined;
+                const celular = objeto.CELULAR?objeto.CELULAR:undefined;
+                const genero = objeto['SEXO (F/M)']?objeto['SEXO (F/M)']:'corregir sexo';
+                const edad = objeto.EDAD?objeto.EDAD:0;
+                const areadetrabajo = objeto['Tipo de trabajo']?objeto['Tipo de trabajo']:'corregir tipo de trabajo';
+                const cargo = objeto.CARGO?objeto.CARGO:'corregir cargo';
+                const fechadenaci = objeto['FECHA DE NACIMIENTO']?objeto['FECHA DE NACIMIENTO']:'01/01/2000';
+                const fechadenac = moment(fechadenaci, ['DD/MM/YYYY', "YYYY-MM-DD"]).format('YYYY-MM-DD');
+                const username = dni;
+                const contraseña = objeto.CONTRASEÑA?objeto.CONTRASEÑA:username;
+                const newUser = {username, contraseña}
+                const empresaId = empreId;
+                return { nombres, apellidoPaterno, apellidoMaterno, dni, genero, edad, areadetrabajo, cargo, fechadenac, user: newUser, empresaId, celular };
+            }).filter(objeto => objeto !== null);
+
+            if (duplicateDNI) {
+                // Retorna el valor indicando que hay un DNI duplicado
+                return { error: 'DNI duplicado encontrado en el archivo de datos' };
+              }
+            
+            const nuevosTrabajadores = [];
+            for(const i of datos){
+                const trabajadorExistente = await this.findByDni(i.dni);
+
+                if(!trabajadorExistente ){
+                    nuevosTrabajadores.push(i);
+                }
             }
+                for (const usuario of nuevosTrabajadores) {
+                    usuario.user.contraseña = await bcrypt.hash(usuario.user.contraseña.toString(), 10);
+                }
+                const trabajador = await models.Trabajador.bulkCreate(nuevosTrabajadores,{
+                    include:['user']
+                });
+                return trabajador;
+
+        } catch (error) {
+            console.log(error);
         }
-        if (nuevosTrabajadores.length > 0) {
-            for (const usuario of nuevosTrabajadores) {
-                usuario.user.contraseña = await bcrypt.hash(usuario.user.contraseña.toString(), 10);
-            }
-            const trabajador = await models.Trabajador.bulkCreate(nuevosTrabajadores,{
-                include:['user']
-            });
-            return trabajador;
-        }else{
-            return false;
-        }
+
     }
 
     async find(){

@@ -227,32 +227,43 @@ router.post('/',
 router.post('/cargaexcel/:empresaId',
   upload.single('file') ,
   async(req,res,next)=>{
+    try{
+
     const id = req.params.empresaId;
     const file = req.file;
     const workbook = xlsx.readFile(file.path);
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-    const datos = xlsx.utils.sheet_to_json(worksheet, { header: 1, range: 4});
+    const datos = xlsx.utils.sheet_to_json(worksheet, { header: 1, range: 3});
+ 
     const datosFiltrados = datos.filter(arr=>arr.length>0);    
     const headers = datosFiltrados[0];
+    console.log(headers);
     const rows = datosFiltrados.slice(1);
     const trabajadores = rows.map(row => {
       const trabajador = {};
       headers.forEach((header, index) => {
-        //trabajador[header] = row[index];
-          if (header === "FECHA DE NACIMIENTO") {
-            // Convierte el número de serie de fecha de Excel en una fecha legible
+        if (header === "FECHA DE NACIMIENTO") {
+          let fecha = null;
+          if (typeof row[index] === "number") {
             const fechaNumerica = row[index];
-            
-            const fecha = moment((fechaNumerica-(25567+1))*86400*1000);
-            trabajador[header] = fecha.format('DD/MM/YYYY');
+            fecha = moment((fechaNumerica - (25567 + 1)) * 86400 * 1000);
           } else {
-            trabajador[header] = row[index];
+            fecha = moment(row[index], 'DD/MM/YYYY', true);
           }
+          trabajador[header] = fecha.isValid() ? fecha.format('YYYY-MM-DD') : null;
+        } else {
+          trabajador[header] = row[index];
+        }
       });
+    
+      // Validación adicional de la fecha
+      if (!trabajador["FECHA DE NACIMIENTO"] || trabajador["FECHA DE NACIMIENTO"] === "Invalid date") {
+        trabajador["FECHA DE NACIMIENTO"] = null;
+      }
+
       return trabajador;
     })
-    
-  try{
+
     const empresa = await serviceEmpresa.findOne(id);
     
     if (!empresa) {
@@ -260,15 +271,17 @@ router.post('/cargaexcel/:empresaId',
     }
     else{
       const trabajadoresbd = await service.createExcel(trabajadores, Number(id));
+      
       if (trabajadoresbd) {
-        res.status(201).json({message: 'ccreado correctamente'})
+        res.status(201).json({message: 'creado correctamente'})
       } else {
         res.status(500).json({message: 'hubo un error'})
       }
     }
     
   }catch(error){
-    next(error);
+    console.log(error);
+    next(error)
   }
 })
 
