@@ -64,10 +64,7 @@ class TrabajadorService{
                 return { nombres, apellidoPaterno, apellidoMaterno, dni, genero, edad, areadetrabajo, cargo, fechadenac, user: newUser, empresaId, celular };
             }).filter(objeto => objeto !== null);
 
-            if (duplicateDNI) {
-                // Retorna el valor indicando que hay un DNI duplicado
-                return { error: 'DNI duplicado encontrado en el archivo de datos' };
-              }
+
             
             const nuevosTrabajadores = [];
             for(const i of datos){
