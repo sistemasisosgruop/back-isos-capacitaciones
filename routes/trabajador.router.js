@@ -233,11 +233,10 @@ router.post('/cargaexcel/:empresaId',
     const file = req.file;
     const workbook = xlsx.readFile(file.path);
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-    const datos = xlsx.utils.sheet_to_json(worksheet, { header: 1, range: 3});
+    const datos = xlsx.utils.sheet_to_json(worksheet, { header: 1, range: 4});
  
     const datosFiltrados = datos.filter(arr=>arr.length>0);    
     const headers = datosFiltrados[0];
-    console.log(headers);
     const rows = datosFiltrados.slice(1);
     const trabajadores = rows.map(row => {
       const trabajador = {};

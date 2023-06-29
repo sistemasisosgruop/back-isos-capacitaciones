@@ -37,13 +37,12 @@ class TrabajadorService{
     async createExcel(datos, empreId ){
         try {
             const dnisSet = new Set(); // Conjunto para almacenar los DNIs
-            let duplicateDNI = false;
             datos = datos.map(objeto=>{
                 const dniData = objeto.DNI ? objeto.DNI.toString() : undefined;
 
                 if (dniData && dnisSet.has(dniData)) {
-                    console.log(`DNI duplicado encontrado: ${dniData}`);
-                    duplicateDNI = true;
+                  console.log(`DNI duplicado encontrado: ${dniData}`);
+                  return null; 
                 }
               
                 dnisSet.add(dniData); // Agrega el DNI al conjunto
