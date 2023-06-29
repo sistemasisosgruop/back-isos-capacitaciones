@@ -272,9 +272,9 @@ router.post('/cargaexcel/:empresaId',
       const trabajadoresbd = await service.createExcel(trabajadores, Number(id));
       
       if (trabajadoresbd) {
-        res.status(201).json({message: 'creado correctamente'})
+        res.status(201).json({message: 'Creado con éxito!'})
       } else {
-        res.status(500).json({message: 'hubo un error'})
+        res.status(500).json({message: 'Hubo un error.'})
       }
     }
     
