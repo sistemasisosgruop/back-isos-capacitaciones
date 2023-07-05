@@ -53,7 +53,9 @@ class TrabajadorService {
           ? objeto["APELLIDO  MATERNO"]
           : "corregir apellido";
         const dni = objeto.DNI ? objeto.DNI.toString() : undefined;
-        const celular = objeto.CELULAR ? objeto.CELULAR.toString(): "corregir celular";
+        const celular = objeto.CELULAR
+          ? objeto.CELULAR.toString()
+          : "corregir celular";
         const genero = objeto["SEXO (F/M)"]
           ? objeto["SEXO (F/M)"]
           : "corregir sexo";
@@ -108,13 +110,25 @@ class TrabajadorService {
           10
         );
       }
-      const trabajador = await models.Trabajador.bulkCreate(
-        nuevosTrabajadores,
-        {
-          include: ["user"],
-        }
-      );
-      return trabajador;
+      try {
+        const trabajador = await models.Trabajador.bulkCreate(
+          nuevosTrabajadores,
+          {
+            include: ["user"],
+          }
+        );
+
+        // Si la inserción del trabajador fue exitosa, procedemos a insertar los usuarios
+        const newUser = await models.Usuario.bulkCreate(
+          nuevosTrabajadores.map((t) => t.user)
+        );
+
+        return trabajador;
+      } catch (error) {
+        console.log(error);
+        // Si algo falla durante la inserción del trabajador, no creamos los usuarios
+        return false;
+      }
     } else {
       return false;
     }
