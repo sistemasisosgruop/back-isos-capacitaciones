@@ -53,7 +53,7 @@ class TrabajadorService {
           ? objeto["APELLIDO  MATERNO"]
           : "corregir apellido";
         const dni = objeto.DNI ? objeto.DNI.toString() : undefined;
-        const celular = objeto.CELULAR ? objeto.CELULAR : undefined;
+        const celular = objeto.CELULAR ? objeto.CELULAR.toString(): "corregir celular";
         const genero = objeto["SEXO (F/M)"]
           ? objeto["SEXO (F/M)"]
           : "corregir sexo";
