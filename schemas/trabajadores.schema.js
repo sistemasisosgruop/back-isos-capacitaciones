@@ -10,6 +10,7 @@ const genero = Joi.string();
 const edad = Joi.number();
 const areadetrabajo = Joi.string();
 const cargo = Joi.string();
+const celular = Joi.string().min(9).max(9)
 const fechadenac = Joi.string().custom((value, helpers)=>{
 const date = moment(value, 'YYYY/MM/DD', true);
   if(!date.isValid()){
@@ -40,6 +41,7 @@ const createTrabajadorSchema = Joi.object({
     areadetrabajo: areadetrabajo.required(),
     cargo: cargo.required(),
     fechadenac: fechadenac.required(),
+    celular: celular.required(),
     user: Joi.object({
       username: username.required(),
       contraseña : contraseña.required(),
@@ -59,6 +61,7 @@ const updateTrabajadorSchema = Joi.object({
     cargo: cargo,
     fechadenac: fechadenac,
     habilitado: habilitado,
+    celular: celular.required(),
     user: Joi.object({
       username: username,
       contraseña: contraseña,

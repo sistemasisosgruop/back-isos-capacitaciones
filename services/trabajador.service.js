@@ -14,6 +14,7 @@ class TrabajadorService {
       ...data,
       user: {
         ...data.user,
+        celular: data.user.celular,
         contraseña: hash,
       },
     };
@@ -34,7 +35,6 @@ class TrabajadorService {
 
   async createExcel(datos, empreId) {
     const dnisSet = new Set(); // Conjunto para almacenar los DNIs
-    console.log(datos);
     datos = datos
       .map((objeto) => {
         const dniData = objeto.DNI ? objeto.DNI.toString() : undefined;
@@ -54,12 +54,12 @@ class TrabajadorService {
           : "corregir apellido";
         const dni = objeto.DNI ? objeto.DNI.toString() : undefined;
         const celular = objeto.CELULAR
-          ? objeto.CELULAR.toString()
+          ? objeto.CELULAR.toString().slice(0, 9)
           : "corregir celular";
         const genero = objeto["SEXO (F/M)"]
           ? objeto["SEXO (F/M)"]
           : "corregir sexo";
-        const edad = objeto.EDAD ? objeto.EDAD : 0;
+        const edad = objeto.EDAD ? parseInt(objeto.EDAD) : 0;
         const areadetrabajo = objeto["Tipo de trabajo"]
           ? objeto["Tipo de trabajo"]
           : "corregir tipo de trabajo";
@@ -91,46 +91,61 @@ class TrabajadorService {
         };
       })
       .filter((objeto) => objeto !== null);
-
-    const nuevosTrabajadores = [];
-    for (const i of datos) {
-      const trabajadorExistente = await this.findByDni(i.dni);
-
+    
+    const trabajadoresNuevos = [];
+    let usuario;
+    for (const trabajadorData of datos) {
+      const trabajadorExistente = await this.findByDni(trabajadorData.dni);
       const usuarioExistente = await models.Usuario.findOne({
-        where: { username: i.user.username.toString() },
+        where: { username: trabajadorData.user.username.toString() },
       });
-      if (!trabajadorExistente && !usuarioExistente) {
-        nuevosTrabajadores.push(i);
+      const hashedPassword = await bcrypt.hash(
+        trabajadorData.user.contraseña,
+        10
+      );
+
+      if (!usuarioExistente) {
+        usuario = await models.Usuario.create({
+          ...trabajadorData.user,
+          contraseña: hashedPassword,
+        });
+        trabajadorData.userId = usuario.id;
+      } else {
+        trabajadorData.userId = usuarioExistente.id;
+      }
+
+      if (!trabajadorExistente) {
+        trabajadoresNuevos.push(trabajadorData);
+      } else {
+        // Actualizamos los datos del trabajador existente
+        trabajadorExistente.update(trabajadorData);
       }
     }
-    if (nuevosTrabajadores.length > 0) {
-      for (const usuario of nuevosTrabajadores) {
-        usuario.user.contraseña = await bcrypt.hash(
-          usuario.user.contraseña.toString(),
-          10
-        );
-      }
+
+    // Ahora, procedemos a crear los trabajadores.
+    if (trabajadoresNuevos.length > 0) {
       try {
-        const trabajador = await models.Trabajador.bulkCreate(
-          nuevosTrabajadores,
+        const trabajadores = await models.Trabajador.bulkCreate(
+          trabajadoresNuevos,
           {
-            include: ["user"],
+            updateOnDuplicate: [
+              "nombres",
+              "apellidoPaterno",
+              "apellidoMaterno",
+              "genero",
+              "edad",
+              "areadetrabajo",
+              "cargo",
+              "fechadenac",
+              "celular",
+            ],
           }
         );
-
-        // Si la inserción del trabajador fue exitosa, procedemos a insertar los usuarios
-        const newUser = await models.Usuario.bulkCreate(
-          nuevosTrabajadores.map((t) => t.user)
-        );
-
-        return trabajador;
+        return trabajadores;
       } catch (error) {
         console.log(error);
-        // Si algo falla durante la inserción del trabajador, no creamos los usuarios
-        return false;
+        throw error;
       }
-    } else {
-      return false;
     }
   }
 
@@ -196,6 +211,7 @@ class TrabajadorService {
       areadetrabajo: changes.areadetrabajo ?? trabajador.areadetrabajo,
       cargo: changes.cargo ?? trabajador.cargo,
       habilitado: changes.habilitado ?? trabajador.habilitado,
+      celular: changes.celular ?? trabajador.celular,
     });
     if (userChanges.username || userChanges.contraseña || userChanges.rol) {
       const user = await trabajador.getUser();

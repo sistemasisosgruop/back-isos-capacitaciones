@@ -1,16 +1,20 @@
-const express = require('express');
+const express = require("express");
 
-const TrabajadorService = require('./../services/trabajador.service');
-const validatorHandler = require('./../middlewares/validator.handler');
-const {updateTrabajadorSchema, createTrabajadorSchema, getTrabajadorSchema} = require('./../schemas/trabajadores.schema');
-const xlsx = require('xlsx');
-const multer = require('multer');
+const TrabajadorService = require("./../services/trabajador.service");
+const validatorHandler = require("./../middlewares/validator.handler");
+const {
+  updateTrabajadorSchema,
+  createTrabajadorSchema,
+  getTrabajadorSchema,
+} = require("./../schemas/trabajadores.schema");
+const xlsx = require("xlsx");
+const multer = require("multer");
 const router = express.Router();
 const service = new TrabajadorService();
-const upload = multer({dest: 'excel/'});
-const EmpresasService = require('../services/empresas.service.js');
+const upload = multer({ dest: "excel/" });
+const EmpresasService = require("../services/empresas.service.js");
 const serviceEmpresa = new EmpresasService();
-const moment = require('moment');
+const moment = require("moment");
 
 /**
  * @swagger
@@ -97,7 +101,7 @@ const moment = require('moment');
  *                 $ref: '#/components/schemas/Trabajador'
  */
 
-router.get('/',async (req, res, next)=>{
+router.get("/", async (req, res, next) => {
   try {
     const Trabajadores = await service.find();
     res.json(Trabajadores);
@@ -131,8 +135,9 @@ router.get('/',async (req, res, next)=>{
  *       404:
  *         description: Trabajador no encontrado.
  */
-router.get('/:id',
-  validatorHandler(getTrabajadorSchema, 'params'),
+router.get(
+  "/:id",
+  validatorHandler(getTrabajadorSchema, "params"),
   async (req, res, next) => {
     try {
       const { id } = req.params;
@@ -143,7 +148,6 @@ router.get('/:id',
     }
   }
 );
-
 
 /**
  * @swagger
@@ -170,22 +174,29 @@ router.get('/:id',
  *       400:
  *         description: El DNI ya existe en la base de datos.
  */
-router.post('/',
-  validatorHandler(createTrabajadorSchema, 'body'),
-  async (req, res,next) => {
+router.post(
+  "/",
+  validatorHandler(createTrabajadorSchema, "body"),
+  async (req, res, next) => {
     try {
       const body = req.body;
-      
-      const valdni = await service.findByDni(body.dni)
-      if(valdni){
+
+      const valdni = await service.findByDni(body.dni);
+      if (valdni) {
         res.status(400).json({
-          message: `Ya existe un Dni igual`
-        })
-      }else{
+          message: `Ya existe un Dni igual`,
+        });
+      } else {
+        console.log(body);
         const nuevotrabajador = await service.create(body);
-        res.status(201).json(nuevotrabajador?nuevotrabajador:{message:'ya existe el usuario'});
+        res
+          .status(201)
+          .json(
+            nuevotrabajador
+              ? nuevotrabajador
+              : { message: "ya existe el usuario" }
+          );
       }
-      
     } catch (error) {
       next(error);
     }
@@ -224,21 +235,20 @@ router.post('/',
  *         description: Error en el servidor
  */
 
-router.post('/cargaexcel/:empresaId',
-  upload.single('file') ,
-  async(req,res,next)=>{
-    try{
-
+router.post(
+  "/cargaexcel/:empresaId",
+  upload.single("file"),
+  async (req, res, next) => {
     const id = req.params.empresaId;
     const file = req.file;
     const workbook = xlsx.readFile(file.path);
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-    const datos = xlsx.utils.sheet_to_json(worksheet, { header: 1, range: 4});
- 
-    const datosFiltrados = datos.filter(arr=>arr.length>0);    
+    const datos = xlsx.utils.sheet_to_json(worksheet, { header: 1, range: 4 });
+
+    const datosFiltrados = datos.filter((arr) => arr.length > 0);
     const headers = datosFiltrados[0];
     const rows = datosFiltrados.slice(1);
-    const trabajadores = rows.map(row => {
+    const trabajadores = rows.map((row) => {
       const trabajador = {};
       headers.forEach((header, index) => {
         if (header === "FECHA DE NACIMIENTO") {
@@ -247,42 +257,45 @@ router.post('/cargaexcel/:empresaId',
             const fechaNumerica = row[index];
             fecha = moment((fechaNumerica - (25567 + 1)) * 86400 * 1000);
           } else {
-            fecha = moment(row[index], 'DD/MM/YYYY', true);
+            fecha = moment(row[index], "DD/MM/YYYY", true);
           }
-          trabajador[header] = fecha.isValid() ? fecha.format('YYYY-MM-DD') : null;
+          trabajador[header] = fecha.isValid()
+            ? fecha.format("YYYY-MM-DD")
+            : null;
         } else {
           trabajador[header] = row[index];
         }
       });
-    
+
       // Validación adicional de la fecha
-      if (!trabajador["FECHA DE NACIMIENTO"] || trabajador["FECHA DE NACIMIENTO"] === "Invalid date") {
+      if (
+        !trabajador["FECHA DE NACIMIENTO"] ||
+        trabajador["FECHA DE NACIMIENTO"] === "Invalid date"
+      ) {
         trabajador["FECHA DE NACIMIENTO"] = null;
       }
 
       return trabajador;
-    })
+    });
 
     const empresa = await serviceEmpresa.findOne(id);
-    
+
     if (!empresa) {
-      res.json(empresa)
-    }
-    else{
-      const trabajadoresbd = await service.createExcel(trabajadores, Number(id));
-      
-      if (trabajadoresbd) {
-        res.status(201).json({message: 'Creado con éxito!'})
-      } else {
-        res.status(500).json({message: 'Hubo un error.'})
+      res.json(empresa);
+    } else {
+      try {
+         await service.createExcel(
+          trabajadores,
+          Number(id)
+        );
+        res.status(201).json({ message: "Creado con éxito!" });
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({message: 'Hubo un error.', error: error.toString()});
       }
     }
-    
-  }catch(error){
-    console.log(error);
-    next(error)
   }
-})
+);
 
 /**
  * @swagger
@@ -349,7 +362,7 @@ router.post('/cargaexcel/:empresaId',
  *               empresaId:
  *                 type: integer
  *                 description: ID de la empresa a la que pertenece el trabajador.
- *             
+ *
  *     produces:
  *       - application/json
  *     responses:
@@ -367,13 +380,15 @@ router.post('/cargaexcel/:empresaId',
  *         description: Error interno del servidor.
  */
 
-router.patch('/:id',
-  validatorHandler(getTrabajadorSchema, 'params'),
-  validatorHandler(updateTrabajadorSchema, 'body'),
+router.patch(
+  "/:id",
+  validatorHandler(getTrabajadorSchema, "params"),
+  validatorHandler(updateTrabajadorSchema, "body"),
   async (req, res, next) => {
     try {
       const { id } = req.params;
       const body = req.body;
+      console.log(body);
       const trabajador = await service.update(id, body);
       res.json(trabajador);
     } catch (error) {
@@ -402,16 +417,17 @@ router.patch('/:id',
  *       500:
  *         description: Error interno del servidor.
  */
-router.delete('/:id',
-  validatorHandler(getTrabajadorSchema, 'params'),
-  async (req,res, next)=>{
-  try {
-    const {id} = req.params;
-    await service.delete(id);
-    res.status(201).json({id});
-  } catch (error) {
-    next(error);
-  }
+router.delete(
+  "/:id",
+  validatorHandler(getTrabajadorSchema, "params"),
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      await service.delete(id);
+      res.status(201).json({ id });
+    } catch (error) {
+      next(error);
+    }
   }
 );
 
