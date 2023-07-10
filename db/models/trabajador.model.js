@@ -2,7 +2,6 @@ const { Model, DataTypes, Sequelize } = require('sequelize');
 
 const {USUARIO_TABLE} = require('./usuario.model');
 const { EMPRESA_TABLE } = require('./empresa.model');
-
 const TRABAJADOR_TABLE = 'trabajadores';
 
 const TrabajadorSchema = {
@@ -103,6 +102,10 @@ class Trabajador extends Model{
             as: 'reporte',
             foreignKey: 'trabajadorId'
         });
+        this.hasMany(models.Emo,{
+            as: "emo",
+            foreignKey: 'trabajadorId'
+        })
     }
     static config(sequelize){
         return{

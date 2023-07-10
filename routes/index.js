@@ -9,6 +9,8 @@ const capacitacionesRouter = require('./capacitaciones.router');
 const examenRouter = require('./examen.router')
 const testsRouter = require('./test.router')
 const reporteRouter = require('./reporte.router')
+const emoRouter = require('./emo.router')
+
 function routerApi(app){
     const router = express.Router();
     app.use('/api/v1', router);
@@ -21,6 +23,7 @@ function routerApi(app){
     router.use('/examenes', examenRouter);
     router.use('/test', testsRouter);
     router.use('/reporte', reporteRouter);
+    router.use/('/emo', emoRouter)
 }
 
 module.exports = routerApi;
