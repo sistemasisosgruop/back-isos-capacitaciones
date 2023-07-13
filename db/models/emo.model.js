@@ -24,10 +24,10 @@ const EmoSchema = {
   },
   trabajadorId:{
     allowNull: false,
-    type: DataTypes.INTEGER,
+    type: DataTypes.STRING,
     references: {
     model: TRABAJADOR_TABLE,
-    key: 'id'
+    key: 'dni'
     },
     onUpdate: 'CASCADE',
     onDelete: 'SET NULL'
@@ -45,7 +45,8 @@ class Emo extends Model {
 
     this.belongsTo(models.Trabajador,{
         as: 'trabajador',
-        foreignKey: 'trabajadorId'
+        foreignKey: 'trabajadorId',
+        targetKey: 'dni'
     });
 
   }

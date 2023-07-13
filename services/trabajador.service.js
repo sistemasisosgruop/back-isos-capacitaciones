@@ -183,11 +183,18 @@ class TrabajadorService {
   }
 
   async findByDni(dni) {
-    const trabajador = await models.Trabajador.findOne({
-      where: { dni },
-      include: ["user", "empresa"],
-    });
-    return trabajador;
+
+    try {
+      const trabajador = await models.Trabajador.findOne({
+        where: { dni },
+        include: ["user", "empresa"],
+      });
+      console.log(trabajador);
+      return trabajador;
+    } catch (error) {
+      console.log(error);
+    }
+
   }
 
   async findOne(id) {

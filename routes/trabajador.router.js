@@ -14,6 +14,8 @@ const service = new TrabajadorService();
 const upload = multer({ dest: "excel/" });
 const EmpresasService = require("../services/empresas.service.js");
 const serviceEmpresa = new EmpresasService();
+const { models } = require("./../libs/sequelize");
+
 const moment = require("moment");
 
 /**
@@ -103,7 +105,12 @@ const moment = require("moment");
 
 router.get("/", async (req, res, next) => {
   try {
-    const Trabajadores = await service.find();
+    const Trabajadores = await models.Trabajador.findAll({
+      include: [
+        { model: models.Empresa, as: "empresa" },
+        { model: models.Usuario, as: "user" },
+      ],
+    });
     res.json(Trabajadores);
   } catch (error) {
     next(error);
@@ -284,14 +291,13 @@ router.post(
       res.json(empresa);
     } else {
       try {
-         await service.createExcel(
-          trabajadores,
-          Number(id)
-        );
+        await service.createExcel(trabajadores, Number(id));
         res.status(201).json({ message: "Creado con éxito!" });
       } catch (error) {
         console.error(error);
-        res.status(500).json({message: 'Hubo un error.', error: error.toString()});
+        res
+          .status(500)
+          .json({ message: "Hubo un error.", error: error.toString() });
       }
     }
   }

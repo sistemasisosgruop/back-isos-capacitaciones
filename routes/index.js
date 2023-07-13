@@ -23,7 +23,7 @@ function routerApi(app){
     router.use('/examenes', examenRouter);
     router.use('/test', testsRouter);
     router.use('/reporte', reporteRouter);
-    router.use/('/emo', emoRouter)
+    router.use('/emo', emoRouter)
 }
 
 module.exports = routerApi;

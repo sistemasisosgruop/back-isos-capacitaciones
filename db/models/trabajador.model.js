@@ -104,7 +104,8 @@ class Trabajador extends Model{
         });
         this.hasMany(models.Emo,{
             as: "emo",
-            foreignKey: 'trabajadorId'
+            foreignKey: 'trabajadorId',
+            sourceKey: 'dni'
         })
     }
     static config(sequelize){

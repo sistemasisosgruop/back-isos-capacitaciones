@@ -2,7 +2,7 @@ const boom = require('@hapi/boom');
 
 const {models} = require('./../libs/sequelize')
 
-class EmpresaService{
+class EmoService{
     constructor(){}
 
         async create(data){
@@ -66,4 +66,4 @@ class EmpresaService{
 
 }
 
-module.exports = EmpresaService;
+module.exports = EmoService;
