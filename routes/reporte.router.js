@@ -4,6 +4,7 @@ const router = Router();
 const { models } = require("./../libs/sequelize");
 const generarReporte = require("./../services/reporte.service");
 const passport = require("passport");
+const moment = require("moment");
 
 const { checkWorkRol } = require("./../middlewares/auth.handler");
 
@@ -27,20 +28,22 @@ router.get("/", async (req, res) => {
       const trabajador = item.trabajador;
       const capacitacion = item.capacitacion;
       const empresa = item.trabajador.empresa;
-      const examen = item.examen
+      const examen = item.examen;
 
       return {
-
         nombreTrabajador:
-          trabajador.apellidoMaterno + " " +
-          trabajador.apellidoPaterno + " " +
+          trabajador.apellidoMaterno +
+          " " +
+          trabajador.apellidoPaterno +
+          " " +
           trabajador.nombres,
         nombreCapacitacion: capacitacion.nombre,
         nombreEmpresa: empresa.nombreEmpresa,
         fechaExamen: examen.fechadeExamen,
         notaExamen: item.notaExamen,
         asistenciaExamen: item.asistenciaExamen,
-        ...item.toJSON()
+        mesExamen: moment(examen.fechadeExamen).month()+1,
+        ...item.toJSON(),
       };
     });
     res.json(format);

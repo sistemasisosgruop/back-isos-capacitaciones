@@ -40,6 +40,7 @@ router.get("/", async (req, res) => {
         fecha_lectura: item?.emo?.at(0)?.fecha_lectura,
         logo: item.empresa.imagenLogo,
         nombreEmpresa: item?.empresa?.nombreEmpresa,
+        empresa_id: item?.empresa?.id,
       };
     });
     return res.status(200).json({ data: newData });
@@ -125,42 +126,48 @@ router.post("/excel", upload.single("file"), async (req, res, next) => {
 
     const dnis = datosObjetos.map((item) => item.trabajadorId);
     const trabajadores = await models.Trabajador.findAll({
-        where: { dni: { [Op.in]: dnis } },
-      });
-      
-      let trabajadoresMap = {};
-      trabajadores.forEach((trabajador) => {
-        trabajadoresMap[trabajador.dni] = trabajador;
-      });
-      
-      const emos = await models.Emo.findAll({
-        where: { trabajadorId: { [Op.in]: dnis } },
-      });
-      
-      let emosMap = {};
-      emos.forEach((emo) => {
-        emosMap[emo.trabajadorId] = emo;
-      });
-      
-      // Ahora procesamos los datos del Excel
-      datosObjetos.forEach((obj) => {
-        const trabajador = trabajadoresMap[obj.trabajadorId];
-        const emo = emosMap[obj.trabajadorId];
-      
-        // Verificar si el DNI del trabajador existe en la base de datos
-        if (trabajador) {
-          if (emo) {
-            // Actualizar el registro Emo
-            emo.update(obj);
-          } else {
-            // Crear un nuevo registro Emo
-            models.Emo.create(obj);
-          }
-        } else {
-          console.log(`El DNI ${obj.trabajadorId} no está registrado en la base de datos.`);
+      where: { dni: { [Op.in]: dnis } },
+    });
+
+    let trabajadoresMap = {};
+    trabajadores.forEach((trabajador) => {
+      trabajadoresMap[trabajador.dni] = trabajador;
+    });
+
+    const emos = await models.Emo.findAll({
+      where: { trabajadorId: { [Op.in]: dnis } },
+    });
+
+    let emosMap = {};
+    emos.forEach((emo) => {
+      emosMap[emo.trabajadorId] = emo;
+    });
+
+    // Ahora procesamos los datos del Excel
+    datosObjetos.forEach((obj) => {
+      const trabajador = trabajadoresMap[obj.trabajadorId];
+      const emo = emosMap[obj.trabajadorId];
+
+      // Verificar si el DNI del trabajador existe en la base de datos
+      if (trabajador) {
+        if (obj.condicion_aptitud) {
+          // Eliminar espacios en blanco del campo "condicion_aptitud"
+          obj.condicion_aptitud = obj.condicion_aptitud.replace(/\s+/g, "");
         }
-      });
-    return res.status(200).send({ msg:"Registros guardados con éxito!" });
+        if (emo) {
+          // Actualizar el registro Emo
+          emo.update(obj);
+        } else {
+          // Crear un nuevo registro Emo
+          models.Emo.create(obj);
+        }
+      } else {
+        console.log(
+          `El DNI ${obj.trabajadorId} no está registrado en la base de datos.`
+        );
+      }
+    });
+    return res.status(200).send({ msg: "Registros guardados con éxito!" });
   } catch (error) {
     console.log(error);
     return res.status(500).send({ data: "No se pudo cargar el excel." });

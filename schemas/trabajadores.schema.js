@@ -61,7 +61,7 @@ const updateTrabajadorSchema = Joi.object({
     cargo: cargo,
     fechadenac: fechadenac,
     habilitado: habilitado,
-    celular: celular.required(),
+    celular: celular,
     user: Joi.object({
       username: username,
       contraseña: contraseña,
