@@ -1,11 +1,10 @@
-const express=require('express');
-const passport=require('passport');
-const router=express.Router();
-const jwt = require('jsonwebtoken');
+const express = require("express");
+const passport = require("passport");
+const router = express.Router();
+const jwt = require("jsonwebtoken");
 
-const {config} = require('./../config/config');
-const {models} = require('../libs/sequelize');
-
+const { config } = require("./../config/config");
+const { models } = require("../libs/sequelize");
 
 /**
  * @swagger
@@ -47,58 +46,67 @@ const {models} = require('../libs/sequelize');
  *     security: []
  */
 
-router.post('/login',
-    passport.authenticate('local',{session:false}),
-    async(req,res,next)=>{
-        try{
-            const user = req.user;
-            const jwtconfig = {
-                expiresIn: '2d',
-            }
-            const payload = {
-                sub: user.id,
-                role: user.rol,
-            }
-            const token = jwt.sign(payload, config.jwtSecret, jwtconfig);
+router.post(
+  "/login",
+  passport.authenticate("local", { session: false }),
+  async (req, res, next) => {
+    try {
+      const user = req.user;
+      const jwtconfig = {
+        expiresIn: "2d",
+      };
+      const payload = {
+        sub: user.id,
+        role: user.rol,
+      };
+      const token = jwt.sign(payload, config.jwtSecret, jwtconfig);
 
-            if (user.rol==="Trabajador") {
-                const worker = await models.Trabajador.findOne({where: {userId : user.id}})
-                if (worker.habilitado === false) {
-                    res.status(401).json({message: 'Usted está deshabilitado'})
-                }else{
-                res.json({
-                    user,
-                    token,
-                    worker
-                });
-
-                }
-            }else if(user.rol==="Administrador"){
-                const admin = await models.Administrador.findOne({where: {userId : user.id}})
-                
-                res.json({
-                    user,
-                    token,
-                    admin
-                });
-            }
-        }catch(error){
-            next(error);
+      if (user.rol === "Trabajador") {
+        const worker = await models.Trabajador.findOne({
+          where: { userId: user.id },
+        });
+        if (worker.habilitado === false) {
+          res.status(401).json({ message: "Usted está deshabilitado" });
+        } else {
+          const data = {
+            ...user.toJSON(),
+            dni: worker.dni,
+          };
+          res.json({
+            user:data,
+            token,
+            worker,
+          });
         }
+      } else if (user.rol === "Administrador") {
+        const admin = await models.Administrador.findOne({
+          where: { userId: user.id },
+        });
+
+        res.json({
+          user,
+          token,
+          admin,
+        });
+      }
+    } catch (error) {
+      next(error);
     }
+  }
 );
 
-router.get('/verify-token', (req, res) => {
-    const token = req.headers.authorization.split(' ')[1]; // obtén el token del encabezado de autorización
-  
-    try {
-      const decodedToken = jwt.verify(token, process.env.JWT_SECRET); // verifica la validez del token
-  
-      res.status(200).json({ message: 'Token válido' });
-    } catch (err) {
-      res.status(401).json({ message: 'Sesion no válida o ha expirado, ingresé de nuevp' });
-    }
+router.get("/verify-token", (req, res) => {
+  const token = req.headers.authorization.split(" ")[1]; // obtén el token del encabezado de autorización
+
+  try {
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET); // verifica la validez del token
+
+    res.status(200).json({ message: "Token válido" });
+  } catch (err) {
+    res
+      .status(401)
+      .json({ message: "Sesion no válida o ha expirado, ingresé de nuevp" });
+  }
 });
 
-
-module.exports=router;
+module.exports = router;

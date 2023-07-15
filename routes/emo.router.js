@@ -34,10 +34,20 @@ router.get("/", async (req, res) => {
         edad: item?.edad,
         area: item?.areadetrabajo,
         cargo: item?.cargo,
-        fecha_examen: item?.emo?.at(0)?.fecha_examen,
+        fecha_examen: item?.emo?.at(0)?.fecha_examen
+          ? moment(item?.emo?.at(0)?.fecha_examen, [
+              "YYYY-MM-DD",
+              "DD-MM-YYYY",
+            ]).format("YYYY-MM-DD")
+          : "",
         condicion_aptitud: item?.emo?.at(0)?.condicion_aptitud,
         clinica: item?.emo?.at(0)?.clinica,
-        fecha_lectura: item?.emo?.at(0)?.fecha_lectura,
+        fecha_lectura: item?.emo?.at(0)?.fecha_lectura
+          ? moment(item?.emo?.at(0)?.fecha_lectura, [
+              "YYYY-MM-DD",
+              "DD-MM-YYYY",
+            ]).format("YYYY-MM-DD")
+          : "",
         logo: item.empresa.imagenLogo,
         nombreEmpresa: item?.empresa?.nombreEmpresa,
         empresa_id: item?.empresa?.id,
@@ -150,10 +160,6 @@ router.post("/excel", upload.single("file"), async (req, res, next) => {
 
       // Verificar si el DNI del trabajador existe en la base de datos
       if (trabajador) {
-        if (obj.condicion_aptitud) {
-          // Eliminar espacios en blanco del campo "condicion_aptitud"
-          obj.condicion_aptitud = obj.condicion_aptitud.replace(/\s+/g, "");
-        }
         if (emo) {
           // Actualizar el registro Emo
           emo.update(obj);

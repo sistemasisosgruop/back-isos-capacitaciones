@@ -94,7 +94,6 @@ class TrabajadorService {
       const dnis = datos.map(item => item.dni)
       const existenTrabajadores = await models.Trabajador.findAll({where:{dni: dnis}});
       const existenUsuarios = await models.Trabajador.findAll({where:{dni: dnis}});
-      console.log(existenUsuarios);
     const trabajadoresNuevos = [];
     let usuario;
     for (const trabajadorData of datos) {
