@@ -394,10 +394,10 @@ router.patch(
     try {
       const { id } = req.params;
       const body = req.body;
-      console.log(body);
       const trabajador = await service.update(id, body);
       res.json(trabajador);
     } catch (error) {
+      console.log(error);
       next(error);
     }
   }

@@ -1,6 +1,7 @@
 const { Router } = require("express");
 
 const { models } = require("../libs/sequelize");
+const generarReporte = require("../services/reporte.service");
 
 const router = Router();
 
@@ -56,6 +57,7 @@ router.patch("/preguntas/:id", async (req, res) => {
 // })
 router.get("/:id", async (req, res, next) => {
   try {
+    await generarReporte()
     const id = req.params.id;
     const trabajador = await models.Trabajador.findOne({
       where: { dni: id },
@@ -81,7 +83,6 @@ router.get("/:id", async (req, res, next) => {
         },
       ],
     });
-
     let newData = [];
 
     trabajador.empresa.Capacitacions.map((capacitacion) => {
@@ -89,15 +90,13 @@ router.get("/:id", async (req, res, next) => {
       const reporte = reportes.find(
         (reporte) => reporte.capacitacionId === capacitacion.id
       );
-      // if (reporte && (!reporte.examen || !reporte.pregunta)) {
-      //     return res.status(404).json({ message: "El reporte no tiene examen o pregunta asociada" });
-      //   }
+
       newData.push({
         maximaNotaExamen:
           reporte?.examen?.pregunta?.reduce(
             (acc, val) => acc + val.puntajeDePregunta,
             0
-          ) ?? 0,
+          ) ?? null,
         notaExamen: reporte?.notaExamen,
         asistenciaExamen: reporte?.asistenciaExamen,
         capacitacion: {

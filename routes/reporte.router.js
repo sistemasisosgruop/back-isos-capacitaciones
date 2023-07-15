@@ -10,7 +10,7 @@ const { checkWorkRol } = require("./../middlewares/auth.handler");
 
 router.get("/", async (req, res) => {
   try {
-    // await generarReporte();
+    await generarReporte();
 
     const reportes = await models.Reporte.findAll({
       include: [
@@ -78,7 +78,9 @@ router.patch(
   checkWorkRol,
   async (req, res, next) => {
     const { capacitacionId, trabajadorId, examenId } = req.params;
+
     const respuestas = req.body.respuestas;
+
     try {
       const capacitacion = await models.Capacitacion.findByPk(capacitacionId);
       const trabajador = await models.Trabajador.findByPk(trabajadorId);
@@ -120,10 +122,7 @@ router.patch(
           examenId: examen.id,
         },
       });
-      // if (!reporte) {
-      //   return res.status(404).json({ message: "No se encontró el reporte" });
-      // }
-
+      console.log(reporte);
       const reporteact = await reporte.update({
         notaExamen: notaExamen,
         asistenciaExamen: true,
@@ -156,8 +155,7 @@ router.patch(
         examenId: examenId,
         capacitacionId: capacitacionId,
       });
-      console.log(reporteact);
-      res.json(reporteact);
+      res.json(reporte);
     } catch (err) {
       console.log(err);
       res.status(500).json({ message: "Error interno" });

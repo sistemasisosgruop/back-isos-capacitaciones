@@ -209,6 +209,7 @@ class TrabajadorService {
   async update(id, changes) {
     const trabajador = await this.findOne(id);
     const userChanges = changes.user || {};
+    console.log(changes);
     const respuestaTrabajador = await trabajador.update({
       nombres: changes.nombres ?? trabajador.nombres,
       apellidoPaterno: changes.apellidoPaterno ?? trabajador.apellidoPaterno,
@@ -221,6 +222,7 @@ class TrabajadorService {
       cargo: changes.cargo ?? trabajador.cargo,
       habilitado: changes.habilitado ?? trabajador.habilitado,
       celular: changes.celular ?? trabajador.celular,
+      empresaId: changes.empresaId ?? trabajador.empresa_id
     });
     if (userChanges.username || userChanges.contraseña || userChanges.rol) {
       const user = await trabajador.getUser();
