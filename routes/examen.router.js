@@ -40,25 +40,24 @@ router.patch("/preguntas/:id", async (req, res) => {
   }
 });
 
-// router.get("/:id", async (req, res, next) => {
-//   try {
-//     const id = req.params.id;
-//     const examenes = await models.Examen.findByPk(id, {
-//       include: ["capacitacion", "pregunta"],
-//     });
-//     if (!examenes) {
-//       res.status(404).json({ message: "No existe el examen" });
+// router.get('/:id', async(req,res, next)=>{
+//     try {
+//         const id = req.params.id;
+//         const examenes = await models.Examen.findByPk(id, {
+//             include: ['capacitacion', 'pregunta']
+//         });
+//         if(!examenes){
+//             res.status(404).json({message: 'No existe el examen'})
+//         }
+//         res.json(examenes)
+//     } catch (error) {
+//         next(error)
 //     }
-//     res.json(examenes);
-//   } catch (error) {
-//     next(error);
-//   }
-// });
-
+// })
 router.get("/:id", async (req, res, next) => {
   try {
     const id = req.params.id;
-    const examenes = await models.Trabajador.findOne({
+    const trabajador = await models.Trabajador.findOne({
       where: { dni: id },
       include: [
         {
@@ -67,31 +66,40 @@ router.get("/:id", async (req, res, next) => {
           include: [
             {
               model: models.Capacitacion,
-              include: [
-                {
-                  model: models.Reporte,
-                  as: "reporte",
-                  include: [
-                    {
-                      model: models.Examen,
-                      as: "examen",
-                      include: [{ model: models.Pregunta, as: "pregunta" }],
-                    },
-                  ],
-                },
-              ],
             },
           ],
+        },
+      ],
+    });
+    const reportes = await models.Reporte.findAll({
+      where: { trabajador_id: trabajador.id },
+      include: [
+        {
+          model: models.Examen,
+          as: "examen",
+          include: [{ model: models.Pregunta, as: "pregunta" }],
         },
       ],
     });
 
     let newData = [];
 
-    examenes.empresa.Capacitacions.map((capacitacion) => {
+    trabajador.empresa.Capacitacions.map((capacitacion) => {
+      // Buscar el reporte correspondiente para esta capacitacion
+      const reporte = reportes.find(
+        (reporte) => reporte.capacitacionId === capacitacion.id
+      );
+      // if (reporte && (!reporte.examen || !reporte.pregunta)) {
+      //     return res.status(404).json({ message: "El reporte no tiene examen o pregunta asociada" });
+      //   }
       newData.push({
-        maximaNotaExamen: capacitacion?.reporte?.notaExamen,
-        asistenciaExamen: capacitacion?.reporte?.asistenciaExamen,
+        maximaNotaExamen:
+          reporte?.examen?.pregunta?.reduce(
+            (acc, val) => acc + val.puntajeDePregunta,
+            0
+          ) ?? 0,
+        notaExamen: reporte?.notaExamen,
+        asistenciaExamen: reporte?.asistenciaExamen,
         capacitacion: {
           certificado: capacitacion?.certificado,
           createdAt: capacitacion?.createdAt,
@@ -106,43 +114,41 @@ router.get("/:id", async (req, res, next) => {
           urlVideo: capacitacion?.urlVideo,
         },
         capacitacionId: capacitacion?.CapacitacionEmpresa?.capacitacionId,
-        createdAt: examenes?.createdAt,
-        examen: capacitacion?.reporte?.examen,
-        examenId: capacitacion?.reporte?.examenId,
+        createdAt: trabajador?.createdAt,
+        examen: reporte?.examen,
+        examenId: reporte?.examenId,
         fechaCapacitacion: capacitacion?.fechaInicio,
-        fechaExamen: capacitacion?.reporte?.examen?.fechadeExamen,
-        id: capacitacion?.reporte?.id,
-        mesExamen: parseInt(
-          capacitacion?.reporte?.examen?.fechadeExamen?.split("-")[1]
-        ),
+        fechaExamen: reporte?.examen?.fechadeExamen,
+        id: reporte?.id,
+        mesExamen: parseInt(reporte?.examen?.fechadeExamen?.split("-")[1]),
         nombreCapacitacion: capacitacion?.nombre,
-        nombreEmpresa: examenes?.empresa?.nombreEmpresa,
+        nombreEmpresa: trabajador?.empresa?.nombreEmpresa,
         nombreTrabajador:
-          examenes?.nombres +
+          trabajador?.nombres +
           " " +
-          examenes?.apellidoPaterno +
+          trabajador?.apellidoPaterno +
           " " +
-          examenes?.apellidoMaterno,
-        notaExamen: capacitacion?.reporte?.notaExamen,
-        rptpregunta1: capacitacion?.reporte?.rptpregunta1,
-        rptpregunta2: capacitacion?.reporte?.rptpregunta2,
-        rptpregunta3: capacitacion?.reporte?.rptpregunta3,
-        rptpregunta4: capacitacion?.reporte?.rptpregunta4,
-        rptpregunta5: capacitacion?.reporte?.rptpregunta5,
+          trabajador?.apellidoMaterno,
+        notaExamen: reporte?.notaExamen,
+        rptpregunta1: reporte?.rptpregunta1,
+        rptpregunta2: reporte?.rptpregunta2,
+        rptpregunta3: reporte?.rptpregunta3,
+        rptpregunta4: reporte?.rptpregunta4,
+        rptpregunta5: reporte?.rptpregunta5,
         trabajador: {
-          id: examenes?.userId,
-          nombres: examenes?.nombres,
-          apellidoPaterno: examenes?.apellidoPaterno,
-          apellidoMaterno: examenes?.apellidoMaterno,
-          dni: examenes?.dni,
-          edad: examenes?.edad,
-          empresa: examenes?.empresa,
-          empresaId: examenes?.empresa?.id,
-          fechadenac: examenes?.fechadenac,
-          genero: examenes?.genero,
-          habilitado: examenes?.habilitado,
+          id: trabajador?.id,
+          nombres: trabajador?.nombres,
+          apellidoPaterno: trabajador?.apellidoPaterno,
+          apellidoMaterno: trabajador?.apellidoMaterno,
+          dni: trabajador?.dni,
+          edad: trabajador?.edad,
+          empresa: trabajador?.empresa,
+          empresaId: trabajador?.empresa?.id,
+          fechadenac: trabajador?.fechadenac,
+          genero: trabajador?.genero,
+          habilitado: trabajador?.habilitado,
         },
-        trabajadorId: examenes?.userId,
+        trabajadorId: trabajador?.id,
       });
     });
 

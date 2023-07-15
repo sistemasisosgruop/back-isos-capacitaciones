@@ -78,9 +78,7 @@ router.patch(
   checkWorkRol,
   async (req, res, next) => {
     const { capacitacionId, trabajadorId, examenId } = req.params;
-
     const respuestas = req.body.respuestas;
-
     try {
       const capacitacion = await models.Capacitacion.findByPk(capacitacionId);
       const trabajador = await models.Trabajador.findByPk(trabajadorId);
@@ -88,16 +86,16 @@ router.patch(
         include: ["pregunta"],
       });
       if (!trabajador) {
-        res.json({ message: "No existe el trabajador" });
+        return res.json({ message: "No existe el trabajador" });
       }
       if (!examen) {
-        res.json({ message: "No existe el examen" });
+        return res.json({ message: "No existe el examen" });
       }
       if (!capacitacion) {
-        res.json({ message: "No existe la capacitacion" });
+        return res.json({ message: "No existe la capacitacion" });
       }
       if (trabajador && trabajador.habilitado === false) {
-        res.json({
+        return res.json({
           message: "No puede dar el examen porque está deshabilitado",
         });
       }
@@ -122,6 +120,9 @@ router.patch(
           examenId: examen.id,
         },
       });
+      // if (!reporte) {
+      //   return res.status(404).json({ message: "No se encontró el reporte" });
+      // }
 
       const reporteact = await reporte.update({
         notaExamen: notaExamen,
@@ -155,8 +156,10 @@ router.patch(
         examenId: examenId,
         capacitacionId: capacitacionId,
       });
-      res.json(reporte);
+      console.log(reporteact);
+      res.json(reporteact);
     } catch (err) {
+      console.log(err);
       res.status(500).json({ message: "Error interno" });
     }
   }
