@@ -209,7 +209,6 @@ class TrabajadorService {
   async update(id, changes) {
     const trabajador = await this.findOne(id);
     const userChanges = changes.user || {};
-    console.log(changes);
     const respuestaTrabajador = await trabajador.update({
       nombres: changes.nombres ?? trabajador.nombres,
       apellidoPaterno: changes.apellidoPaterno ?? trabajador.apellidoPaterno,
