@@ -54,8 +54,7 @@ const TrabajadorSchema = {
     type: DataTypes.STRING,
   },
   emoPdf: {
-    allowNull: false,
-    type: DataTypes.BOOLEAN,
+    type: DataTypes.STRING,
   },
   habilitado: {
     type: DataTypes.STRING,

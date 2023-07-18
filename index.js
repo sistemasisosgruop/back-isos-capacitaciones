@@ -1,8 +1,13 @@
-const express = require('express');
-const cors = require('cors');
-const routerApi = require('./routes')
-const { logErrors, errorHandler, boomErrorHandler, ormErrorHandler } = require('./middlewares/error.handler');
-const swaggerDoc = require('./swagger');
+const express = require("express");
+const cors = require("cors");
+const routerApi = require("./routes");
+const {
+  logErrors,
+  errorHandler,
+  boomErrorHandler,
+  ormErrorHandler,
+} = require("./middlewares/error.handler");
+const swaggerDoc = require("./swagger");
 const app = express();
 const port = process.env.PORT || 3005;
 
@@ -19,12 +24,16 @@ const options = {
   }
 }
 */
-app.use(cors())
+app.use(
+  cors({
+    origin: "*",
+  })
+);
 
-require('./utils/auth');
+require("./utils/auth");
 
-app.get('/', (req, res)=>{
-    res.send('VISITA LA RUTA api-docs and github');
+app.get("/", (req, res) => {
+  res.send("VISITA LA RUTA api-docs and github");
 });
 
 routerApi(app);
@@ -32,10 +41,10 @@ routerApi(app);
 app.use(logErrors);
 app.use(ormErrorHandler);
 app.use(boomErrorHandler);
-app.use(errorHandler)
+app.use(errorHandler);
 
 swaggerDoc(app);
 
-app.listen(port, ()=>{
-    console.log(`Mi puerto es: ${port}`);
-})
+app.listen(port, () => {
+  console.log(`Mi puerto es: ${port}`);
+});

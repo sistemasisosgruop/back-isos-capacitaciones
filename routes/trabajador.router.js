@@ -194,7 +194,6 @@ router.post(
           message: `Ya existe un Dni igual`,
         });
       } else {
-        console.log(body);
         const nuevotrabajador = await service.create(body);
         res
           .status(201)

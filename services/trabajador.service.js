@@ -10,6 +10,7 @@ class TrabajadorService {
 
   async create(data) {
     const hash = await bcrypt.hash(data.user.contraseña, 10);
+    console.log(data);
     const nuevoData = {
       ...data,
       user: {
@@ -27,6 +28,7 @@ class TrabajadorService {
       });
 
       delete nuevotrabajador.dataValues.user.dataValues.password;
+      
       return nuevotrabajador;
     } else {
       return false;
