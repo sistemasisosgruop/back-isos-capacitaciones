@@ -1,21 +1,14 @@
 const express = require("express");
 const { models } = require("./../libs/sequelize");
-
-const TrabajadorService = require("./../services/trabajador.service");
-const validatorHandler = require("./../middlewares/validator.handler");
-const {
-  updateTrabajadorSchema,
-  createTrabajadorSchema,
-  getTrabajadorSchema,
-} = require("./../schemas/trabajadores.schema");
 const xlsx = require("xlsx");
 const multer = require("multer");
 const router = express.Router();
 const upload = multer({ dest: "excel/" });
+const emo = multer({ dest: "emo/" });
 const moment = require("moment");
 const { Op } = require("sequelize");
 const path = require("path");
-
+const fs = require("fs");
 router.get("/", async (req, res) => {
   try {
     const Trabajadores = await models.Trabajador.findAll({
@@ -62,6 +55,74 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.get("/reporte", async (req, res) => {
+  try {
+    const reportes = await models.registroDescarga.findAll({
+      include: [
+        {
+          model: models.Trabajador,
+          as: "trabajador",
+          attributes: ["id", "nombres", "apellidoPaterno", "apellidoMaterno"],
+
+          include: [
+            {
+              model: models.Empresa,
+              as: "empresa",
+              attributes: ["nombreEmpresa"],
+            },
+          ],
+        },
+      ],
+    });
+
+    const formatData = reportes.map((item) => {
+      return {
+        id: item?.id,
+        trabajador_id: item?.trabajador_id,
+        fecha: item?.fecha,
+        hora: item?.hora,
+        apellidoMaterno: item?.trabajador?.apellidoMaterno,
+        apellidoPaterno: item?.trabajador?.apellidoPaterno,
+        nombre: item?.trabajador?.nombres,
+        empresa: item?.trabajador?.empresa?.nombreEmpresa,
+      };
+    });
+
+    return res.status(200).json({ data: formatData });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json("No se pudo obtener los reportes");
+  }
+});
+
+router.get("/descargar/:id", async (req, res) => {
+  const id = parseInt(req.params.id);
+
+  // Construye la ruta del archivo PDF basado en el ID
+  const filePath = path.join(__dirname, "..", "emo", `${id}.pdf`);
+  res.setHeader("Content-Type", "application/pdf");
+  // Envía el archivo como respuesta de descarga
+  res.download(filePath, `${id}.pdf`, async (err) => {
+    if (err) {
+      console.log(err);
+      res.status(500).json("Error al descargar el PDF.");
+    } else {
+      try {
+        const data = {
+          trabajador_id: parseInt(id),
+          fecha: moment().format("DD-MM-YYYY"),
+          hora: moment().format("HH:mm:ss"),
+        };
+        console.log(data);
+        // Registra el nuevo registro de descarga en la tabla registro_descargas
+        await models.registroDescarga.create(data);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  });
+});
+
 function excelSerialDateToJSDate(serial) {
   var days = serial - (25567 + 2);
   var date = new Date(days * 24 * 60 * 60 * 1000);
@@ -72,6 +133,48 @@ function excelSerialDateToJSDate(serial) {
 
   return date;
 }
+
+router.post("/subir/:id", emo.single("file"), async (req, res) => {
+  try {
+    const id = req.params.id;
+    const file = req.file;
+
+    // Obtener el trabajador
+    const trabajador = await models.Trabajador.findOne({ where: { id: id } });
+
+    if (trabajador && file) {
+      // Si el campo emoPdf no está vacío, intentar eliminar el archivo existente
+      if (trabajador.emoPdf) {
+        const oldFilePath = path.join(
+          __dirname,
+          "..",
+          "emo",
+          trabajador.emoPdf
+        );
+        if (fs.existsSync(oldFilePath)) {
+          fs.unlinkSync(oldFilePath);
+        }
+      }
+
+      // Generar una nueva ruta y mover el archivo a esa ubicación
+      const newFileName = `${id}.pdf`;
+      const newFilePath = path.join(__dirname, "..", "emo", newFileName);
+      fs.renameSync(file.path, newFilePath);
+
+      // Actualizar el campo emoPdf del trabajador en la base de datos
+      trabajador.emoPdf = newFileName;
+      await trabajador.save();
+
+      return res.status(200).json("Se guardó correctamente el PDF.");
+    } else {
+      return res.status(400).json("No se pudo guardar el PDF.");
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json("Error al guardar el PDF.");
+  }
+});
+
 router.post("/excel", upload.single("file"), async (req, res, next) => {
   try {
     const id = req.params.empresaId;
