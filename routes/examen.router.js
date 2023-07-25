@@ -55,7 +55,7 @@ router.patch("/preguntas/:id", async (req, res) => {
 //         next(error)
 //     }
 // })
-router.get("/:id", async (req, res, next) => {
+router.get("/data/:id", async (req, res, next) => {
   try {
     await generarReporte()
     const id = req.params.id;
@@ -157,6 +157,20 @@ router.get("/:id", async (req, res, next) => {
     next(error);
   }
 });
+router.get('/:id', async(req,res, next)=>{
+  try {
+      const id = req.params.id;
+      const examenes = await models.Examen.findByPk(id, {
+          include: ['capacitacion', 'pregunta']
+      });
+      if(!examenes){
+          res.status(404).json({message: 'No existe el examen'})
+      }
+      res.json(examenes)
+  } catch (error) {
+      next(error)        
+  }
+})
 
 router.patch("/:id", async (req, res, next) => {
   try {
