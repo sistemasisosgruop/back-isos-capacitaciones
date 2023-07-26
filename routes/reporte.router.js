@@ -81,10 +81,9 @@ router.get("/", async (req, res) => {
           " " +
           item?.trabajador?.nombres,
         nombreCapacitacion: item?.capacitacion?.nombreCapacitacion,
-        createdAt: item?.createdAt,
         nombreEmpresa: item?.trabajador?.empresa?.nombreEmpresa,
         empresaId: item?.trabajador?.empresa?.id,
-        fechaExamen: item?.createdAt,
+        fechaExamen: moment(item?.createdAt).format("DD-MM-YYYY"),
         notaExamen: item?.notaExamen,
         asistenciaExamen: item?.asistenciaExamen,
         mesExamen: moment(item?.examen?.fechadeExamen)?.month() + 1,
