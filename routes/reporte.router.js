@@ -10,42 +10,78 @@ const { checkWorkRol } = require("./../middlewares/auth.handler");
 
 router.get("/", async (req, res) => {
   try {
-    await generarReporte();
+    // await generarReporte();
 
-    const reportes = await models.Reporte.findAll({
+    const reportes = await models.Empresa.findAll({
       include: [
-        { model: models.Examen, as: "examen" },
-        { model: models.Capacitacion, as: "capacitacion" },
         {
           model: models.Trabajador,
-          as: "trabajador",
-          include: [{ model: models.Empresa, as: "empresa" }],
+          as: "trabajadores",
+          include: [
+            {
+              model: models.Reporte,
+              as: "reporte",
+              include: [
+                {
+                  model: models.Capacitacion,
+                  as:"capacitacion",
+                 
+                },
+                {
+                  model: models.Examen,
+                  as: "examen",
+                  include: [{ model: models.Pregunta, as: "pregunta" }],
+                },
+              ],
+            },
+          ],
         },
       ],
     });
 
-    const format = reportes.map((item) => {
-      const trabajador = item.trabajador;
-      const capacitacion = item.capacitacion;
-      const empresa = item.trabajador.empresa;
-      const examen = item.examen;
+    const format = reportes.flatMap(item => {
+      return item.trabajadores.map(trabajador => {
+        return {
+          trabajadorId: trabajador?.id,
+          nombreTrabajador: trabajador?.apellidoMaterno + " " + trabajador?.apellidoPaterno + " " + trabajador?.nombres,
+          nombreCapacitacion: trabajador?.reporte?.capacitacion?.nombre,
+          nombreEmpresa: item?.nombreEmpresa,
+          empresaId: item?.id,
+          fechaExamen: trabajador?.reporte?.examen?.fechadeExamen,
+          notaExamen: trabajador?.reporte?.notaExamen,
+          asistenciaExamen: trabajador?.reporte?.asistenciaExamen,
+          mesExamen: moment(trabajador?.reporte?.examen?.fechadeExamen)?.month() + 1,
+          examenId:  trabajador?.reporte?.examen?.id,
+          capacitacion: trabajador?.reporte?.capacitacion,
+          capacitacionId: trabajador?.reporte?.capacitacion?.id,
+          pregunta:trabajador?.reporte?.examen?.pregunta,
+          trabajador:{
+            id: trabajador?.id,
+            apellidoMaterno: trabajador?.apellidoMaterno,
+            apellidoPaterno: trabajador?.apellidoPaterno,
+            nombres: trabajador?.nombres,
+            cargo: trabajador?.cargo,
+            edad: trabajador?.edad,
+            genero: trabajador?.genero,
+            dni: trabajador?.dni
 
-      return {
-        nombreTrabajador:
-          trabajador.apellidoMaterno +
-          " " +
-          trabajador.apellidoPaterno +
-          " " +
-          trabajador.nombres,
-        nombreCapacitacion: capacitacion.nombre,
-        nombreEmpresa: empresa.nombreEmpresa,
-        fechaExamen: examen.fechadeExamen,
-        notaExamen: item.notaExamen,
-        asistenciaExamen: item.asistenciaExamen,
-        mesExamen: moment(examen.fechadeExamen).month()+1,
-        ...item.toJSON(),
-      };
+          },
+          reporte: {
+            id: trabajador?.reporte?.id,
+            notaExamen: trabajador?.reporte?.notaExamen,
+            asistenciaExamen: trabajador?.reporte?.asistenciaExamen,
+            rptpregunta1: trabajador?.reporte?.rptpregunta1,
+            rptpregunta2: trabajador?.reporte?.rptpregunta2,
+            rptpregunta3: trabajador?.reporte?.rptpregunta3,
+            rptpregunta4: trabajador?.reporte?.rptpregunta4,
+            rptpregunta5: trabajador?.reporte?.rptpregunta5,
+            
+          }
+        };
+      });
     });
+    
+
     res.json(format);
   } catch (error) {
     console.log(error);
