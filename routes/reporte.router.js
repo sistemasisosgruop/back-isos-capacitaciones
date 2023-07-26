@@ -12,75 +12,110 @@ router.get("/", async (req, res) => {
   try {
     // await generarReporte();
 
-    const reportes = await models.Empresa.findAll({
+    // const reportes = await models.Empresa.findAll({
+    //   where: { id: 39 },
+
+    //   include: [
+    //     {
+    //       model: models.Capacitacion,
+    //       include: [
+    //         {
+    //           model: models.Reporte,
+    //           as: "reporte",
+    //           include: [{ model: models.Trabajador, as: "trabajador" }],
+    //         },
+    //         {
+    //           model: models.Examen,
+    //           as: "examen",
+    //           include: [{ model: models.Pregunta, as: "pregunta" }],
+    //         },
+    //       ],
+    //     },
+    //   ],
+    // });
+
+    const prueba = await models.Reporte.findAll({
       include: [
         {
           model: models.Trabajador,
-          as: "trabajadores",
+          attributes: [
+            "id",
+            "nombres",
+            "apellidoMaterno",
+            "apellidoPaterno",
+            "dni",
+            "cargo",
+            "edad",
+            "genero",
+          ],
+          as: "trabajador",
           include: [
             {
-              model: models.Reporte,
-              as: "reporte",
-              include: [
-                {
-                  model: models.Capacitacion,
-                  as:"capacitacion",
-                 
-                },
-                {
-                  model: models.Examen,
-                  as: "examen",
-                  include: [{ model: models.Pregunta, as: "pregunta" }],
-                },
+              model: models.Empresa,
+              as: "empresa",
+              attributes: [
+                "id",
+                "nombreEmpresa",
+                "imagenLogo",
+                "imagenCertificado",
               ],
             },
           ],
         },
+        { model: models.Capacitacion, as: "capacitacion" },
+        {
+          model: models.Examen,
+          as: "examen",
+          include: [{ model: models.Pregunta, as: "pregunta" }],
+        },
       ],
     });
 
-    const format = reportes.flatMap(item => {
-      return item.trabajadores.map(trabajador => {
-        return {
-          trabajadorId: trabajador?.id,
-          nombreTrabajador: trabajador?.apellidoMaterno + " " + trabajador?.apellidoPaterno + " " + trabajador?.nombres,
-          nombreCapacitacion: trabajador?.reporte?.capacitacion?.nombre,
-          nombreEmpresa: item?.nombreEmpresa,
-          empresaId: item?.id,
-          fechaExamen: trabajador?.reporte?.examen?.fechadeExamen,
-          notaExamen: trabajador?.reporte?.notaExamen,
-          asistenciaExamen: trabajador?.reporte?.asistenciaExamen,
-          mesExamen: moment(trabajador?.reporte?.examen?.fechadeExamen)?.month() + 1,
-          examenId:  trabajador?.reporte?.examen?.id,
-          capacitacion: trabajador?.reporte?.capacitacion,
-          capacitacionId: trabajador?.reporte?.capacitacion?.id,
-          pregunta:trabajador?.reporte?.examen?.pregunta,
-          trabajador:{
-            id: trabajador?.id,
-            apellidoMaterno: trabajador?.apellidoMaterno,
-            apellidoPaterno: trabajador?.apellidoPaterno,
-            nombres: trabajador?.nombres,
-            cargo: trabajador?.cargo,
-            edad: trabajador?.edad,
-            genero: trabajador?.genero,
-            dni: trabajador?.dni
-
-          },
-          reporte: {
-            id: trabajador?.reporte?.id,
-            notaExamen: trabajador?.reporte?.notaExamen,
-            asistenciaExamen: trabajador?.reporte?.asistenciaExamen,
-            rptpregunta1: trabajador?.reporte?.rptpregunta1,
-            rptpregunta2: trabajador?.reporte?.rptpregunta2,
-            rptpregunta3: trabajador?.reporte?.rptpregunta3,
-            rptpregunta4: trabajador?.reporte?.rptpregunta4,
-            rptpregunta5: trabajador?.reporte?.rptpregunta5,
-            
-          }
-        };
-      });
+    const format = prueba.map((item) => {
+      return {
+        trabajadorId: item?.trabajador?.id,
+        nombreTrabajador:
+          item?.trabajador?.apellidoPaterno +
+          " " +
+          item?.trabajador?.apellidoMaterno +
+          " " +
+          item?.trabajador?.nombres,
+        nombreCapacitacion: item?.capacitacion?.nombreCapacitacion,
+        nombreEmpresa: item?.trabajador?.empresa?.nombreEmpresa,
+        empresaId: item?.trabajador?.empresa?.id,
+        fechaExamen: item?.createdAt,
+        notaExamen: item?.notaExamen,
+        asistenciaExamen: item?.asistenciaExamen,
+        mesExamen: moment(item?.examen?.fechadeExamen)?.month() + 1,
+        examenId: item?.examen?.id,
+        capacitacion: item?.capacitacion,
+        nombreCapacitacion: item?.capacitacion?.nombre,
+        capacitacionId: item?.capacitacion?.id,
+        pregunta: item?.examen?.pregunta,
+        trabajador: {
+          id: item?.trabajador?.id,
+          apellidoMaterno: item?.trabajador?.apellidoMaterno,
+          apellidoPaterno: item?.trabajador?.apellidoPaterno,
+          nombres: item?.trabajador?.nombres,
+          cargo: item?.trabajador?.cargo,
+          edad: item?.trabajador?.edad,
+          genero: item?.trabajador?.genero,
+          dni: item?.trabajador?.dni,
+        },
+        empresa: item.trabajador.empresa,
+        reporte: {
+          id: item?.id,
+          notaExamen: item?.notaExamen,
+          asistenciaExamen: item?.asistenciaExamen,
+          rptpregunta1: item?.rptpregunta1,
+          rptpregunta2: item?.rptpregunta2,
+          rptpregunta3: item?.rptpregunta3,
+          rptpregunta4: item?.rptpregunta4,
+          rptpregunta5: item?.rptpregunta5,
+        },
+      };
     });
-    
+
 
     res.json(format);
   } catch (error) {
