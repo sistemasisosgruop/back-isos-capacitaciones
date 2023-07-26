@@ -89,8 +89,18 @@ router.get("/", async (req, res) => {
         mesExamen: moment(item?.examen?.fechadeExamen)?.month() + 1,
         examenId: item?.examen?.id,
         capacitacion: {
-          ...item.capacitacion
+          certificado: item?.capacitacion?.certificado,
+          createdAt: item?.capacitacion?.createdAt,
+          fechaAplazo: item?.capacitacion?.fechaAplazo,
+          fechaCulminacion: item?.capacitacion?.fechaCulminacion,
+          fechaInicio: item?.capacitacion?.fechaInicio,
+          habilitado: item?.capacitacion?.horas,
+          id: item?.capacitacion?.id,
+          instructor: item?.capacitacion?.instructor,
+          nombre: item?.capacitacion?.nombre,
+          urlVideo: item?.capacitacion?.urlVideo
         },
+        createdAt: moment(item?.capacitacion?.createdAt),
         nombreCapacitacion: item?.capacitacion?.nombre,
         capacitacionId: item?.capacitacion?.id,
         pregunta: item?.examen?.pregunta,
@@ -104,7 +114,7 @@ router.get("/", async (req, res) => {
           genero: item?.trabajador?.genero,
           dni: item?.trabajador?.dni,
         },
-        empresa: item.trabajador.empresa,
+        empresa: item?.trabajador?.empresa,
         reporte: {
           id: item?.id,
           notaExamen: item?.notaExamen,
