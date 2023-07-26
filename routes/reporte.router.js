@@ -81,6 +81,7 @@ router.get("/", async (req, res) => {
           " " +
           item?.trabajador?.nombres,
         nombreCapacitacion: item?.capacitacion?.nombreCapacitacion,
+        createdAt: item?.createdAt,
         nombreEmpresa: item?.trabajador?.empresa?.nombreEmpresa,
         empresaId: item?.trabajador?.empresa?.id,
         fechaExamen: item?.createdAt,
@@ -88,7 +89,9 @@ router.get("/", async (req, res) => {
         asistenciaExamen: item?.asistenciaExamen,
         mesExamen: moment(item?.examen?.fechadeExamen)?.month() + 1,
         examenId: item?.examen?.id,
-        capacitacion: item?.capacitacion,
+        capacitacion: {
+          ...item.capacitacion
+        },
         nombreCapacitacion: item?.capacitacion?.nombre,
         capacitacionId: item?.capacitacion?.id,
         pregunta: item?.examen?.pregunta,
