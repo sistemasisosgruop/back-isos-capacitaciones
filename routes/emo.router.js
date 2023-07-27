@@ -17,8 +17,9 @@ router.get("/", async (req, res) => {
         { model: models.Empresa, as: "empresa" },
       ],
     });
-    const newData = Trabajadores.map((item) => {
+    const newData = Trabajadores.map((item, index) => {
       return {
+        nro: index + 1,
         id: item?.emo?.at(0)?.id,
         apellidoPaterno: item?.apellidoPaterno,
         apellidoMaterno: item?.apellidoMaterno,
