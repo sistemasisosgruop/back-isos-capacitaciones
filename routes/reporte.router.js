@@ -104,7 +104,14 @@ router.get("/", async (req, res) => {
         createdAt: moment(item?.capacitacion?.createdAt),
         nombreCapacitacion: item?.capacitacion?.nombre,
         capacitacionId: item?.capacitacion?.id,
-        pregunta: item?.examen?.pregunta,
+        pregunta: item?.examen?.pregunta.sort((a, b) => {
+          // Extraer el número del texto de cada pregunta
+          const numA = a.texto ? parseInt(a.texto.split('.')[0]) : 0;
+          const numB = b.texto ? parseInt(b.texto.split('.')[0]) : 0;
+          
+          // Devolver la diferencia entre los números para ordenar
+          return numA - numB;
+        }),
         trabajador: {
           id: item?.trabajador?.id,
           apellidoMaterno: item?.trabajador?.apellidoMaterno,
