@@ -68,6 +68,7 @@ router.get("/data/:id", async (req, res, next) => {
           include: [
             {
               model: models.Capacitacion,
+              where:{ habilitado: true}
             },
           ],
         },
