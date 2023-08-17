@@ -212,6 +212,18 @@ class TrabajadorService {
     const trabajador = await this.findOne(id);
     const userChanges = changes.user || {};
     const dniChanged = changes.dni !== undefined && changes.dni !== trabajador.dni;
+  
+    // Copiar registros en la tabla "emo" relacionados con el trabajador original
+    const registrosEmoOriginales = await models.Emo.findAll({ where: { trabajadorId: trabajador.dni } });
+    const copiasRegistrosEmoOriginales = registrosEmoOriginales.map(registro => registro.toJSON());
+  
+    // Eliminar registros en la tabla "emo" relacionados con el trabajador original
+    const eliminacionesPromises = registrosEmoOriginales.map(async (emoRegistro) => {
+      await emoRegistro.destroy();
+    });
+    await Promise.all(eliminacionesPromises);
+  
+    // Actualizar el campo dni en la tabla "trabajadores"
     const respuestaTrabajador = await trabajador.update({
       nombres: changes.nombres ?? trabajador.nombres,
       apellidoPaterno: changes.apellidoPaterno ?? trabajador.apellidoPaterno,
@@ -226,16 +238,20 @@ class TrabajadorService {
       celular: changes.celular ?? trabajador.celular,
       empresaId: changes.empresaId ?? trabajador.empresa_id
     });
-
-    if (dniChanged) {
-      // Actualizar trabajadorId en la tabla emo si el DNI cambió
-      await this.actualizarTrabajadorIdEnEmo(trabajador.id, changes.dni);
-    }
-
+  
+    // Regenerar registros en la tabla "emo" con el nuevo DNI
+    const regeneracionesPromises = copiasRegistrosEmoOriginales.map(async (copiaRegistro) => {
+      await models.Emo.create({
+        ...copiaRegistro,
+        trabajadorId: changes.dni // Usar el nuevo DNI
+      });
+    });
+    await Promise.all(regeneracionesPromises);
+  
     if (userChanges.username || userChanges.contraseña || userChanges.rol) {
       const user = await trabajador.getUser();
       const hash = await bcrypt.hash(userChanges.contraseña, 10);
-
+  
       const respuestaUsuario = await user.update({
         username: userChanges.username ?? user.username,
         contraseña: hash ?? user.contraseña,
@@ -244,24 +260,10 @@ class TrabajadorService {
     }
     return respuestaTrabajador;
   }
-
-  async actualizarTrabajadorIdEnEmo(trabajadorId, nuevoDNI) {
-    try {
-      // Buscar el registro de emo asociado al trabajadorId
-      const emoRegistro = await models.Emo.findAll({ where: { trabajadorId: trabajadorId } });
   
-      if (emoRegistro) {
-        // Actualizar el campo trabajadorId en el registro de emo
-        await emoRegistro.update({ dni: nuevoDNI });
-        return true; // Indicar que la actualización se realizó con éxito
-      } else {
-        return false; // Indicar que no se encontró el registro de emo
-      }
-    } catch (error) {
-      console.error("Error al actualizar trabajadorId en la tabla emo:", error);
-      throw error;
-    }
-  }
+  
+
+
   
 
   async delete(id) {
