@@ -38,6 +38,7 @@ router.get("/", async (req, res) => {
       include: [
         {
           model: models.Trabajador,
+          where: { habilitado: true },
           attributes: [
             "id",
             "nombres",
@@ -83,7 +84,7 @@ router.get("/", async (req, res) => {
         nombreCapacitacion: item?.capacitacion?.nombreCapacitacion,
         nombreEmpresa: item?.trabajador?.empresa?.nombreEmpresa,
         empresaId: item?.trabajador?.empresa?.id,
-        fechaExamen: moment(item?.createdAt).format("DD-MM-YYYY"),
+        fechaExamen: moment(item?.examen?.fechaExamen).format("DD-MM-YYYY"),
         notaExamen: item?.notaExamen,
         asistenciaExamen: item?.asistenciaExamen,
         mesExamen: moment(item?.examen?.fechadeExamen)?.month() + 1,
@@ -99,16 +100,16 @@ router.get("/", async (req, res) => {
           id: item?.capacitacion?.id,
           instructor: item?.capacitacion?.instructor,
           nombre: item?.capacitacion?.nombre,
-          urlVideo: item?.capacitacion?.urlVideo
+          urlVideo: item?.capacitacion?.urlVideo,
         },
         createdAt: moment(item?.capacitacion?.createdAt),
         nombreCapacitacion: item?.capacitacion?.nombre,
         capacitacionId: item?.capacitacion?.id,
         pregunta: item?.examen?.pregunta.sort((a, b) => {
           // Extraer el número del texto de cada pregunta
-          const numA = a.texto ? parseInt(a.texto.split('.')[0]) : 0;
-          const numB = b.texto ? parseInt(b.texto.split('.')[0]) : 0;
-          
+          const numA = a.texto ? parseInt(a.texto.split(".")[0]) : 0;
+          const numB = b.texto ? parseInt(b.texto.split(".")[0]) : 0;
+
           // Devolver la diferencia entre los números para ordenar
           return numA - numB;
         }),
@@ -135,7 +136,6 @@ router.get("/", async (req, res) => {
         },
       };
     });
-
 
     res.json(format);
   } catch (error) {

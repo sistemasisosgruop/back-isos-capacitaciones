@@ -280,7 +280,6 @@ router.post(
       ) {
         trabajador["FECHA DE NACIMIENTO"] = null;
       }
-
       return trabajador;
     });
 
@@ -289,6 +288,7 @@ router.post(
     if (!empresa) {
       res.json(empresa);
     } else {
+
       try {
         await service.createExcel(trabajadores, Number(id));
         res.status(201).json({ message: "Creado con éxito!" });

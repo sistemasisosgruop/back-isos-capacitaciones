@@ -37,12 +37,12 @@ class TrabajadorService {
 
   async createExcel(datos, empreId) {
     const dnisSet = new Set(); // Conjunto para almacenar los DNIs
+
     datos = datos
       .map((objeto) => {
         const dniData = objeto.DNI ? objeto.DNI.toString() : undefined;
 
         if (dniData && dnisSet.has(dniData)) {
-          console.log(`DNI duplicado encontrado: ${dniData}`);
           return null;
         }
 
@@ -96,6 +96,7 @@ class TrabajadorService {
       const dnis = datos.map(item => item.dni)
       const existenTrabajadores = await models.Trabajador.findAll({where:{dni: dnis}});
       const existenUsuarios = await models.Trabajador.findAll({where:{dni: dnis}});
+
     const trabajadoresNuevos = [];
     let usuario;
     for (const trabajadorData of datos) {
@@ -107,6 +108,8 @@ class TrabajadorService {
         trabajadorData.user.contraseña,
         10
       );
+
+
 
       if (!usuarioExistente) {
         usuario = await models.Usuario.create({
