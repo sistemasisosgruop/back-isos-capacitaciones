@@ -10,31 +10,19 @@ const { checkWorkRol } = require("./../middlewares/auth.handler");
 
 router.get("/", async (req, res) => {
   try {
-    // await generarReporte();
+    let { page, limit } = req.query;
 
-    // const reportes = await models.Empresa.findAll({
-    //   where: { id: 39 },
+    // Set default values for page and limit
+    page = page ? parseInt(page) : 1;
+    limit = limit ? parseInt(limit) : 40;
 
-    //   include: [
-    //     {
-    //       model: models.Capacitacion,
-    //       include: [
-    //         {
-    //           model: models.Reporte,
-    //           as: "reporte",
-    //           include: [{ model: models.Trabajador, as: "trabajador" }],
-    //         },
-    //         {
-    //           model: models.Examen,
-    //           as: "examen",
-    //           include: [{ model: models.Pregunta, as: "pregunta" }],
-    //         },
-    //       ],
-    //     },
-    //   ],
-    // });
+    if (page < 1) {
+      return res.status(400).json({ message: "Invalid page value" });
+    }
 
-    const prueba = await models.Reporte.findAll({
+    const pageSize = 10; // Define el tamaño de página
+    const offset = (page - 1) * pageSize;
+    const prueba = await models.Reporte.findAndCountAll({
       include: [
         {
           model: models.Trabajador,
@@ -48,6 +36,7 @@ router.get("/", async (req, res) => {
             "cargo",
             "edad",
             "genero",
+            "empresaId"
           ],
           as: "trabajador",
           include: [
@@ -70,9 +59,11 @@ router.get("/", async (req, res) => {
           include: [{ model: models.Pregunta, as: "pregunta" }],
         },
       ],
+      limit,
+      offset
     });
 
-    const format = prueba.map((item) => {
+    const format = prueba?.rows?.map((item) => {
       return {
         trabajadorId: item?.trabajador?.id,
         nombreTrabajador:
@@ -137,7 +128,15 @@ router.get("/", async (req, res) => {
       };
     });
 
-    res.json(format);
+    const pageInfo = {
+      total: prueba.count,
+      page: page,
+      limit: limit,
+      totalPage: Math.ceil(prueba.count / limit)
+    };
+
+    // Enviar la respuesta con la paginación
+    res.json({ data: format, pageInfo });
   } catch (error) {
     console.log(error);
     res.json({ message: "no encuentra reportes" });

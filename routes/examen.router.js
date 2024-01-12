@@ -86,8 +86,7 @@ router.get("/data/:id", async (req, res, next) => {
     });
     let newData = [];
 
-    console.log(trabajador);
-    if (trabajador?.empresa !== null) {
+    if (trabajador?.empresa) {
       trabajador?.empresa?.Capacitacions?.map((capacitacion) => {
         // Buscar el reporte correspondiente para esta capacitacion
         const reporte = reportes?.find(

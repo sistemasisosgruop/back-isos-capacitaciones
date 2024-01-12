@@ -105,13 +105,33 @@ const moment = require("moment");
 
 router.get("/", async (req, res, next) => {
   try {
-    const Trabajadores = await models.Trabajador.findAll({
+    let { page, limit } = req.query;
+
+    // Set default values for page and limit
+    page = page ? parseInt(page) : 1;
+    limit = limit ? parseInt(limit) : 40;
+
+    if (page < 1) {
+      return res.status(400).json({ message: "Invalid page value" });
+    }
+
+    const pageSize = 10; // Define el tamaño de página
+    const offset = (page - 1) * pageSize;
+    const Trabajadores = await models.Trabajador.findAndCountAll({
       include: [
         { model: models.Empresa, as: "empresa" },
         { model: models.Usuario, as: "user" },
       ],
+      limit,
+       offset 
     });
-    res.json(Trabajadores);
+    const pageInfo = {
+      total: Trabajadores.count,
+      page: page,
+      limit: limit,
+      totalPage: Math.ceil(Trabajadores.count / limit)
+    };
+    res.json({data:Trabajadores.rows, pageInfo});
   } catch (error) {
     next(error);
   }
