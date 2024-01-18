@@ -17,6 +17,7 @@ const serviceEmpresa = new EmpresasService();
 const { models } = require("./../libs/sequelize");
 
 const moment = require("moment");
+const { Op, Sequelize } = require("sequelize");
 
 /**
  * @swagger
@@ -105,7 +106,24 @@ const moment = require("moment");
 
 router.get("/", async (req, res, next) => {
   try {
-    let { page, limit } = req.query;
+    let { page, limit, nombreEmpresa, search, } = req.query;
+
+    const empresaCondition =
+      nombreEmpresa !== undefined && nombreEmpresa !== ""
+        ? { nombreEmpresa: { [Op.like]: `%${nombreEmpresa}%` } }
+        : {};
+
+    const searchCondition =
+      search !== undefined && search !== ""
+        ? {
+            [Op.or]: [
+              Sequelize.literal(
+                `CONCAT(LOWER("Trabajador"."apellidoPaterno"), ' ', LOWER("Trabajador"."apellidoMaterno"), ' ', LOWER("Trabajador"."nombres")) LIKE '%${search}%'`
+              ),
+              { dni: { [Op.like]: `%${search}%` } },
+            ],
+          }
+        : {};
 
     // Set default values for page and limit
     page = page ? parseInt(page) : 1;
@@ -115,23 +133,24 @@ router.get("/", async (req, res, next) => {
       return res.status(400).json({ message: "Invalid page value" });
     }
 
-    const pageSize = 10; // Define el tamaño de página
+    const pageSize = 2; // Define el tamaño de página
     const offset = (page - 1) * pageSize;
     const Trabajadores = await models.Trabajador.findAndCountAll({
+      where: searchCondition,
       include: [
-        { model: models.Empresa, as: "empresa" },
+        { model: models.Empresa, as: "empresa", where: empresaCondition },
         { model: models.Usuario, as: "user" },
       ],
       limit,
-       offset 
+      offset,
     });
     const pageInfo = {
       total: Trabajadores.count,
       page: page,
       limit: limit,
-      totalPage: Math.ceil(Trabajadores.count / limit)
+      totalPage: Math.ceil(Trabajadores.count / limit),
     };
-    res.json({data:Trabajadores.rows, pageInfo});
+    res.json({ data: Trabajadores.rows, pageInfo });
   } catch (error) {
     next(error);
   }
@@ -308,7 +327,6 @@ router.post(
     if (!empresa) {
       res.json(empresa);
     } else {
-
       try {
         await service.createExcel(trabajadores, Number(id));
         res.status(201).json({ message: "Creado con éxito!" });

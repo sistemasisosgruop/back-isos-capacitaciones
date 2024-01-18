@@ -7,11 +7,30 @@ const passport = require("passport");
 const moment = require("moment");
 
 const { checkWorkRol } = require("./../middlewares/auth.handler");
+const { Op } = require("sequelize");
 
 router.get("/", async (req, res) => {
   try {
-    let { page, limit } = req.query;
-
+    let { page, limit, nombreEmpresa, capacitacion, mes } = req.query;
+    const startOfMonth = moment().set({ year: moment().year()-1, month: mes - 1, date: 1 }).startOf('day').format("YYYY-MM-DD");
+    const endOfMonth = moment().set({ year: moment().year()-1, month: mes - 1 }).endOf('month').endOf('day').format("YYYY-MM-DD");
+    
+    const mesCondition =
+      mes !== undefined && mes !== ""
+        ? {
+             created_at: {
+              [Op.between]: [startOfMonth, endOfMonth],
+            },
+          }
+        : {};
+    const empresaCondition =
+      nombreEmpresa !== undefined && nombreEmpresa !== ""
+        ? { nombreEmpresa: { [Op.like]: `%${nombreEmpresa}%` } }
+        : {};
+    const capacitacionCondition =
+      capacitacion !== undefined && capacitacion !== ""
+        ? { nombre: { [Op.like]: `%${capacitacion}%` } }
+        : {};
     // Set default values for page and limit
     page = page ? parseInt(page) : 1;
     limit = limit ? parseInt(limit) : 40;
@@ -20,7 +39,7 @@ router.get("/", async (req, res) => {
       return res.status(400).json({ message: "Invalid page value" });
     }
 
-    const pageSize = 10; // Define el tamaño de página
+    const pageSize = 20; // Define el tamaño de página
     const offset = (page - 1) * pageSize;
     const prueba = await models.Reporte.findAndCountAll({
       include: [
@@ -36,13 +55,14 @@ router.get("/", async (req, res) => {
             "cargo",
             "edad",
             "genero",
-            "empresaId"
+            "empresaId",
           ],
           as: "trabajador",
           include: [
             {
               model: models.Empresa,
               as: "empresa",
+              where: empresaCondition,
               attributes: [
                 "id",
                 "nombreEmpresa",
@@ -52,15 +72,20 @@ router.get("/", async (req, res) => {
             },
           ],
         },
-        { model: models.Capacitacion, as: "capacitacion" },
+        {
+          model: models.Capacitacion,
+          as: "capacitacion",
+          where: capacitacionCondition,
+        },
         {
           model: models.Examen,
           as: "examen",
+          where: mesCondition,
           include: [{ model: models.Pregunta, as: "pregunta" }],
         },
       ],
       limit,
-      offset
+      offset,
     });
 
     const format = prueba?.rows?.map((item) => {
@@ -75,11 +100,13 @@ router.get("/", async (req, res) => {
         nombreCapacitacion: item?.capacitacion?.nombreCapacitacion,
         nombreEmpresa: item?.trabajador?.empresa?.nombreEmpresa,
         empresaId: item?.trabajador?.empresa?.id,
-        fechaExamen: moment(item?.examen?.fechaExamen).format("DD-MM-YYYY"),
+        fechaExamen: moment(item?.examen?.fechadeExamen).format("DD-MM-YYYY"),
         notaExamen: item?.notaExamen,
+        examen: item.examen,
         asistenciaExamen: item?.asistenciaExamen,
         mesExamen: moment(item?.examen?.fechadeExamen)?.month() + 1,
         examenId: item?.examen?.id,
+        examenId: item?.examen,
         capacitacion: {
           certificado: item?.capacitacion?.certificado,
           createdAt: item?.capacitacion?.createdAt,
@@ -132,7 +159,7 @@ router.get("/", async (req, res) => {
       total: prueba.count,
       page: page,
       limit: limit,
-      totalPage: Math.ceil(prueba.count / limit)
+      totalPage: Math.ceil(prueba.count / limit),
     };
 
     // Enviar la respuesta con la paginación

@@ -11,13 +11,43 @@ const path = require("path");
 const fs = require("fs");
 router.get("/", async (req, res) => {
   try {
-    const Trabajadores = await models.Trabajador.findAll({
+    let { page, limit, nombreEmpresa, search, } = req.query;
+
+    const empresaCondition =
+      nombreEmpresa !== undefined && nombreEmpresa !== ""
+        ? { nombreEmpresa: { [Op.like]: `%${nombreEmpresa}%` } }
+        : {};
+
+    const searchCondition =
+      search !== undefined && search !== ""
+        ? {
+            [Op.or]: [
+              Sequelize.literal(
+                `CONCAT(LOWER("Trabajador"."apellidoPaterno"), ' ', LOWER("Trabajador"."apellidoMaterno"), ' ', LOWER("Trabajador"."nombres")) LIKE '%${search}%'`
+              ),
+              { dni: { [Op.like]: `%${search}%` } },
+            ],
+          }
+        : {};
+        page = page ? parseInt(page) : 1;
+        limit = limit ? parseInt(limit) : 40;
+    
+        if (page < 1) {
+          return res.status(400).json({ message: "Invalid page value" });
+        }
+    
+        const pageSize = 2; // Define el tamaño de página
+        const offset = (page - 1) * pageSize;
+    const Trabajadores = await models.Trabajador.findAndCountAll({
+      where: searchCondition,
       include: [
         { model: models.Emo, as: "emo" },
-        { model: models.Empresa, as: "empresa" },
+        { model: models.Empresa, as: "empresa", where: empresaCondition },
       ],
+      limit,
+      offset,
     });
-    const newData = Trabajadores.map((item, index) => {
+    const newData = Trabajadores?.rows?.map((item, index) => {
       return {
         nro: index + 1,
         id: item?.emo?.at(0)?.id,
@@ -47,8 +77,13 @@ router.get("/", async (req, res) => {
         empresa_id: item?.empresa?.id,
       };
     });
-    return res.status(200).json({ data: newData });
-  } catch (error) {
+    const pageInfo = {
+      total: Trabajadores.count,
+      page: page,
+      limit: limit,
+      totalPage: Math.ceil(Trabajadores.count / limit),
+    };
+    res.json({ data: newData, pageInfo });  } catch (error) {
     console.log(error);
     return res
       .status(500)
