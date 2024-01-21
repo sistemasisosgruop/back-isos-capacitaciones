@@ -80,7 +80,7 @@ const TrabajadorSchema = {
   },
   empresaId: {
     field: "empresa_id",
-    allowNull: false,
+    allowNull: true,
     type: DataTypes.INTEGER,
     references: {
       model: EMPRESA_TABLE,

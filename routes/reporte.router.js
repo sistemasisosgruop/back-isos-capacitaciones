@@ -11,14 +11,26 @@ const { Op } = require("sequelize");
 
 router.get("/", async (req, res) => {
   try {
-    let { page, limit, nombreEmpresa, capacitacion, mes } = req.query;
-    const startOfMonth = moment().set({ year: moment().year()-1, month: mes - 1, date: 1 }).startOf('day').format("YYYY-MM-DD");
-    const endOfMonth = moment().set({ year: moment().year()-1, month: mes - 1 }).endOf('month').endOf('day').format("YYYY-MM-DD");
+    let { page, limit, nombreEmpresa, capacitacion, mes, all } = req.query;
     
+    page = page ? parseInt(page) : 1;
+    limit = all === 'true' ? null : (limit ? parseInt(limit) : 15);
+    const offset = all === 'true' ? null : (page - 1) * limit;
+    
+    const startOfMonth = moment()
+      .set({ year: moment().year() - 1, month: mes - 1, date: 1 })
+      .startOf("day")
+      .format("YYYY-MM-DD");
+    const endOfMonth = moment()
+      .set({ year: moment().year() - 1, month: mes - 1 })
+      .endOf("month")
+      .endOf("day")
+      .format("YYYY-MM-DD");
+
     const mesCondition =
       mes !== undefined && mes !== ""
         ? {
-             created_at: {
+            created_at: {
               [Op.between]: [startOfMonth, endOfMonth],
             },
           }
@@ -32,16 +44,46 @@ router.get("/", async (req, res) => {
         ? { nombre: { [Op.like]: `%${capacitacion}%` } }
         : {};
     // Set default values for page and limit
-    page = page ? parseInt(page) : 1;
-    limit = limit ? parseInt(limit) : 40;
+
 
     if (page < 1) {
       return res.status(400).json({ message: "Invalid page value" });
     }
+    const totalReports = await models.Reporte.count({
+      include:[
+        {
+          model: models.Trabajador,
+          where: { habilitado: true },
+          attributes: [
+            "id",
+            "nombres",
+            "apellidoMaterno",
+            "apellidoPaterno",
+            "dni",
+            "cargo",
+            "edad",
+            "genero",
+            "empresaId",
+          ],
+          as: "trabajador",
+          include: [
+            {
+              model: models.Empresa,
+              as: "empresa",
+              where: empresaCondition,
+              attributes: [
+                "id",
+                "nombreEmpresa",
+                "imagenLogo",
+                "imagenCertificado",
+              ],
+            },
+          ],
+        },
+      ]
+    });
 
-    const pageSize = 20; // Define el tamaño de página
-    const offset = (page - 1) * pageSize;
-    const prueba = await models.Reporte.findAndCountAll({
+    const reporte = await models.Reporte.findAndCountAll({
       include: [
         {
           model: models.Trabajador,
@@ -87,8 +129,7 @@ router.get("/", async (req, res) => {
       limit,
       offset,
     });
-
-    const format = prueba?.rows?.map((item) => {
+    const format = reporte?.rows?.map((item) => {
       return {
         trabajadorId: item?.trabajador?.id,
         nombreTrabajador:
@@ -156,10 +197,12 @@ router.get("/", async (req, res) => {
     });
 
     const pageInfo = {
-      total: prueba.count,
+      total: totalReports,
       page: page,
       limit: limit,
-      totalPage: Math.ceil(prueba.count / limit),
+      totalPage: Math.ceil(totalReports / limit),
+      next: parseInt(page)+ 1,
+      
     };
 
     // Enviar la respuesta con la paginación

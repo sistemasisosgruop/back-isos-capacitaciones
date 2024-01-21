@@ -17,7 +17,7 @@ const serviceEmpresa = new EmpresasService();
 const { models } = require("./../libs/sequelize");
 
 const moment = require("moment");
-const { Op, Sequelize } = require("sequelize");
+const { Op, Sequelize, where } = require("sequelize");
 
 /**
  * @swagger
@@ -106,8 +106,10 @@ const { Op, Sequelize } = require("sequelize");
 
 router.get("/", async (req, res, next) => {
   try {
-    let { page, limit, nombreEmpresa, search, } = req.query;
-
+    let { page, limit, nombreEmpresa, search, all } = req.query;
+    page = page ? parseInt(page) : 1;
+    limit = all === "true" ? null : limit ? parseInt(limit) : 15;
+    const offset = all === "true" ? null : (page - 1) * limit;
     const empresaCondition =
       nombreEmpresa !== undefined && nombreEmpresa !== ""
         ? { nombreEmpresa: { [Op.like]: `%${nombreEmpresa}%` } }
@@ -125,16 +127,10 @@ router.get("/", async (req, res, next) => {
           }
         : {};
 
-    // Set default values for page and limit
-    page = page ? parseInt(page) : 1;
-    limit = limit ? parseInt(limit) : 40;
-
     if (page < 1) {
       return res.status(400).json({ message: "Invalid page value" });
     }
 
-    const pageSize = 2; // Define el tamaño de página
-    const offset = (page - 1) * pageSize;
     const Trabajadores = await models.Trabajador.findAndCountAll({
       where: searchCondition,
       include: [
@@ -247,6 +243,68 @@ router.post(
     }
   }
 );
+
+router.post("/comparar", async (req, res, next) => {
+  try {
+    const body = req.body;
+    const responses = [];
+
+    const format = body.map(item =>{
+      return{
+        apellidoPaterno: item?.apellidoPaterno,
+        apellidoMaterno: item?.apellidoMaterno,
+        nombres: item?.nombres,
+        dni: item?.dni.toString(),
+        contraseña: item?.contraseña,
+        celular:item?.celular,
+        genero: item?.sexo,
+        edad: item?.edad,
+        fechadenac: item?.fechaNacimiento,
+        areadetrabajo: item.areadetrabajo ?? "sin area",
+        empresaId: item?.empresa_id,
+        cargo: item.cargo ?? "sin cargo",
+        user: item?.user,
+        action: item.action,
+        id: item.id
+      }
+    })
+    for (const item of format) {
+      const { action,id, ...rest } = item;
+      if (item.action === "create") {
+        // Realiza la lógica para crear un nuevo registro
+        const valdni = await service.findByDni(item.dni);
+        if (valdni) {
+          responses.push({
+            message: `Ya existe un Dni igual para ${item.dni}`,
+          });
+        } else {
+          const nuevotrabajador = await service.create(rest);
+          responses.push(
+            nuevotrabajador || { message: "No se pudo crear el usuario" }
+          );
+        }
+      } else if (item.action === "disable") {
+        console.log(id);
+        const trabajador = await models.Trabajador.update(
+          {
+            empresaId: null,
+            habilitado: false,
+          },
+          { where: { id: id } }
+        );
+        console.log(trabajador);
+        responses.push(
+          trabajador || { message: "No se pudo actualizar el usuario" }
+        );
+      }
+      // Agrega más acciones según sea necesario
+    }
+
+    res.status(201).json(responses);
+  } catch (error) {
+    next(error);
+  }
+});
 
 /**
  * @swagger

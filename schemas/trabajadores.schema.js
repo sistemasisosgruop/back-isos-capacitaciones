@@ -62,6 +62,7 @@ const updateTrabajadorSchema = Joi.object({
     fechadenac: fechadenac,
     habilitado: habilitado,
     celular: celular,
+    rol:rol,
     user: Joi.object({
       username: username,
       contraseña: contraseña,

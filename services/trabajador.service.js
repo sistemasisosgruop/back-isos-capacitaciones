@@ -9,18 +9,18 @@ class TrabajadorService {
   constructor() {}
 
   async create(data) {
-    const hash = await bcrypt.hash(data.user.contraseña, 10);
-    console.log(data);
+    const hash = await bcrypt.hash(data.user.contraseña.toString(), 10);
     const nuevoData = {
       ...data,
       user: {
         ...data.user,
         celular: data.user.celular,
         contraseña: hash,
+        
       },
     };
     const comprobarUsuario = await models.Usuario.findOne({
-      where: { username: nuevoData.user.username },
+      where: { username: nuevoData.user.username.toString() },
     });
     if (!comprobarUsuario) {
       const nuevotrabajador = await models.Trabajador.create(nuevoData, {
@@ -193,7 +193,6 @@ class TrabajadorService {
         where: { dni },
         include: ["user", "empresa"],
       });
-      console.log(trabajador);
       return trabajador;
     } catch (error) {
       console.log(error);
@@ -241,6 +240,7 @@ class TrabajadorService {
       celular: changes.celular ?? trabajador.celular,
       empresaId: changes.empresaId ?? trabajador.empresa_id
     });
+    console.log(changes);
   
     // Regenerar registros en la tabla "emo" con el nuevo DNI
     const regeneracionesPromises = copiasRegistrosEmoOriginales.map(async (copiaRegistro) => {
@@ -251,14 +251,19 @@ class TrabajadorService {
     });
     await Promise.all(regeneracionesPromises);
   
-    if (userChanges.username || userChanges.contraseña || userChanges.rol) {
+    if (userChanges.username || userChanges.contraseña || userChanges.rol || changes.rol) {
       const user = await trabajador.getUser();
-      const hash = await bcrypt.hash(userChanges.contraseña, 10);
-  
+      let hash;
+    
+      // Solo hashear la contraseña si userChanges.contraseña tiene un valor
+      if (userChanges.contraseña) {
+        hash = await bcrypt.hash(userChanges.contraseña, 10);
+      }
+    
       const respuestaUsuario = await user.update({
         username: userChanges.username ?? user.username,
         contraseña: hash ?? user.contraseña,
-        rol: userChanges.rol ?? user.rol,
+        rol: changes.rol === "Si" ? "Supervisor" : userChanges.rol ?? user.rol,
       });
     }
     return respuestaTrabajador;

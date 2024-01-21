@@ -88,8 +88,21 @@ router.post(
           token,
           admin,
         });
+      } else if(user.rol === "Supervisor"){
+        const supervisor = await models.Trabajador.findOne({
+          where: { userId: user.id },
+        });
+
+        const userData = {...user.toJSON(), empresaId:supervisor.empresaId}
+
+        res.json({
+          user:userData,
+          token,
+          supervisor,
+        });
       }
     } catch (error) {
+      console.log(error);
       next(error);
     }
   }

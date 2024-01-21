@@ -6,48 +6,18 @@ const router = express.Router();
 const upload = multer({ dest: "excel/" });
 const emo = multer({ dest: "emo/" });
 const moment = require("moment");
-const { Op } = require("sequelize");
+const { Op, Sequelize } = require("sequelize");
 const path = require("path");
 const fs = require("fs");
 router.get("/", async (req, res) => {
   try {
-    let { page, limit, nombreEmpresa, search, } = req.query;
-
-    const empresaCondition =
-      nombreEmpresa !== undefined && nombreEmpresa !== ""
-        ? { nombreEmpresa: { [Op.like]: `%${nombreEmpresa}%` } }
-        : {};
-
-    const searchCondition =
-      search !== undefined && search !== ""
-        ? {
-            [Op.or]: [
-              Sequelize.literal(
-                `CONCAT(LOWER("Trabajador"."apellidoPaterno"), ' ', LOWER("Trabajador"."apellidoMaterno"), ' ', LOWER("Trabajador"."nombres")) LIKE '%${search}%'`
-              ),
-              { dni: { [Op.like]: `%${search}%` } },
-            ],
-          }
-        : {};
-        page = page ? parseInt(page) : 1;
-        limit = limit ? parseInt(limit) : 40;
-    
-        if (page < 1) {
-          return res.status(400).json({ message: "Invalid page value" });
-        }
-    
-        const pageSize = 2; // Define el tamaño de página
-        const offset = (page - 1) * pageSize;
-    const Trabajadores = await models.Trabajador.findAndCountAll({
-      where: searchCondition,
+    const Trabajadores = await models.Trabajador.findAll({
       include: [
         { model: models.Emo, as: "emo" },
-        { model: models.Empresa, as: "empresa", where: empresaCondition },
+        { model: models.Empresa, as: "empresa" },
       ],
-      limit,
-      offset,
     });
-    const newData = Trabajadores?.rows?.map((item, index) => {
+    const newData = Trabajadores?.map((item, index) => {
       return {
         nro: index + 1,
         id: item?.emo?.at(0)?.id,
@@ -77,13 +47,9 @@ router.get("/", async (req, res) => {
         empresa_id: item?.empresa?.id,
       };
     });
-    const pageInfo = {
-      total: Trabajadores.count,
-      page: page,
-      limit: limit,
-      totalPage: Math.ceil(Trabajadores.count / limit),
-    };
-    res.json({ data: newData, pageInfo });  } catch (error) {
+
+    return res.status(200).json({ data: newData });
+  } catch (error) {
     console.log(error);
     return res
       .status(500)
@@ -93,25 +59,65 @@ router.get("/", async (req, res) => {
 
 router.get("/reporte", async (req, res) => {
   try {
-    const reportes = await models.registroDescarga.findAll({
+    let { page, limit, nombreEmpresa, search, all } = req.query;
+    page = page ? parseInt(page) : 1;
+    limit = all === "true" ? null : limit ? parseInt(limit) : 15;
+    const offset = all === "true" ? null : (page - 1) * limit;
+
+    const empresaCondition =
+      nombreEmpresa !== undefined && nombreEmpresa !== ""
+        ? { nombreEmpresa: { [Op.like]: `%${nombreEmpresa}%` } }
+        : {};
+    const searchCondition =
+      search !== undefined && search !== ""
+        ? {
+            [Op.or]: [
+              Sequelize.where(
+                Sequelize.fn(
+                  "LOWER",
+                  Sequelize.fn(
+                    "CONCAT",
+                    Sequelize.col("apellidoPaterno"),
+                    " ",
+                    Sequelize.col("apellidoMaterno"),
+                    " ",
+                    Sequelize.col("nombres")
+                  )
+                ),
+                { [Op.like]: `%${search.toLowerCase()}%` }
+              ),
+              { dni: { [Op.like]: `%${search}%` } },
+            ],
+          }
+        : {};
+
+    if (page < 1) {
+      return res.status(400).json({ message: "Invalid page value" });
+    }
+
+    const reportes = await models.registroDescarga.findAndCountAll({
       include: [
         {
           model: models.Trabajador,
           as: "trabajador",
           attributes: ["id", "nombres", "apellidoPaterno", "apellidoMaterno"],
+          where: searchCondition,
 
           include: [
             {
               model: models.Empresa,
+              where: empresaCondition,
               as: "empresa",
               attributes: ["nombreEmpresa"],
             },
           ],
         },
       ],
+      limit,
+      offset,
     });
 
-    const formatData = reportes.map((item) => {
+    const formatData = reportes?.rows?.map((item) => {
       return {
         id: item?.id,
         trabajador_id: item?.trabajador_id,
@@ -123,8 +129,13 @@ router.get("/reporte", async (req, res) => {
         empresa: item?.trabajador?.empresa?.nombreEmpresa,
       };
     });
-
-    return res.status(200).json({ data: formatData });
+    const pageInfo = {
+      total: reportes.count,
+      page: page,
+      limit: limit,
+      totalPage: Math.ceil(reportes.count / limit),
+    };
+    res.json({ data: formatData, pageInfo });
   } catch (error) {
     console.log(error);
     return res.status(500).json("No se pudo obtener los reportes");
