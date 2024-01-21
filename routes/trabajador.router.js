@@ -284,7 +284,6 @@ router.post("/comparar", async (req, res, next) => {
           );
         }
       } else if (item.action === "disable") {
-        console.log(id);
         const trabajador = await models.Trabajador.update(
           {
             empresaId: null,

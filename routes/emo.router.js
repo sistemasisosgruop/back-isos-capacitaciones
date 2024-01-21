@@ -42,7 +42,7 @@ router.get("/", async (req, res) => {
               "DD-MM-YYYY",
             ]).format("YYYY-MM-DD")
           : "",
-        logo: item.empresa.imagenLogo,
+        logo: item?.empresa?.imagenLogo,
         nombreEmpresa: item?.empresa?.nombreEmpresa,
         empresa_id: item?.empresa?.id,
       };
