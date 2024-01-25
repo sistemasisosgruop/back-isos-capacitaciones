@@ -7,6 +7,8 @@ const {
   createTrabajadorSchema,
   getTrabajadorSchema,
 } = require("./../schemas/trabajadores.schema");
+const bcrypt = require("bcrypt");
+
 const xlsx = require("xlsx");
 const multer = require("multer");
 const router = express.Router();
@@ -249,14 +251,14 @@ router.post("/comparar", async (req, res, next) => {
     const body = req.body;
     const responses = [];
 
-    const format = body.map(item =>{
-      return{
+    const format = body.map((item) => {
+      return {
         apellidoPaterno: item?.apellidoPaterno,
         apellidoMaterno: item?.apellidoMaterno,
         nombres: item?.nombres,
         dni: item?.dni.toString(),
         contraseña: item?.contraseña,
-        celular:item?.celular,
+        celular: item?.celular,
         genero: item?.sexo,
         edad: item?.edad,
         fechadenac: item?.fechaNacimiento,
@@ -265,23 +267,53 @@ router.post("/comparar", async (req, res, next) => {
         cargo: item.cargo ?? "sin cargo",
         user: item?.user,
         action: item.action,
-        id: item.id
-      }
-    })
+        id: item.id,
+      };
+    });
     for (const item of format) {
-      const { action,id, ...rest } = item;
+      const { action, id, ...rest } = item;
       if (item.action === "create") {
         // Realiza la lógica para crear un nuevo registro
         const valdni = await service.findByDni(item.dni);
+
         if (valdni) {
-          responses.push({
-            message: `Ya existe un Dni igual para ${item.dni}`,
-          });
+          console.log(valdni.empresaId);
+          console.log(item.empresaId);
+          console.log(item.dni);
+          if (valdni.empresaId !== item.empresaId) {
+            const updatedTrabajador = await models.Trabajador.update(
+              { empresaId: item.empresaId },
+              { where: { dni: item.dni.toString() } }
+            );
+            responses.push(
+              updatedTrabajador || {
+                message: "No se pudo actualizar el usuario",
+              }
+            );
+          }
         } else {
-          const nuevotrabajador = await service.create(rest);
-          responses.push(
-            nuevotrabajador || { message: "No se pudo crear el usuario" }
-          );
+          const contraseña = item.contraseña ?? item.dni;
+          const hash = await bcrypt.hash(contraseña.toString(), 10);
+          const nuevoData = {
+            ...item,
+            user: {
+              ...item.user,
+              celular: item.user.celular,
+              contraseña: hash,
+            },
+          };
+          const comprobarUsuario = await models.Usuario.findOne({
+            where: { username: nuevoData.user.username.toString() },
+          });
+          if (!comprobarUsuario) {
+            const nuevotrabajador = await models.Trabajador.create(nuevoData, {
+              include: ["user"],
+            });
+
+            responses.push(
+              nuevotrabajador || { message: "No se pudo crear el usuario" }
+            );
+          }
         }
       } else if (item.action === "disable") {
         const trabajador = await models.Trabajador.update(

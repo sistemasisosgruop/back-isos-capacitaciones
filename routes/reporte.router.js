@@ -50,7 +50,7 @@ router.get("/", async (req, res) => {
       return res.status(400).json({ message: "Invalid page value" });
     }
     const totalReports = await models.Reporte.count({
-      include:[
+      include: [
         {
           model: models.Trabajador,
           where: { habilitado: true },
@@ -80,7 +80,8 @@ router.get("/", async (req, res) => {
             },
           ],
         },
-      ]
+
+      ],
     });
 
     const reporte = await models.Reporte.findAndCountAll({
