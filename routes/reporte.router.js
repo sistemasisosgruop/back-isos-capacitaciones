@@ -12,11 +12,11 @@ const { Op } = require("sequelize");
 router.get("/", async (req, res) => {
   try {
     let { page, limit, nombreEmpresa, capacitacion, mes, all } = req.query;
-    
+
     page = page ? parseInt(page) : 1;
-    limit = all === 'true' ? null : (limit ? parseInt(limit) : 15);
-    const offset = all === 'true' ? null : (page - 1) * limit;
-    
+    limit = all === "true" ? null : limit ? parseInt(limit) : 15;
+    const offset = all === "true" ? null : (page - 1) * limit;
+
     const startOfMonth = moment()
       .set({ year: moment().year() - 1, month: mes - 1, date: 1 })
       .startOf("day")
@@ -45,46 +45,12 @@ router.get("/", async (req, res) => {
         : {};
     // Set default values for page and limit
 
-
     if (page < 1) {
       return res.status(400).json({ message: "Invalid page value" });
     }
-    const totalReports = await models.Reporte.count({
-      include: [
-        {
-          model: models.Trabajador,
-          where: { habilitado: true },
-          attributes: [
-            "id",
-            "nombres",
-            "apellidoMaterno",
-            "apellidoPaterno",
-            "dni",
-            "cargo",
-            "edad",
-            "genero",
-            "empresaId",
-          ],
-          as: "trabajador",
-          include: [
-            {
-              model: models.Empresa,
-              as: "empresa",
-              where: empresaCondition,
-              attributes: [
-                "id",
-                "nombreEmpresa",
-                "imagenLogo",
-                "imagenCertificado",
-              ],
-            },
-          ],
-        },
-
-      ],
-    });
 
     const reporte = await models.Reporte.findAndCountAll({
+      distinct: true,
       include: [
         {
           model: models.Trabajador,
@@ -198,12 +164,11 @@ router.get("/", async (req, res) => {
     });
 
     const pageInfo = {
-      total: totalReports,
+      total: reporte.count,
       page: page,
       limit: limit,
-      totalPage: Math.ceil(totalReports / limit),
-      next: parseInt(page)+ 1,
-      
+      totalPage: Math.ceil(reporte.count / limit),
+      next: parseInt(page) + 1,
     };
 
     // Enviar la respuesta con la paginación
