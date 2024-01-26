@@ -66,7 +66,7 @@ router.post(
           where: { userId: user.id },
         });
         if (worker.habilitado === false) {
-          res.status(401).json({ message: "Usted está deshabilitado" });
+          return res.status(401).json({ message: "Usted está deshabilitado" });
         } else {
           const data = {
             ...user.toJSON(),
@@ -92,7 +92,9 @@ router.post(
         const supervisor = await models.Trabajador.findOne({
           where: { userId: user.id },
         });
-
+        if(supervisor.habilitado === false){
+          return res.status(401).json({ message: "Usted está deshabilitado" });
+        }
         const userData = {...user.toJSON(), empresaId:supervisor.empresaId}
 
         res.json({

@@ -240,7 +240,6 @@ class TrabajadorService {
       celular: changes.celular ?? trabajador.celular,
       empresaId: changes.empresaId ?? trabajador.empresa_id
     });
-    console.log(changes);
   
     // Regenerar registros en la tabla "emo" con el nuevo DNI
     const regeneracionesPromises = copiasRegistrosEmoOriginales.map(async (copiaRegistro) => {
@@ -259,11 +258,11 @@ class TrabajadorService {
       if (userChanges.contraseña) {
         hash = await bcrypt.hash(userChanges.contraseña, 10);
       }
-    
-      const respuestaUsuario = await user.update({
+      console.log(changes);
+       await user.update({
         username: userChanges.username ?? user.username,
         contraseña: hash ?? user.contraseña,
-        rol: changes.rol === "Si" ? "Supervisor" : userChanges.rol ?? user.rol,
+        rol: changes.rol ?? user.rol,
       });
     }
     return respuestaTrabajador;

@@ -277,9 +277,6 @@ router.post("/comparar", async (req, res, next) => {
         const valdni = await service.findByDni(item.dni);
 
         if (valdni) {
-          console.log(valdni.empresaId);
-          console.log(item.empresaId);
-          console.log(item.dni);
           if (valdni.empresaId !== item.empresaId) {
             const updatedTrabajador = await models.Trabajador.update(
               { empresaId: item.empresaId },
