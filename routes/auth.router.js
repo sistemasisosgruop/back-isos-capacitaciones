@@ -95,7 +95,7 @@ router.post(
         if(supervisor.habilitado === false){
           return res.status(401).json({ message: "Usted está deshabilitado" });
         }
-        const userData = {...user.toJSON(), empresaId:supervisor.empresaId}
+        const userData = {...user.toJSON(), empresaId:supervisor.empresaId, dni: supervisor.dni}
 
         res.json({
           user:userData,
