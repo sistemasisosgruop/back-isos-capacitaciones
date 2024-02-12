@@ -270,6 +270,7 @@ router.post("/comparar", async (req, res, next) => {
         id: item.id,
       };
     });
+    console.log(format);
     for (const item of format) {
       const { action, id, ...rest } = item;
       if (item.action === "create") {
@@ -279,7 +280,7 @@ router.post("/comparar", async (req, res, next) => {
         if (valdni) {
           if (valdni.empresaId !== item.empresaId) {
             const updatedTrabajador = await models.Trabajador.update(
-              { empresaId: item.empresaId },
+              { empresaId: item.empresaId, habilitado:true },
               { where: { dni: item.dni.toString() } }
             );
             responses.push(
