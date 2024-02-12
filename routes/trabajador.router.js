@@ -19,7 +19,8 @@ const serviceEmpresa = new EmpresasService();
 const { models } = require("./../libs/sequelize");
 
 const moment = require("moment");
-const { Op, Sequelize, where } = require("sequelize");
+const { Op, Sequelize } = require("sequelize");
+const sequelize = require("../libs/sequelize")
 
 /**
  * @swagger
@@ -139,6 +140,7 @@ router.get("/", async (req, res, next) => {
         { model: models.Empresa, as: "empresa", where: empresaCondition },
         { model: models.Usuario, as: "user" },
       ],
+      order: [['id', 'ASC']],
       limit,
       offset,
     });
@@ -224,15 +226,14 @@ router.post(
   async (req, res, next) => {
     try {
       const body = req.body;
-
       const valdni = await service.findByDni(body.dni);
       if (valdni) {
-        res.status(400).json({
+        return res.status(400).json({
           message: `Ya existe un Dni igual`,
         });
       } else {
         const nuevotrabajador = await service.create(body);
-        res
+        return res
           .status(201)
           .json(
             nuevotrabajador
@@ -247,6 +248,7 @@ router.post(
 );
 
 router.post("/comparar", async (req, res, next) => {
+  const t = await sequelize.transaction();
   try {
     const body = req.body;
     const responses = [];
@@ -270,7 +272,6 @@ router.post("/comparar", async (req, res, next) => {
         id: item.id,
       };
     });
-    console.log(format);
     for (const item of format) {
       const { action, id, ...rest } = item;
       if (item.action === "create") {
@@ -280,8 +281,8 @@ router.post("/comparar", async (req, res, next) => {
         if (valdni) {
           if (valdni.empresaId !== item.empresaId) {
             const updatedTrabajador = await models.Trabajador.update(
-              { empresaId: item.empresaId, habilitado:true },
-              { where: { dni: item.dni.toString() } }
+              { empresaId: item.empresaId, habilitado: true },
+              { where: { dni: item.dni.toString() }, transaction: t  }
             );
             responses.push(
               updatedTrabajador || {
@@ -304,8 +305,9 @@ router.post("/comparar", async (req, res, next) => {
             where: { username: nuevoData.user.username.toString() },
           });
           if (!comprobarUsuario) {
-            const nuevotrabajador = await models.Trabajador.create(nuevoData, {
-              include: ["user"],
+            const { id, ...dataSinId } = nuevoData;
+            const nuevotrabajador = await models.Trabajador.create(dataSinId, {
+              include: ["user"], transaction: t 
             });
 
             responses.push(
@@ -319,9 +321,8 @@ router.post("/comparar", async (req, res, next) => {
             empresaId: null,
             habilitado: false,
           },
-          { where: { id: id } }
+          { where: { id: id }, transaction: t  }
         );
-        console.log(trabajador);
         responses.push(
           trabajador || { message: "No se pudo actualizar el usuario" }
         );
@@ -330,7 +331,9 @@ router.post("/comparar", async (req, res, next) => {
     }
 
     res.status(201).json(responses);
+    await t.commit();
   } catch (error) {
+    if (t) await t.rollback();
     next(error);
   }
 });

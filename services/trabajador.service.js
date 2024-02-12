@@ -10,6 +10,7 @@ class TrabajadorService {
 
   async create(data) {
     const hash = await bcrypt.hash(data.user.contraseña.toString(), 10);
+    console.log(data);
     const nuevoData = {
       ...data,
       user: {
