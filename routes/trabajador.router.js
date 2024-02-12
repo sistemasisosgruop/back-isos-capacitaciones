@@ -260,7 +260,7 @@ router.post("/comparar", async (req, res, next) => {
         contraseña: item?.contraseña,
         celular: item?.celular,
         genero: item?.sexo,
-        edad: item?.edad,
+        edad: parseInt(item?.edad),
         fechadenac: item?.fechaNacimiento,
         areadetrabajo: item.areadetrabajo ?? "sin area",
         empresaId: item?.empresa_id,

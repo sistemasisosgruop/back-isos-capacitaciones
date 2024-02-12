@@ -274,9 +274,11 @@ class TrabajadorService {
   
 
   async delete(id) {
-    const trabajador = await this.findOne(id);
-    const usuario = await trabajador.getUser();
-    await Promise.all([trabajador.destroy(), usuario.destroy()]);
+    const trabajador = await models.Trabajador.findByPk(id)
+    const user_id = trabajador.dataValues.userId
+    const usuario = await models.Usuario.findByPk(user_id);
+    // console.log(usuario);
+    await Promise.all([  trabajador.destroy(),usuario.destroy()]);
     return { id };
   }
 }
