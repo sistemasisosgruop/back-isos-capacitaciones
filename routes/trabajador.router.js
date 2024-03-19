@@ -137,7 +137,7 @@ router.get("/", async (req, res, next) => {
     const Trabajadores = await models.Trabajador.findAndCountAll({
       where: searchCondition,
       include: [
-        { model: models.Empresa, as: "empresa", where: empresaCondition },
+        { model: models.Empresa, as: "empresa", where: empresaCondition, required:false},
         { model: models.Usuario, as: "user" },
       ],
       order: [['id', 'ASC']],
@@ -151,6 +151,31 @@ router.get("/", async (req, res, next) => {
       totalPage: Math.ceil(Trabajadores.count / limit),
     };
     res.json({ data: Trabajadores.rows, pageInfo });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get("/empresa", async (req, res, next) => {
+  try {
+    let { page, limit, nombreEmpresa, search, all } = req.query;
+
+    const empresaCondition =
+      nombreEmpresa !== undefined && nombreEmpresa !== ""
+        ? { nombreEmpresa: { [Op.like]: `%${nombreEmpresa}%` } }
+        : {};
+
+
+    const Trabajadores = await models.Trabajador.findAll({
+      include: [
+        { model: models.Empresa, as: "empresa", where: empresaCondition},
+        { model: models.Usuario, as: "user" },
+      ],
+      order: [['id', 'ASC']],
+
+    });
+
+    res.json({ data: Trabajadores});
   } catch (error) {
     next(error);
   }
@@ -255,16 +280,16 @@ router.post("/comparar", async (req, res, next) => {
 
     const format = body.map((item) => {
       return {
-        apellidoPaterno: item?.apellidoPaterno,
-        apellidoMaterno: item?.apellidoMaterno,
-        nombres: item?.nombres,
+        apellidoPaterno: item?.apellidoPaterno || "sin apellido paterno",
+        apellidoMaterno: item?.apellidoMaterno || "sin apellido materno",
+        nombres: item?.nombres || "sin nombres",
         dni: item?.dni.toString(),
-        contraseña: item?.contraseña,
+        contraseña: item?.dni.toString(),
         celular: item?.celular|| 0,
-        genero: item?.sexo,
+        genero: item?.sexo || "sin genero",
         edad: parseInt(item?.edad) || 0,
         fechadenac: item?.fechaNacimiento || 0,
-        areadetrabajo: item.areadetrabajo ?? "sin area",
+        areadetrabajo: item.tipo ?? "sin area",
         empresaId: item?.empresa_id,
         cargo: item.cargo ?? "sin cargo",
         user: item?.user,
@@ -272,14 +297,27 @@ router.post("/comparar", async (req, res, next) => {
         id: item.id,
       };
     });
+    
     for (const item of format) {
       const { action, id, ...rest } = item;
-      if (item.action === "create") {
+      if (item.action === "disable") {
+        const trabajador = await models.Trabajador.update(
+          {
+            empresaId: null,
+            habilitado: false,
+          },
+          { where: { id: id }, transaction: t  }
+        );
+        responses.push(
+          trabajador || { message: "No se pudo actualizar el usuario" }
+        );
+      }
+      else if (item.action === "create") {
         // Realiza la lógica para crear un nuevo registro
-        const valdni = await service.findByDni(item.dni);
+        const dniExiste = await service.findByDni(item.dni);
 
-        if (valdni) {
-          if (valdni.empresaId !== item.empresaId) {
+        if (dniExiste) {
+          if (dniExiste.empresaId !== item.empresaId) {
             const updatedTrabajador = await models.Trabajador.update(
               { empresaId: item.empresaId, habilitado: true },
               { where: { dni: item.dni.toString() }, transaction: t  }
@@ -315,25 +353,14 @@ router.post("/comparar", async (req, res, next) => {
             );
           }
         }
-      } else if (item.action === "disable") {
-        const trabajador = await models.Trabajador.update(
-          {
-            empresaId: null,
-            habilitado: false,
-          },
-          { where: { id: id }, transaction: t  }
-        );
-        responses.push(
-          trabajador || { message: "No se pudo actualizar el usuario" }
-        );
-      }
-      // Agrega más acciones según sea necesario
+      } 
     }
 
     res.status(201).json(responses);
     await t.commit();
   } catch (error) {
     if (t) await t.rollback();
+    console.log(error);
     next(error);
   }
 });
