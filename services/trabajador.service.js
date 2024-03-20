@@ -250,7 +250,13 @@ class TrabajadorService {
       });
     });
     await Promise.all(regeneracionesPromises);
-  
+    if(userChanges.rol){
+      const user = await trabajador.getUser();
+      console.log(changes);
+       await user.update({
+        rol: userChanges.rol,
+      });
+    }
     if (userChanges.username || userChanges.contraseña || userChanges.rol || changes.rol) {
       const user = await trabajador.getUser();
       let hash;

@@ -60,7 +60,7 @@ router.post(
         role: user.rol,
       };
       const token = jwt.sign(payload, config.jwtSecret, jwtconfig);
-
+      console.log(user);
       if (user.rol === "Trabajador") {
         const worker = await models.Trabajador.findOne({
           where: { userId: user.id },
