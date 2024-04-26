@@ -137,7 +137,7 @@ router.get("/", async (req, res, next) => {
     const Trabajadores = await models.Trabajador.findAndCountAll({
       where: searchCondition,
       include: [
-        { model: models.Empresa, as: "empresa", where: empresaCondition, required:false},
+        { model: models.Empresa, as: "empresa", where: empresaCondition},
         { model: models.Usuario, as: "user" },
       ],
       order: [['id', 'ASC']],
