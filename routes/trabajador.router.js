@@ -297,7 +297,6 @@ router.post("/comparar", async (req, res, next) => {
         id: item.id,
       };
     });
-    console.log(format);
     for (const item of format) {
       const { action, id, ...rest } = item;
       if (item.action === "disable") {
