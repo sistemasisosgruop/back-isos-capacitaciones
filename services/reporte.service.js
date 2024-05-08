@@ -7,28 +7,39 @@ const generarReporte = async () => {
     include: ["examen", "Empresas"],
   });
 
-  let i = 0;
+  let reporteData = []; // Array to store report data objects
+
   // Iterar sobre cada capacitación
   for (const capacitacion of capacitaciones) {
-    // Obtener todas las empresas asociadas a la capacitación
     if (capacitacion.Empresas.length && capacitacion.examen) {
       const empresas = capacitacion.Empresas;
-      // Iterar sobre cada empresa y buscar los trabajadores asociados
-      for (const empresa of empresas) {
-        const trabajadores = await models.Trabajador.findAll({
-          where: { empresaId: empresa.id },
-        });
-        // Para cada trabajador, verificar si ya tiene un reporte para la capacitación actual
-        for (const trabajador of trabajadores) {
-          const reporteExistente = await models.Reporte.findOne({
-            where: {
-              trabajadorId: trabajador.id,
-              capacitacionId: capacitacion.id,
-            },
-          });
-          if (!reporteExistente) {
-            i = i + 1;
-            const reporte = await models.Reporte.create({
+
+      // Buscar todos los trabajadores de las empresas asociadas
+      const trabajadores = await models.Trabajador.findAll({
+        where: {
+          empresa_id: {
+            [Op.in]: empresas.map((empresa) => empresa.id),
+          },
+        },
+      });
+
+      // Identificar reportes existentes para esta capacitacion
+      const existingReportIds = await models.Reporte.findAll({
+        attributes: ["id"],
+        where: {
+          trabajador_id: {
+            [Op.in]: trabajadores.map((trabajador) => trabajador.id),
+          },
+          capacitacionId: capacitacion.id,
+        },
+      });
+      // Preparar datos de reportes para crear o actualizar
+      reporteData = trabajadores
+        .map((trabajador) => {
+          if (
+            !existingReportIds.some((report) => report.id === trabajador.id)
+          ) {
+            return {
               notaExamen: 0,
               asistenciaExamen: false,
               rptpregunta1: 0,
@@ -37,15 +48,24 @@ const generarReporte = async () => {
               rptpregunta4: 0,
               rptpregunta5: 0,
               trabajadorId: trabajador.id,
-              examenId: capacitacion.examen.id,
+              examenId: capacitacion.examen.dataValues.id,
               capacitacionId: capacitacion.id,
-            });
+            };
           }
-        }
-      }
+          return null; // Skip worker if report exists
+        })
+        .filter((reporte) => reporte !== null); // Remove null values
     }
   }
-  console.log(i);
+
+  // Crear o actualizar reportes en masa
+  if (reporteData.length) {
+    const existingReportIds = reporteData.map((reporte) => reporte.id);
+
+    await models.Reporte.bulkCreate(
+      reporteData.filter((reporte) => !existingReportIds.includes(reporte.id))
+    );
+  }
 };
 
 module.exports = generarReporte;
