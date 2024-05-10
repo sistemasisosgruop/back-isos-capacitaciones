@@ -59,7 +59,6 @@ router.get("/data/:id", async (req, res, next) => {
   try {
     await generarReporte();
     const id = req.params.id;
-    console.log(id);
     const trabajador = await models.Trabajador.findOne({
       where: { dni: id },
       include: [
