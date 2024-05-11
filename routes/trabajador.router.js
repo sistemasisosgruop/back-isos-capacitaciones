@@ -20,7 +20,7 @@ const { models } = require("./../libs/sequelize");
 
 const moment = require("moment");
 const { Op, Sequelize } = require("sequelize");
-const sequelize = require("../libs/sequelize")
+const sequelize = require("../libs/sequelize");
 
 /**
  * @swagger
@@ -219,6 +219,8 @@ router.get(
     }
   }
 );
+
+
 
 /**
  * @swagger

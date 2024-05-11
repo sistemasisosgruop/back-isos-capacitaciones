@@ -57,7 +57,6 @@ router.get("/:id", async (req, res, next) => {
 });
 router.get("/data/:id", async (req, res, next) => {
   try {
-    await generarReporte();
     const id = req.params.id;
     const trabajador = await models.Trabajador.findOne({
       where: { dni: id },
@@ -69,11 +68,16 @@ router.get("/data/:id", async (req, res, next) => {
             {
               model: models.Capacitacion,
               where: { habilitado: true },
+              include: ["examen"],
             },
           ],
         },
       ],
     });
+
+    await generarReporte(id, trabajador);
+
+
     const reportes = await models.Reporte.findAll({
       where: { trabajador_id: trabajador.id },
       include: [

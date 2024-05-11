@@ -1,58 +1,48 @@
 const { Op } = require("sequelize");
 const { models } = require("./../libs/sequelize");
 
-const  generarReporte = async() => {
-    const capacitaciones = await models.Capacitacion.findAll({
-      where: { habilitado: true },
-      include: ["examen", "Empresas"],
+const generarReporte = async (id, trabajador) => {
+  try {
+    //lista de capacitaciones que tiene la empresa en base al trabajador
+    const capacitaciones = trabajador.empresa.Capacitacions.map(
+      (item) => item.id
+    );
+    //verifico si las capacitaciones del trabajdor tiene registro de reporte
+    const existingReportIds = await models.Reporte.findAll({
+      attributes: ["id", "capacitacion_id"],
+      where: {
+        trabajador_id: trabajador.id,
+        capacitacion_id: capacitaciones,
+      },
     });
-
-    const reportData = [];
-    for (const capacitacion of capacitaciones) {
-      if (capacitacion.Empresas.length && capacitacion.examen) {
-        const empresas = capacitacion.Empresas;
-        const trabajadores = await models.Trabajador.findAll({
-          where: {
-            empresa_id: {
-              [Op.in]: empresas.map((empresa) => empresa.id),
-            },
-          },
-        });
-
-        const existingReportIds = await models.Reporte.findAll({
-          attributes: ["id"],
-          where: {
-            trabajador_id: {
-              [Op.in]: trabajadores.map((trabajador) => trabajador.id),
-            },
-            capacitacionId: capacitacion.dataValues.id,
-          },
-        });
-
-        for (const trabajador of trabajadores) {
-          if (!existingReportIds.some((report) => report.id === trabajador.id)) {
-            reportData.push({
-              notaExamen: 0,
-              asistenciaExamen: false,
-              rptpregunta1: 0,
-              rptpregunta2: 0,
-              rptpregunta3: 0,
-              rptpregunta4: 0,
-              rptpregunta5: 0,
-              trabajadorId: trabajador.dataValues.id,
-              examenId: capacitacion.dataValues.examen.dataValues.id,
-              capacitacionId: capacitacion.dataValues.id,
-            });
-          }
-        }
+    const formatData = trabajador.empresa.Capacitacions.map((item) => {
+      if (
+        !existingReportIds.some((report) => (report.dataValues.capacitacion_id === item.id))
+      ) {
+        return {
+          notaExamen: 0,
+          asistenciaExamen: false,
+          rptpregunta1: 0,
+          rptpregunta2: 0,
+          rptpregunta3: 0,
+          rptpregunta4: 0,
+          rptpregunta5: 0,
+          trabajadorId: trabajador.id,
+          examenId: item.examen.dataValues.id,
+          capacitacionId: item.id,
+        };
       }
+    }).filter((item) => item !== undefined);
+    if (formatData.length > 0) {
+  
+      await models.Reporte.bulkCreate(formatData);
     }
 
-    if (reportData.length) {
-        await models.Reporte.bulkCreate(reportData);
-    }
-
-}
-
+  } catch (error) {
+    console.log("====================================");
+    console.log(error);
+    console.log("====================================");
+  }
+};
 
 module.exports = generarReporte;

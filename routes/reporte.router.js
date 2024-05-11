@@ -181,7 +181,6 @@ router.get("/", async (req, res) => {
 
 router.get("/:id", async (req, res) => {
   try {
-    await generarReporte();
     const { id } = req.params;
     const reporte = await models.Reporte.findByPk(id, {
       include: ["examen", "capacitacion", "trabajador"],
@@ -197,6 +196,8 @@ router.get("/:id", async (req, res) => {
     res.json({ message: "No existe ese reporte" });
   }
 });
+
+
 
 router.patch(
   "/darexamen/:capacitacionId/:trabajadorId/:examenId",
