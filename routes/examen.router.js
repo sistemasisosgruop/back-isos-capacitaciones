@@ -75,7 +75,7 @@ router.get("/data/:id", async (req, res, next) => {
       ],
     });
 
-    await generarReporte(id, trabajador);
+    // await generarReporte(id, trabajador);
 
 
     const reportes = await models.Reporte.findAll({

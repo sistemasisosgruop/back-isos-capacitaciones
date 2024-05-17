@@ -2,12 +2,13 @@ const { Router } = require("express");
 
 const router = Router();
 const { models } = require("./../libs/sequelize");
-const generarReporte = require("./../services/reporte.service");
 const passport = require("passport");
 const moment = require("moment");
 
 const { checkWorkRol } = require("./../middlewares/auth.handler");
 const { Op } = require("sequelize");
+const { botonGenerarReporte } = require("../services/reporte.service");
+let globalProgress = { total: 0, completado: 0 };
 
 router.get("/", async (req, res) => {
   try {
@@ -179,6 +180,19 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.get("/generar", async (req, res) => {
+  try {
+    await botonGenerarReporte(globalProgress);
+    res.json({ message: 'Se generaron los reportes correctamente!' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'No se pudo generar los reportes' });
+  }
+});
+
+router.get('/progreso', (req, res) => {
+  res.json(globalProgress);
+});
 router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -196,8 +210,6 @@ router.get("/:id", async (req, res) => {
     res.json({ message: "No existe ese reporte" });
   }
 });
-
-
 
 router.patch(
   "/darexamen/:capacitacionId/:trabajadorId/:examenId",
