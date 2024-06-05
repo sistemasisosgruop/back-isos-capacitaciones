@@ -9,3 +9,7 @@ node_modules
 /excel
 /firmas
 /emo
+/postgres
+/pgadmin
+docker-compose.yaml
+DS_Store
