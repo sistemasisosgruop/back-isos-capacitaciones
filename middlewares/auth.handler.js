@@ -17,6 +17,8 @@ function checkWorkRol(req, res, next) {
     next();
   } else if (user.role === "Trabajador") {
     next();
+  } else if (user.role === "Capacitador") {
+    next();
   } else {
     next(boom.unauthorized());
   }

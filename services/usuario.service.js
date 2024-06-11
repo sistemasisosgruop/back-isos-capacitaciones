@@ -18,7 +18,7 @@ class UsuarioService{
 
     async find(){
         const usuario = await models.Usuario.findAll({
-            include: ['trabajador', 'administrador'] 
+            include: ['trabajador', 'administrador', 'capacitador'] 
         });
         return usuario
     }

@@ -44,6 +44,10 @@ class Usuario extends Model {
         as: 'administrador',
         foreignKey: 'userId'
     })
+    this.hasOne(models.Capacitador,{
+        as: 'capacitador',
+        foreignKey: 'userId'
+    })
   }
 
   static config(sequelize) {

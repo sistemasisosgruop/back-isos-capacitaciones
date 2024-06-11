@@ -7,6 +7,7 @@ const {
 const { Empresa, EmpresaSchema } = require("./empresa.model");
 const { Test, TestSchema } = require("./test.model");
 const { Trabajador, TrabajadorSchema } = require("./trabajador.model");
+const { Capacitador, CapacitadorSchema } = require("./capacitador.model");
 const { Usuario, UsuarioSchema } = require("./usuario.model");
 const { Examen, ExamenSchema } = require("./examen.model");
 const { Pregunta, PreguntaSchema } = require("./pregunta.model");
@@ -21,6 +22,7 @@ const {
 function setupModels(sequelize) {
   Usuario.init(UsuarioSchema, Usuario.config(sequelize));
   Trabajador.init(TrabajadorSchema, Trabajador.config(sequelize));
+  Capacitador.init(CapacitadorSchema, Capacitador.config(sequelize));
   Administrador.init(AdministradorSchema, Administrador.config(sequelize));
   Empresa.init(EmpresaSchema, Empresa.config(sequelize));
   Test.init(TestSchema, Test.config(sequelize));
@@ -41,6 +43,7 @@ function setupModels(sequelize) {
 
   Usuario.associate(sequelize.models);
   Trabajador.associate(sequelize.models);
+  Capacitador.associate(sequelize.models);
   Administrador.associate(sequelize.models);
   Empresa.associate(sequelize.models);
   Test.associate(sequelize.models);
