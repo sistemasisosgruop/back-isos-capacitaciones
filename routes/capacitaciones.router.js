@@ -10,7 +10,24 @@ const router = Router();
 router.get('/', async(req, res, next)=>{
     try {
         const capacitaciones = await models.Capacitacion.findAll({
-            include: ['examen', 'Empresas']
+            include: ['examen', 'Empresas'],
+        });
+        // const id = 714
+        // const admin = await models.CapacitacionEmpresa.findOne( {
+        //   where: {userId: id}
+        // })
+        // console.log(admin.userId)
+        res.json(capacitaciones)
+    } catch (error) {
+        next(error);
+    }
+})
+router.get('/capacitador/:id', async(req, res, next)=>{
+    try {
+        const {id} = req.params;
+        const capacitaciones = await models.Capacitacion.findAll({
+            include: ['examen', 'Empresas'],
+            where: {userId: id}
         });
         res.json(capacitaciones)
     } catch (error) {
@@ -53,7 +70,8 @@ router.get('/:id/certificado', async (req, res, next) => {
 
 router.post('/', upload.single('certificado'), async (req, res) => {
   try {
-    const { nombre, instructor, fechaInicio, fechaCulminacion, urlVideo, empresas, examen, horas } = req.body;
+    const { nombre, instructor, fechaInicio, fechaCulminacion, urlVideo, empresas, examen, horas, userId } = req.body;
+    console.log(req.body)
     const certificado = req.file ? req.file.path : null;
     
     
@@ -68,6 +86,7 @@ router.post('/', upload.single('certificado'), async (req, res) => {
       urlVideo,
       horas,
       certificado,
+      userId
     });
     
     const splitempresa = empresas.split(',')

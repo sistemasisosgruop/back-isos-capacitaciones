@@ -102,6 +102,20 @@ router.post(
           token,
           supervisor,
         });
+      } else if(user.rol === "Capacitador"){
+        const capacitador = await models.Trabajador.findOne({
+          where: { userId: user.id },
+        });
+        if(capacitador.habilitado === false){
+          return res.status(401).json({ message: "Usted está deshabilitado" });
+        }
+        const userData = {...user.toJSON(), empresaId:capacitador.empresaId, dni: capacitador.dni}
+
+        res.json({
+          user:userData,
+          token,
+          capacitador,
+        });
       }
     } catch (error) {
       console.log(error);

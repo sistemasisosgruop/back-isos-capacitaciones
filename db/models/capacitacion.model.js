@@ -1,6 +1,7 @@
 const { Model, DataTypes, Sequelize } = require('sequelize');
 
 const CAPACITACION_TABLE = 'capacitaciones';
+const { USUARIO_TABLE } = require('./usuario.model');
 
 const CapacitacionSchema = {
     id:{
@@ -52,6 +53,18 @@ const CapacitacionSchema = {
         type: DataTypes.DATE,
         field: 'created_at',
         defaultValue: Sequelize.NOW
+    },
+    userId:{
+        field: 'user_id',
+        allowNull: false,
+        type: DataTypes.INTEGER,
+        unique: true,
+        references: {
+        model: USUARIO_TABLE,
+        key: 'id'
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL'
     }
 }
 

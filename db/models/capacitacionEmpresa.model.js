@@ -39,7 +39,7 @@ const CapacitacionEmpresaSchema = {
         },
         onUpdate: 'CASCADE',
         onDelete: 'SET NULL'
-      }
+      },
 }
 
 class CapacitacionEmpresa extends Model{

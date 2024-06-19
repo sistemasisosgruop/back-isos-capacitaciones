@@ -18,7 +18,7 @@ function routerApi(app){
     router.use('/trabajadores', trabajadorRouter);//ruta /trabajadores
     router.use('/auth', authRouter);              //ruta /auth
     router.use('/usuarios', usuarioRouter);       //ruta /usuarios
-    router.use('/capacitadores', capacitadorRouter); //ruta /administrador
+    router.use('/capacitadores', capacitadorRouter); //ruta /capacitadores
     router.use('/administradores', administradorRouter); //ruta /administrador
     router.use('/empresas', empresasRouter);      //ruta /empresas
     router.use('/capacitaciones', capacitacionesRouter); //ruta /capacitaciones
