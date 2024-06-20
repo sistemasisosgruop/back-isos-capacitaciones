@@ -82,6 +82,7 @@ class Capacitacion extends Model{
             as: 'reporte',
             foreignKey: 'capacitacionId'
         });
+        
 
     }
     static config(sequelize){

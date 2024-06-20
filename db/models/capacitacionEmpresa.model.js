@@ -45,6 +45,10 @@ const CapacitacionEmpresaSchema = {
 class CapacitacionEmpresa extends Model{
     static associate(models){
         //
+        this.belongsToMany(models.Empresa, {
+            through: models.CapacitacionEmpresa,
+            foreignKey: 'capacitacionId',
+          });
     }
     static config(sequelize){
         return{

@@ -27,7 +27,7 @@ router.get('/capacitador/:id', async(req, res, next)=>{
         const {id} = req.params;
         const capacitaciones = await models.Capacitacion.findAll({
             include: ['examen', 'Empresas'],
-            where: {userId: id}
+            where: {'$Empresas->CapacitacionEmpresa.empresa_id$': id}
         });
         res.json(capacitaciones)
     } catch (error) {
