@@ -110,6 +110,16 @@ router.get('/:id',
   }
 );
 
+router.get('/capacitador/:id', async(req, res, next)=>{
+  try {
+      const {id} = req.params;
+      const empresa = await service.findCapacitadorOne(id);
+      res.json(empresa)
+  } catch (error) {
+      next(error);
+  }
+})
+
 /**
  * @swagger
  * /api/v1/empresas:

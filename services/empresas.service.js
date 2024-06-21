@@ -24,6 +24,13 @@ class EmpresaService{
         return empresa
     }
 
+    async findCapacitadorOne(id){
+        const empresa = await models.Empresa.findAll({
+            where: { id: id }
+        });
+        return empresa
+    }
+
     async findOne(id){
         const empresa =  await models.Empresa.findByPk(id,{
             include: ['trabajadores']
