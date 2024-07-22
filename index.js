@@ -11,7 +11,9 @@ const swaggerDoc = require("./swagger");
 const app = express();
 const port = process.env.PORT || 3005;
 
-app.use(express.json());
+app.use(express.json({limit: '50mb'}));
+//Set Request Size Limit
+// app.use(express.bodyParser({limit: '50mb'}));
 /*
 const whitelist = ['http://localhost:5500', 'http://127.0.0.1:5500'];
 const options = {
