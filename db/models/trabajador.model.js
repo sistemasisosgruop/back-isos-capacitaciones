@@ -56,6 +56,11 @@ const TrabajadorSchema = {
   emoPdf: {
     type: DataTypes.STRING,
   },
+  email: {
+    allowNull: false,
+    unique: true,
+    type: DataTypes.STRING,
+  },
   habilitado: {
     type: DataTypes.STRING,
     defaultValue: true,

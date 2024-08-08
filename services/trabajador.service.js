@@ -232,6 +232,7 @@ class TrabajadorService {
       apellidoPaterno: changes.apellidoPaterno ?? trabajador.apellidoPaterno,
       apellidoMaterno: changes.apellidoMaterno ?? trabajador.apellidoMaterno,
       dni: changes.dni ?? trabajador.dni,
+      email: changes.email ?? trabajador.email,
       genero: changes.genero ?? trabajador.genero,
       edad: changes.edad ?? trabajador.edad,
       fechadenac: changes.fechadenac ?? trabajador.fechadenac,

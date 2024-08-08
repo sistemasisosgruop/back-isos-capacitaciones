@@ -5,6 +5,7 @@ const id = Joi.number().integer();
 const nombres = Joi.string();
 const apellidoPaterno = Joi.string();
 const apellidoMaterno = Joi.string();
+const email = Joi.string();
 const dni = Joi.string().min(8).max(8);
 const genero = Joi.string();
 const edad = Joi.number();
@@ -55,6 +56,7 @@ const updateTrabajadorSchema = Joi.object({
     apellidoPaterno : apellidoPaterno,
     apellidoMaterno : apellidoMaterno,
     dni : dni,
+    email : email,
     genero : genero,
     edad : edad,
     areadetrabajo: areadetrabajo,
