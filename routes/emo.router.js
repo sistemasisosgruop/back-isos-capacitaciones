@@ -47,6 +47,21 @@ router.get("/", async (req, res) => {
         logo: item?.empresa?.imagenLogo,
         nombreEmpresa: item?.empresa?.nombreEmpresa,
         empresa_id: item?.empresa?.id,
+        fecha_correo: item?.emo?.at(0)?.fecha_correo
+          ? moment(item?.emo?.at(0)?.fecha_correo, [
+              "YYYY-MM-DD",
+              "DD-MM-YYYY",
+            ]).format("YYYY-MM-DD")
+          : "",
+        estado_correo: item?.emo?.at(0)?.estado_correo,
+        fecha_whatsapp: item?.emo?.at(0)?.fecha_correo
+          ? moment(item?.emo?.at(0)?.fecha_correo, [
+              "YYYY-MM-DD",
+              "DD-MM-YYYY",
+            ]).format("YYYY-MM-DD")
+          : "",
+        estado_whatsapp: item?.emo?.at(0)?.estado_correo,
+        estado: item?.emo?.at(0)?.estado,
       };
     });
 
@@ -241,6 +256,7 @@ router.post("/excel", upload.single("file"), async (req, res, next) => {
       "Condición de Aptitud",
       "Clinica donde paso EMO",
       "Fecha de Lectura de EMO",
+      "Estado",
     ];
 
     const camposBD = {
@@ -249,6 +265,7 @@ router.post("/excel", upload.single("file"), async (req, res, next) => {
       "Condición de Aptitud": "condicion_aptitud",
       "Clinica donde paso EMO": "clinica",
       "Fecha de Lectura de EMO": "fecha_lectura",
+      "Estado": "estado",
     };
 
     const datosObjetos = datosFiltrados.slice(1).map((row) => {
@@ -336,7 +353,7 @@ router.put("/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const body = req.body;
-    console.log(body);
+    console.log(body, id);
     await models.Emo.update(body, { where: { trabajadorId: id } });
     res.status(200).json({ msg: "Se actualizaron los datos con éxito!" });
   } catch (error) {

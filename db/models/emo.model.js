@@ -22,6 +22,21 @@ const EmoSchema = {
   fecha_lectura: {
     type: DataTypes.STRING,
   },
+  estado_email: {
+    type: DataTypes.STRING,
+  },
+  fecha_email: {
+    type: DataTypes.STRING,
+  },
+  estado_whatsapp: {
+    type: DataTypes.STRING,
+  },
+  fecha_whatsapp: {
+    type: DataTypes.STRING,
+  },
+  estado: {
+    type: DataTypes.STRING,
+  },
   trabajadorId:{
     allowNull: false,
     type: DataTypes.STRING,
