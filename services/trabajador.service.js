@@ -56,6 +56,7 @@ class TrabajadorService {
           ? objeto["APELLIDO  MATERNO"]
           : "corregir apellido";
         const dni = objeto.DNI ? objeto.DNI.toString() : undefined;
+        const email = objeto.EMAIL ? objeto.EMAIL.toString() : undefined;
         const celular = objeto.CELULAR
           ? objeto.CELULAR.toString().slice(0, 9)
           : "corregir celular";
@@ -83,6 +84,7 @@ class TrabajadorService {
           apellidoPaterno,
           apellidoMaterno,
           dni,
+          email,
           genero,
           edad,
           areadetrabajo,
@@ -109,8 +111,6 @@ class TrabajadorService {
         trabajadorData.user.contraseña,
         10
       );
-
-
 
       if (!usuarioExistente) {
         usuario = await models.Usuario.create({
@@ -146,6 +146,7 @@ class TrabajadorService {
               "cargo",
               "fechadenac",
               "celular",
+              "email",
             ],
           }
         );

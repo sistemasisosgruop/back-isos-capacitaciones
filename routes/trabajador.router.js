@@ -160,6 +160,8 @@ router.get("/empresa", async (req, res, next) => {
   try {
     let { page, limit, nombreEmpresa, search, all } = req.query;
 
+    // console.log(req.query);
+
     const empresaCondition =
       nombreEmpresa !== undefined && nombreEmpresa !== ""
         ? { nombreEmpresa: { [Op.like]: `%${nombreEmpresa}%` } }
@@ -278,6 +280,7 @@ router.post("/comparar", async (req, res, next) => {
   const t = await sequelize.transaction();
   try {
     const body = req.body;
+    // console.log(body);
     const responses = [];
 
     const format = body.map((item) => {
@@ -286,6 +289,7 @@ router.post("/comparar", async (req, res, next) => {
         apellidoMaterno: item?.apellidoMaterno || "sin apellido materno",
         nombres: item?.nombres || "sin nombres",
         dni: item?.dni.toString(),
+        email: item?.email.toString(),
         contraseña: item?.dni.toString(),
         celular: item?.celular|| 0,
         genero: item?.sexo || "sin genero",
@@ -304,7 +308,7 @@ router.post("/comparar", async (req, res, next) => {
       if (item.action === "disable") {
         const trabajador = await models.Trabajador.update(
           {
-            empresaId: null,
+            empresaId: 52, // se cambio null por id 52 = ISOSGROUP
             habilitado: false,
           },
           { where: { id: id }, transaction: t  }
