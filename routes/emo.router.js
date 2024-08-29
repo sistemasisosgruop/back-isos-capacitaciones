@@ -9,6 +9,7 @@ const moment = require("moment");
 const { Op, Sequelize } = require("sequelize");
 const path = require("path");
 const fs = require("fs");
+const { transporter } = require('./../config/mailer');
 router.get("/", async (req, res) => {
   try {
     const Trabajadores = await models.Trabajador.findAll({
@@ -47,20 +48,20 @@ router.get("/", async (req, res) => {
         logo: item?.empresa?.imagenLogo,
         nombreEmpresa: item?.empresa?.nombreEmpresa,
         empresa_id: item?.empresa?.id,
-        fecha_correo: item?.emo?.at(0)?.fecha_correo
-          ? moment(item?.emo?.at(0)?.fecha_correo, [
-              "YYYY-MM-DD",
-              "DD-MM-YYYY",
-            ]).format("YYYY-MM-DD")
+        fecha_email: item?.emo?.at(0)?.fecha_email
+          ? moment(item?.emo?.at(0)?.fecha_email, [
+              "YYYY-MM-DD HH:mm:ss",
+              "DD-MM-YYYY HH:mm:ss",
+            ]).format("YYYY-MM-DD HH:mm:ss")
           : "",
-        estado_correo: item?.emo?.at(0)?.estado_correo,
-        fecha_whatsapp: item?.emo?.at(0)?.fecha_correo
-          ? moment(item?.emo?.at(0)?.fecha_correo, [
-              "YYYY-MM-DD",
-              "DD-MM-YYYY",
-            ]).format("YYYY-MM-DD")
+        estado_email: item?.emo?.at(0)?.estado_email,
+        fecha_whatsapp: item?.emo?.at(0)?.fecha_whatsapp
+          ? moment(item?.emo?.at(0)?.fecha_whatsapp, [
+              "YYYY-MM-DD HH:mm:ss",
+              "DD-MM-YYYY HH:mm:ss",
+            ]).format("YYYY-MM-DD HH:mm:ss")
           : "",
-        estado_whatsapp: item?.emo?.at(0)?.estado_correo,
+        estado_whatsapp: item?.emo?.at(0)?.estado_whatsapp,
         estado: item?.emo?.at(0)?.estado,
       };
     });
@@ -360,6 +361,52 @@ router.put("/:id", async (req, res) => {
     console.log(error);
     res.status(500).json({ msg: "No se pudo actualizar." });
   }
+});
+
+router.post("/send-email", (req, res) => {
+  const body = req.body;
+  console.log(body);
+  let mailOption = {
+    from: process.env.USER_GMAIL_ENV,
+    to: body.email,
+    subject: 'Envio de Constancia Examén Médico Ocupacional',
+    html: `<p>Saludos cordiales</p> <h5>${body.nombres} ${body.apellidoMaterno} ${body.apellidoMaterno}</h5><p>Nos es grato contactarnos con usted vía correo electrónico y le hacemos llegar la Constancia de entrega y lectura de Resultados de Examén Médico Ocupacional.</p><p>Atentamente.</p><h5>${ body.nombreEmpresa }</h5>`,
+    attachments:[
+      {
+        filename: 'pdf',
+        path: 'emo/prueba.pdf'
+      }
+    ]
+  }
+
+  const data = {
+    fecha_email: moment().format("DD-MM-YYYY HH:mm:ss"),
+    estado_email: 'Enviado'
+  };
+
+  transporter.sendMail(mailOption, async (error, info) => {
+    if (error) {
+      console.log('Ocurrió un error ' + error);
+    } else {
+      console.log('Email enviado correctamente a ' + mailOption.to);
+      // console.log(body.dni);
+      await models.Emo.update(data, { where: { trabajadorId: body.dni } });
+      res.status(200).json({ msg: "Se actualizaron los datos con éxito!" });
+    }
+  });
+});
+router.post("/send-whatsapp", async(req, res) => {
+  const body = req.body;
+
+  const data = {
+    fecha_whatsapp: moment().format("DD-MM-YYYY HH:mm:ss"),
+    estado_whatsapp: 'Enviado'
+  };
+
+  console.log('Whatsapp enviado correctamente a ' + body.celular);
+  // console.log(body.dni);
+  await models.Emo.update(data, { where: { trabajadorId: body.dni } });
+  res.status(200).json({ msg: "Se actualizaron los datos con éxito!" });
 });
 
 module.exports = router;
