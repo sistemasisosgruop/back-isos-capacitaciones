@@ -16,12 +16,16 @@ router.get("/", async (req, res) => {
       include: [
         { model: models.Emo, as: "emo" },
         { model: models.Empresa, as: "empresa" },
+        { model: models.registroDescarga, as: "registroDescarga" },
       ],
     });
+
+    console.log(Trabajadores)
     const newData = Trabajadores?.map((item, index) => {
       return {
         nro: index + 1,
         id: item?.emo?.at(0)?.id,
+        trabajador_id: item?.id,
         apellidoPaterno: item?.apellidoPaterno,
         apellidoMaterno: item?.apellidoMaterno,
         nombres: item?.nombres,
@@ -63,6 +67,7 @@ router.get("/", async (req, res) => {
           : "",
         estado_whatsapp: item?.emo?.at(0)?.estado_whatsapp,
         estado: item?.emo?.at(0)?.estado,
+        registroDescarga: item.registroDescarga
       };
     });
 
@@ -159,6 +164,43 @@ router.get("/reporte", async (req, res) => {
     return res.status(500).json("No se pudo obtener los reportes");
   }
 });
+
+router.get("/reporte-descarga/:id", async (req, res) => {
+  const id = parseInt(req.params.id);
+  try {
+    const Trabajadores = await models.Trabajador.findAll({
+      include: [
+        { model: models.registroDescarga, as: "registroDescarga" },
+        { model: models.Empresa, as: "empresa" },
+      ],
+      where: { id }
+    });
+
+    return res.status(200).json({ data: Trabajadores });
+
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json("No se pudo obtener los registros");
+  }
+});
+
+router.get("/registro-whatsapp/:id", async (req, res, next) => {
+  
+  try {
+    const { id } = req.params;
+    console.log(id);
+    const Trabajadores = await models.registroDescarga.findAll({
+      where: { trabajador_id: id, tipo: 'whatsapp' }
+    });
+
+    return res.status(200).json({ data: Trabajadores });
+
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json("No se pudo obtener los registros");
+  }
+});
+
 
 router.get("/descargar/:id", async (req, res) => {
   const id = parseInt(req.params.id);
@@ -363,9 +405,9 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-router.post("/send-email", (req, res) => {
+router.post("/send-email", async (req, res) => {
   const body = req.body;
-  console.log(body);
+  // console.log(body);
   let mailOption = {
     from: process.env.USER_GMAIL_ENV,
     to: body.email,
@@ -389,6 +431,19 @@ router.post("/send-email", (req, res) => {
       console.log('Ocurrió un error ' + error);
     } else {
       console.log('Email enviado correctamente a ' + mailOption.to);
+
+      try {
+        const dataRegister = {
+          trabajador_id: parseInt(body.trabajador_id),
+          fecha: moment().format("DD-MM-YYYY"),
+          hora: moment().format("HH:mm:ss"),
+          tipo: 'email',
+        };
+        // Registra el nuevo registro de descarga en la tabla registro_descargas
+        await models.registroDescarga.create(dataRegister);
+      } catch (error) {
+        console.log(error);
+      }
       // console.log(body.dni);
       await models.Emo.update(data, { where: { trabajadorId: body.dni } });
       res.status(200).json({ msg: "Se actualizaron los datos con éxito!" });
@@ -404,6 +459,19 @@ router.post("/send-whatsapp", async(req, res) => {
   };
 
   console.log('Whatsapp enviado correctamente a ' + body.celular);
+
+  try {
+    const dataRegister = {
+      trabajador_id: parseInt(body.trabajador_id),
+      fecha: moment().format("DD-MM-YYYY"),
+      hora: moment().format("HH:mm:ss"),
+      tipo: 'whatsapp',
+    };
+    // Registra el nuevo registro de descarga en la tabla registro_descargas
+    await models.registroDescarga.create(dataRegister);
+  } catch (error) {
+    console.log(error);
+  }
   // console.log(body.dni);
   await models.Emo.update(data, { where: { trabajadorId: body.dni } });
   res.status(200).json({ msg: "Se actualizaron los datos con éxito!" });

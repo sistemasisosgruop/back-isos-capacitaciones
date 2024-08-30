@@ -24,6 +24,10 @@ const RegistroDescargaSchema = {
     allowNull: false,
     type: DataTypes.STRING,
   },
+  tipo: {
+    allowNull: false,
+    type: DataTypes.STRING,
+  },
 };
 
 class RegistroDescarga extends Model {
