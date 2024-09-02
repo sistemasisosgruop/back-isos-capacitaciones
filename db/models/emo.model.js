@@ -34,6 +34,18 @@ const EmoSchema = {
   fecha_whatsapp: {
     type: DataTypes.STRING,
   },
+  estado_emo: {
+    type: DataTypes.STRING,
+  },
+  fecha_emo: {
+    type: DataTypes.STRING,
+  },
+  estado_emo_whatsapp: {
+    type: DataTypes.STRING,
+  },
+  fecha_emo_whatsapp: {
+    type: DataTypes.STRING,
+  },
   estado: {
     type: DataTypes.STRING,
   },

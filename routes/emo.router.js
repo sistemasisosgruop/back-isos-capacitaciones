@@ -10,6 +10,8 @@ const { Op, Sequelize } = require("sequelize");
 const path = require("path");
 const fs = require("fs");
 const { transporter } = require('./../config/mailer');
+const buildPDF = require("../libs/pdfkit");
+
 router.get("/", async (req, res) => {
   try {
     const Trabajadores = await models.Trabajador.findAll({
@@ -20,7 +22,7 @@ router.get("/", async (req, res) => {
       ],
     });
 
-    console.log(Trabajadores)
+    // console.log(Trabajadores)
     const newData = Trabajadores?.map((item, index) => {
       return {
         nro: index + 1,
@@ -66,6 +68,20 @@ router.get("/", async (req, res) => {
             ]).format("YYYY-MM-DD HH:mm:ss")
           : "",
         estado_whatsapp: item?.emo?.at(0)?.estado_whatsapp,
+        fecha_emo: item?.emo?.at(0)?.fecha_emo
+          ? moment(item?.emo?.at(0)?.fecha_emo, [
+              "YYYY-MM-DD HH:mm:ss",
+              "DD-MM-YYYY HH:mm:ss",
+            ]).format("YYYY-MM-DD HH:mm:ss")
+          : "",
+        estado_emo: item?.emo?.at(0)?.estado_emo,
+        fecha_emo_whatsapp: item?.emo?.at(0)?.fecha_emo_whatsapp
+          ? moment(item?.emo?.at(0)?.fecha_emo_whatsapp, [
+              "YYYY-MM-DD HH:mm:ss",
+              "DD-MM-YYYY HH:mm:ss",
+            ]).format("YYYY-MM-DD HH:mm:ss")
+          : "",
+        estado_emo_whatsapp: item?.emo?.at(0)?.estado_emo_whatsapp,
         estado: item?.emo?.at(0)?.estado,
         registroDescarga: item.registroDescarga
       };
@@ -219,6 +235,64 @@ router.get("/descargar/:id", async (req, res) => {
           trabajador_id: parseInt(id),
           fecha: moment().format("DD-MM-YYYY"),
           hora: moment().format("HH:mm:ss"),
+          tipo: 'emo'
+        };
+        console.log(data);
+        // Registra el nuevo registro de descarga en la tabla registro_descargas
+        await models.registroDescarga.create(data);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  });
+});
+
+router.get("/descargar/constancia/:id", async (req, res) => {
+  const id = parseInt(req.params.id);
+
+  // Construye la ruta del archivo PDF basado en el ID
+  const filePath = path.join(__dirname, "..", "constancia", `${id}.pdf`);
+  res.setHeader("Content-Type", "application/pdf");
+  // Envía el archivo como respuesta de descarga
+  res.download(filePath, `${id}.pdf`, async (err) => {
+    if (err) {
+      console.log(err);
+      res.status(500).json("Error al descargar el PDF.");
+    } else {
+      try {
+        const data = {
+          trabajador_id: parseInt(id),
+          fecha: moment().format("DD-MM-YYYY"),
+          hora: moment().format("HH:mm:ss"),
+          tipo: 'constancia'
+        };
+        console.log(data);
+        // Registra el nuevo registro de descarga en la tabla registro_descargas
+        await models.registroDescarga.create(data);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  });
+});
+router.get("/descargar/emo/:id", async (req, res) => {
+  const id = parseInt(req.params.id);
+
+  // Construye la ruta del archivo PDF basado en el ID
+  const filePath = path.join(__dirname, "..", "emo", `${id}.pdf`);
+  res.setHeader("Content-Type", "application/pdf");
+  // Envía el archivo como respuesta de descarga
+  res.download(filePath, `${id}.pdf`, async (err) => {
+    if (err) {
+      console.log(err);
+      res.status(500).json("Error al descargar el PDF.");
+    } else {
+      try {
+        const data = {
+          trabajador_id: parseInt(id),
+          fecha: moment().format("DD-MM-YYYY"),
+          hora: moment().format("HH:mm:ss"),
+          tipo: 'emo-whatsapp'
         };
         console.log(data);
         // Registra el nuevo registro de descarga en la tabla registro_descargas
@@ -405,18 +479,26 @@ router.put("/:id", async (req, res) => {
   }
 });
 
+router.post("/constancia", async (req, res) => {
+  // co3
+  const data = req.body;
+  buildPDF(data, 'constancia');
+  res.status(200).json({ msg: "Constancia EMO creada con éxito!" });
+});
+
 router.post("/send-email", async (req, res) => {
   const body = req.body;
+  buildPDF(body, 'constancia');
   // console.log(body);
   let mailOption = {
     from: process.env.USER_GMAIL_ENV,
     to: body.email,
     subject: 'Envio de Constancia Examén Médico Ocupacional',
-    html: `<p>Saludos cordiales</p> <h5>${body.nombres} ${body.apellidoMaterno} ${body.apellidoMaterno}</h5><p>Nos es grato contactarnos con usted vía correo electrónico y le hacemos llegar la Constancia de entrega y lectura de Resultados de Examén Médico Ocupacional.</p><p>Atentamente.</p><h5>${ body.nombreEmpresa }</h5>`,
+    html: `<p>Saludos cordiales</p> <h5>${body.nombres} ${body.apellidoPaterno} ${body.apellidoMaterno}</h5><p>Nos es grato contactarnos con usted vía correo electrónico y le hacemos llegar la Constancia de entrega y lectura de Resultados de Examén Médico Ocupacional.</p><p>Atentamente.</p><h5>${ body.nombreEmpresa }</h5>`,
     attachments:[
       {
         filename: 'pdf',
-        path: 'emo/prueba.pdf'
+        path: `constancia/${body.trabajador_id}.pdf`
       }
     ]
   }
@@ -450,6 +532,53 @@ router.post("/send-email", async (req, res) => {
     }
   });
 });
+
+router.post("/send-emo-email", async (req, res) => {
+  const body = req.body;
+  buildPDF(body, 'emo');
+  // console.log(body);
+  let mailOption = {
+    from: process.env.USER_GMAIL_ENV,
+    to: body.email,
+    subject: 'Envio del Examén Médico Ocupacional',
+    html: `<p>Saludos cordiales</p> <h5>${body.nombres} ${body.apellidoPaterno} ${body.apellidoMaterno}</h5><p>Nos es grato contactarnos con usted vía correo electrónico y le hacemos llegar su Examén Médico Ocupacional.</p><p>Atentamente.</p><h5>${ body.nombreEmpresa }</h5>`,
+    attachments:[
+      {
+        filename: 'pdf',
+        path: `emo/${body.trabajador_id}.pdf`
+      }
+    ]
+  }
+
+  const data = {
+    fecha_emo: moment().format("DD-MM-YYYY HH:mm:ss"),
+    estado_emo: 'Enviado'
+  };
+
+  transporter.sendMail(mailOption, async (error, info) => {
+    if (error) {
+      console.log('Ocurrió un error ' + error);
+    } else {
+      console.log('Email enviado correctamente a ' + mailOption.to);
+
+      try {
+        const dataRegister = {
+          trabajador_id: parseInt(body.trabajador_id),
+          fecha: moment().format("DD-MM-YYYY"),
+          hora: moment().format("HH:mm:ss"),
+          tipo: 'emo',
+        };
+        // Registra el nuevo registro de descarga en la tabla registro_descargas
+        await models.registroDescarga.create(dataRegister);
+      } catch (error) {
+        console.log(error);
+      }
+      // console.log(body.dni);
+      await models.Emo.update(data, { where: { trabajadorId: body.dni } });
+      res.status(200).json({ msg: "Se actualizaron los datos con éxito!" });
+    }
+  });
+});
 router.post("/send-whatsapp", async(req, res) => {
   const body = req.body;
 
@@ -461,6 +590,8 @@ router.post("/send-whatsapp", async(req, res) => {
   console.log('Whatsapp enviado correctamente a ' + body.celular);
 
   try {
+    buildPDF(body, 'constancia');
+
     const dataRegister = {
       trabajador_id: parseInt(body.trabajador_id),
       fecha: moment().format("DD-MM-YYYY"),
@@ -469,6 +600,36 @@ router.post("/send-whatsapp", async(req, res) => {
     };
     // Registra el nuevo registro de descarga en la tabla registro_descargas
     await models.registroDescarga.create(dataRegister);
+    // res.status(200).json({ msg: "Constancia EMO creada y enviada con éxito!" });
+  } catch (error) {
+    console.log(error);
+  }
+  // console.log(body.dni);
+  await models.Emo.update(data, { where: { trabajadorId: body.dni } });
+  res.status(200).json({ msg: "Se actualizaron los datos con éxito!" });
+});
+router.post("/send-emo-whatsapp", async(req, res) => {
+  const body = req.body;
+
+  const data = {
+    fecha_emo_whatsapp: moment().format("DD-MM-YYYY HH:mm:ss"),
+    estado_emo_whatsapp: 'Enviado'
+  };
+
+  console.log('Whatsapp enviado correctamente a ' + body.celular);
+
+  try {
+    buildPDF(body, 'emo');
+
+    const dataRegister = {
+      trabajador_id: parseInt(body.trabajador_id),
+      fecha: moment().format("DD-MM-YYYY"),
+      hora: moment().format("HH:mm:ss"),
+      tipo: 'emo-whatsapp',
+    };
+    // Registra el nuevo registro de descarga en la tabla registro_descargas
+    await models.registroDescarga.create(dataRegister);
+    // res.status(200).json({ msg: "Constancia EMO creada y enviada con éxito!" });
   } catch (error) {
     console.log(error);
   }
