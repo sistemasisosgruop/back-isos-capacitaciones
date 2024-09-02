@@ -237,7 +237,7 @@ router.get("/descargar/:id", async (req, res) => {
           hora: moment().format("HH:mm:ss"),
           tipo: 'emo'
         };
-        console.log(data);
+        // console.log(data);
         // Registra el nuevo registro de descarga en la tabla registro_descargas
         await models.registroDescarga.create(data);
       } catch (error) {
@@ -266,7 +266,7 @@ router.get("/descargar/constancia/:id", async (req, res) => {
           hora: moment().format("HH:mm:ss"),
           tipo: 'constancia'
         };
-        console.log(data);
+        // console.log(data);
         // Registra el nuevo registro de descarga en la tabla registro_descargas
         await models.registroDescarga.create(data);
       } catch (error) {
@@ -294,7 +294,7 @@ router.get("/descargar/emo/:id", async (req, res) => {
           hora: moment().format("HH:mm:ss"),
           tipo: 'emo-whatsapp'
         };
-        console.log(data);
+        // console.log(data);
         // Registra el nuevo registro de descarga en la tabla registro_descargas
         await models.registroDescarga.create(data);
       } catch (error) {
@@ -535,7 +535,7 @@ router.post("/send-email", async (req, res) => {
 
 router.post("/send-emo-email", async (req, res) => {
   const body = req.body;
-  buildPDF(body, 'emo');
+  // buildPDF(body, 'emo');
   // console.log(body);
   let mailOption = {
     from: process.env.USER_GMAIL_ENV,
@@ -619,7 +619,7 @@ router.post("/send-emo-whatsapp", async(req, res) => {
   console.log('Whatsapp enviado correctamente a ' + body.celular);
 
   try {
-    buildPDF(body, 'emo');
+    // buildPDF(body, 'emo');
 
     const dataRegister = {
       trabajador_id: parseInt(body.trabajador_id),
