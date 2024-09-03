@@ -37,6 +37,7 @@ const createTrabajadorSchema = Joi.object({
     apellidoPaterno : apellidoPaterno.required(),
     apellidoMaterno : apellidoMaterno.required(),
     dni : dni.required(),
+    email : email,
     genero : genero.required(),
     edad : edad.required(),
     areadetrabajo: areadetrabajo.required(),
