@@ -224,6 +224,9 @@ router.get("/descargar/:id", async (req, res) => {
   // Construye la ruta del archivo PDF basado en el ID
   const filePath = path.join(__dirname, "..", "emo", `${id}.pdf`);
   res.setHeader("Content-Type", "application/pdf");
+  res.setHeader({
+    'Content-Disposition': 'attachment; filename=' + id + '.pdf',
+   });
   // Envía el archivo como respuesta de descarga
   res.download(filePath, `${id}.pdf`, async (err) => {
     if (err) {
@@ -240,6 +243,7 @@ router.get("/descargar/:id", async (req, res) => {
         // console.log(data);
         // Registra el nuevo registro de descarga en la tabla registro_descargas
         await models.registroDescarga.create(data);
+        res.send(data);
       } catch (error) {
         console.log(error);
       }
@@ -253,6 +257,9 @@ router.get("/descargar/constancia/:id", async (req, res) => {
   // Construye la ruta del archivo PDF basado en el ID
   const filePath = path.join(__dirname, "..", "constancia", `${id}.pdf`);
   res.setHeader("Content-Type", "application/pdf");
+  res.setHeader({
+    'Content-Disposition': 'attachment; filename=' + id + '.pdf',
+   });
   // Envía el archivo como respuesta de descarga
   res.download(filePath, `${id}.pdf`, async (err) => {
     if (err) {
@@ -269,6 +276,7 @@ router.get("/descargar/constancia/:id", async (req, res) => {
         // console.log(data);
         // Registra el nuevo registro de descarga en la tabla registro_descargas
         await models.registroDescarga.create(data);
+        res.send(data);
       } catch (error) {
         console.log(error);
       }
