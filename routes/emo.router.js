@@ -257,9 +257,9 @@ router.get("/descargar/constancia/:id", async (req, res) => {
   // Construye la ruta del archivo PDF basado en el ID
   const filePath = path.join(__dirname, "..", "constancia", `${id}.pdf`);
   res.setHeader("Content-Type", "application/pdf");
-  res.setHeader({
-    'Content-Disposition': 'attachment; filename=' + id + '.pdf',
-   });
+  // res.setHeader({
+  //   'Content-Disposition': 'attachment; filename=' + id + '.pdf',
+  //  });
   // Envía el archivo como respuesta de descarga
   res.download(filePath, `${id}.pdf`, async (err) => {
     if (err) {
