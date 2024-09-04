@@ -46,6 +46,7 @@ app.use(boomErrorHandler);
 app.use(errorHandler);
 
 swaggerDoc(app);
+app.keepAliveTimeout = 61 * 1000;
 
 app.listen(port, () => {
   console.log(`Mi puerto es: ${port}`);
