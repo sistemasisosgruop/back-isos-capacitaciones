@@ -276,7 +276,7 @@ router.get("/descargar/constancia/:id", async (req, res) => {
         // console.log(data);
         // Registra el nuevo registro de descarga en la tabla registro_descargas
         await models.registroDescarga.create(data);
-        res.send(data);
+        // res.send(data);
       } catch (error) {
         console.log(error);
       }
