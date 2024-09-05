@@ -10,7 +10,7 @@ const buildPDF = (data, tipo) => {
   const filePath = path.join(__dirname, "..", `${tipo}`, `${id}.pdf`);
   generateHeader(doc, data);
   const top = 180;
-  doc.fontSize(15).text('CONSTANCIA DE ENTREGA Y LECTURA DE RESULTADOS DE EXAMEN MEDICO OCUPACIONAL', 80, top, { align: "center", width: 420 });
+  doc.fontSize(15).text('CONSTANCIA DE ENTREGA DE RESULTADOS DE EXAMEN MEDICO OCUPACIONAL', 80, top, { align: "center", width: 420 });
   doc.fontSize(12).text(`Yo, ${data.apellidoPaterno} ${data.apellidoMaterno} ${data.nombres}, identificado (a) con DNI Nº ${data.dni}, quien ocupa el cargo de: ${data.cargo} mediante el presente documento dejo constancia de haber recibido, de manera personalizada y por parte del médico ocupacional de la empresa el informe médico de los resultados del Examen Médico Ocupacional (EMO).`, 50, top + 50, { align: "justify", lineGap: 2 });
   doc.fontSize(12).text(`Que me fue realizado por mi empleador ${data.nombreEmpresa} en la fecha: ${data.fecha_examen} en la clínica ${data.clinica}.`, 50, top + 120, { align: "justify", lineGap: 2, margin: 30 });
   doc.fontSize(12).text('CONDICIÓN DE APTITUD:', 50, top + 160, {lineGap:2, margin: 30 } );

@@ -289,7 +289,7 @@ router.post("/comparar", async (req, res, next) => {
         apellidoMaterno: item?.apellidoMaterno || "sin apellido materno",
         nombres: item?.nombres || "sin nombres",
         dni: item?.dni.toString(),
-        email: item?.email.toString(),
+        email: item?.email || "",
         contraseña: item?.dni.toString(),
         celular: item?.celular|| 0,
         genero: item?.sexo || "sin genero",
