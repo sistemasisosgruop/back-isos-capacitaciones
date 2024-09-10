@@ -22,6 +22,9 @@ const EmoSchema = {
   fecha_lectura: {
     type: DataTypes.STRING,
   },
+  fecha_vencimiento: {
+    type: DataTypes.STRING,
+  },
   estado_email: {
     type: DataTypes.STRING,
   },

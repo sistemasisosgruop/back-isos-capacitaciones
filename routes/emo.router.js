@@ -51,6 +51,12 @@ router.get("/", async (req, res) => {
               "DD-MM-YYYY",
             ]).format("YYYY-MM-DD")
           : "",
+        fecha_vencimiento: item?.emo?.at(0)?.fecha_vencimiento
+          ? moment(item?.emo?.at(0)?.fecha_vencimiento, [
+              "YYYY-MM-DD",
+              "DD-MM-YYYY",
+            ]).format("YYYY-MM-DD")
+          : "",
         logo: item?.empresa?.imagenLogo,
         nombreEmpresa: item?.empresa?.nombreEmpresa,
         empresa_id: item?.empresa?.id,
@@ -479,8 +485,18 @@ router.put("/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const body = req.body;
-    console.log(body, id);
-    await models.Emo.update(body, { where: { trabajadorId: id } });
+    const emos = await models.Emo.findOne({
+      where: { trabajadorId: id },
+    });
+    // console.log(body, id);
+    const nuevoData = {
+      ...body,
+      trabajadorId: id,
+    };
+    emos == null
+      ? await models.Emo.create(nuevoData)
+      : await models.Emo.update(body, { where: { trabajadorId: id } });
+    
     res.status(200).json({ msg: "Se actualizaron los datos con éxito!" });
   } catch (error) {
     console.log(error);
