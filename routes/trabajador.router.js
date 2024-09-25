@@ -294,7 +294,7 @@ router.post("/comparar", async (req, res, next) => {
         celular: item?.celular|| 0,
         genero: item?.sexo || "sin genero",
         edad: parseInt(item?.edad) || 0,
-        fechadenac: item?.fechaNacimiento || 0,
+        fechadenac: item?.fechaNacimiento || 0,
         areadetrabajo: item.tipo ?? "sin area",
         empresaId: item?.empresa_id,
         cargo: item.cargo ?? "sin cargo",
