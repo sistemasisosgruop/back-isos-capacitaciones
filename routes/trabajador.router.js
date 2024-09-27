@@ -308,6 +308,19 @@ router.post("/comparar", async (req, res, next) => {
       if (item.action === "disable") {
         const trabajador = await models.Trabajador.update(
           {
+            apellidoPaterno: item?.apellidoPaterno || "sin apellido paterno",
+            apellidoMaterno: item?.apellidoMaterno || "sin apellido materno",
+            nombres: item?.nombres || "sin nombres",
+            dni: item?.dni.toString(),
+            email: item?.email || "",
+            contraseña: item?.dni.toString(),
+            celular: item?.celular|| 0,
+            genero: item?.sexo || "sin genero",
+            edad: parseInt(item?.edad) || 0,
+            fechadenac: item?.fechaNacimiento || 0,
+            areadetrabajo: item.tipo ?? "sin area",
+            empresaId: item?.empresa_id,
+            cargo: item.cargo ?? "sin cargo",
             empresaId: 52, // se cambio null por id 52 = ISOSGROUP
             habilitado: false,
           },
