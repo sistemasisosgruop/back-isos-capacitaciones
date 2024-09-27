@@ -52,6 +52,12 @@ const EmoSchema = {
   estado: {
     type: DataTypes.STRING,
   },
+  controles: {
+    type: DataTypes.TEXT,
+  },
+  recomendaciones: {
+    type: DataTypes.TEXT,
+  },
   trabajadorId:{
     allowNull: false,
     type: DataTypes.STRING,

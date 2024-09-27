@@ -96,6 +96,12 @@ class TrabajadorService {
         const clinica = objeto["CLINICA DONDE PASO EXAMEN MEDICO"]
           ? objeto["CLINICA DONDE PASO EXAMEN MEDICO"]
           : "";
+        const controles = objeto.CONTROLES
+          ? objeto.CONTROLES
+          : "";
+        const recomendaciones = objeto.RECOMENDACIONES
+          ? objeto.RECOMENDACIONES
+          : "";
 
         return {
           nombres,
@@ -114,6 +120,8 @@ class TrabajadorService {
           fecha_examen,
           condicion_aptitud,
           clinica,
+          controles,
+          recomendaciones,
         };
       })
       .filter((objeto) => objeto !== null);
@@ -160,9 +168,13 @@ class TrabajadorService {
         const fechaExcel = excelSerialDateToJSDate(trabajadorData.fecha_examen);
         fecha = moment(fechaExcel).format("DD-MM-YYYY");
         trabajadorData.fecha_examen = fecha;
+        trabajadorData.controles = trabajadorData.controles;
+        trabajadorData.recomendaciones = trabajadorData.recomendaciones;
         emosNuevos.push(trabajadorData);
       } else {
-        // Actualizamos los datos del trabajador existente
+        // Actualizamos los datos del emo existente
+        trabajadorData.controles = trabajadorData.controles;
+        trabajadorData.recomendaciones = trabajadorData.recomendaciones;
         emoExistente.update(trabajadorData);
       }
     }
@@ -197,6 +209,8 @@ class TrabajadorService {
                   "condicion_aptitud",
                   "clinica",
                   "trabajadorId",
+                  "controles",
+                  "recomendaciones",
                 ],
               }
             );

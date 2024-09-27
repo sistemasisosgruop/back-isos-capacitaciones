@@ -280,7 +280,7 @@ router.post("/comparar", async (req, res, next) => {
   const t = await sequelize.transaction();
   try {
     const body = req.body;
-    // console.log(body);
+    // console.log(PUESTO LABORALbody);
     const responses = [];
 
     const format = body.map((item) => {
