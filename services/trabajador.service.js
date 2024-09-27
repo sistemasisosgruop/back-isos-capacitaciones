@@ -52,22 +52,29 @@ class TrabajadorService {
         const apellidoPaterno = objeto["APELLIDO PATERNO"]
           ? objeto["APELLIDO PATERNO"]
           : "corregir apellido";
-        const apellidoMaterno = objeto["APELLIDO  MATERNO"]
-          ? objeto["APELLIDO  MATERNO"]
+        const apellidoMaterno = objeto["APELLIDO MATERNO"]
+          ? objeto["APELLIDO MATERNO"]
           : "corregir apellido";
         const dni = objeto.DNI ? objeto.DNI.toString() : undefined;
         const email = objeto.EMAIL ? objeto.EMAIL.toString() : undefined;
         const celular = objeto.CELULAR
           ? objeto.CELULAR.toString().slice(0, 9)
           : "corregir celular";
-        const genero = objeto["SEXO (F/M)"]
-          ? objeto["SEXO (F/M)"]
+          objeto["SEXO"] === 'MASCULINO' ? objeto["SEXO"] = 'M' : objeto["SEXO"] = 'F'
+        const genero = objeto["SEXO"]
+          ? objeto["SEXO"]
           : "corregir sexo";
+
+        var nacimiento=moment(objeto["FECHA DE NACIMIENTO"].toString());
+        var hoy=moment();
+        var anios=hoy.diff(nacimiento,"years");
+        objeto.EDAD = anios
+
         const edad = objeto.EDAD ? parseInt(objeto.EDAD) : 0;
-        const areadetrabajo = objeto["Tipo de trabajo"]
-          ? objeto["Tipo de trabajo"]
-          : "corregir tipo de trabajo";
-        const cargo = objeto.CARGO ? objeto.CARGO : "corregir cargo";
+        const areadetrabajo = objeto["AREA DE TRABAJO"]
+          ? objeto["AREA DE TRABAJO"]
+          : "corregir area de trabajo";
+        const cargo = objeto["PUESTO LABORAL"] ? objeto["PUESTO LABORAL"] : "corregir cargo";
         const fechadenaci = objeto["FECHA DE NACIMIENTO"]
           ? objeto["FECHA DE NACIMIENTO"]
           : "01/01/2000";
@@ -79,6 +86,17 @@ class TrabajadorService {
         const contraseña = objeto.CONTRASEÑA ? objeto.CONTRASEÑA : username;
         const newUser = { username, contraseña };
         const empresaId = empreId;
+
+        const fecha_examen = objeto["FECHA INICIAL DE EXAMEN "]
+          ? objeto["FECHA INICIAL DE EXAMEN "]
+          : "";
+        const condicion_aptitud = objeto["APTITUD MEDICA OCUPACIONAL"]
+          ? objeto["APTITUD MEDICA OCUPACIONAL"]
+          : "";
+        const clinica = objeto["CLINICA DONDE PASO EXAMEN MEDICO"]
+          ? objeto["CLINICA DONDE PASO EXAMEN MEDICO"]
+          : "";
+
         return {
           nombres,
           apellidoPaterno,
@@ -93,6 +111,9 @@ class TrabajadorService {
           user: newUser,
           empresaId,
           celular,
+          fecha_examen,
+          condicion_aptitud,
+          clinica,
         };
       })
       .filter((objeto) => objeto !== null);
@@ -101,11 +122,15 @@ class TrabajadorService {
       const existenUsuarios = await models.Trabajador.findAll({where:{dni: dnis}});
 
     const trabajadoresNuevos = [];
+    const emosNuevos = [];
     let usuario;
     for (const trabajadorData of datos) {
       const trabajadorExistente = await this.findByDni(trabajadorData.dni);
       const usuarioExistente = await models.Usuario.findOne({
         where: { username: trabajadorData.user.username.toString() },
+      });
+      const emoExistente = await models.Emo.findOne({
+        where: { trabajadorId: trabajadorData.dni.toString() },
       });
       const hashedPassword = await bcrypt.hash(
         trabajadorData.user.contraseña,
@@ -127,6 +152,18 @@ class TrabajadorService {
       } else {
         // Actualizamos los datos del trabajador existente
         trabajadorExistente.update(trabajadorData);
+      }
+
+      if (!emoExistente) {
+        let fecha;
+        trabajadorData.trabajadorId = trabajadorData.dni.toString();
+        const fechaExcel = excelSerialDateToJSDate(trabajadorData.fecha_examen);
+        fecha = moment(fechaExcel).format("DD-MM-YYYY");
+        trabajadorData.fecha_examen = fecha;
+        emosNuevos.push(trabajadorData);
+      } else {
+        // Actualizamos los datos del trabajador existente
+        emoExistente.update(trabajadorData);
       }
     }
 
@@ -150,13 +187,45 @@ class TrabajadorService {
             ],
           }
         );
+        if (emosNuevos.length > 0) {
+          try {
+            const emos = await models.Emo.bulkCreate(
+              emosNuevos,
+              {
+                updateOnDuplicate: [
+                  "fecha_examen",
+                  "condicion_aptitud",
+                  "clinica",
+                  "trabajadorId",
+                ],
+              }
+            );
+            // return emos;
+          } catch (error) {
+            console.log(error);
+            throw error;
+          }
+        }
         return trabajadores;
       } catch (error) {
         console.log(error);
         throw error;
       }
     }
+
+    function excelSerialDateToJSDate(serial) {
+      var days = serial - (25567 + 2);
+      var date = new Date(days * 24 * 60 * 60 * 1000);
+    
+      // Compensar la diferencia horaria
+      var timezoneOffset = date.getTimezoneOffset() * 60 * 1000;
+      date = new Date(date.getTime() + timezoneOffset);
+    
+      return date;
+    }
+    
   }
+  
 
   async find() {
     const trabajadores = await models.Trabajador.aggregate("id", "DISTINCT", {

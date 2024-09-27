@@ -410,7 +410,7 @@ router.post(
     const file = req.file;
     const workbook = xlsx.readFile(file.path);
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-    const datos = xlsx.utils.sheet_to_json(worksheet, { header: 1, range: 4 });
+    const datos = xlsx.utils.sheet_to_json(worksheet, { header: 1, range: 2 });
 
     const datosFiltrados = datos.filter((arr) => arr.length > 0);
     const headers = datosFiltrados[0];
@@ -449,6 +449,7 @@ router.post(
     if (!empresa) {
       res.json(empresa);
     } else {
+      // console.log(trabajadores)
       try {
         await service.createExcel(trabajadores, Number(id));
         res.status(201).json({ message: "Creado con éxito!" });
