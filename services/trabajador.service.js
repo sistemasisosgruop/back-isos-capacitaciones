@@ -87,7 +87,7 @@ class TrabajadorService {
         const newUser = { username, contraseña };
         const empresaId = empreId;
 
-        const fecha_examen = objeto["FECHA INICIAL DE EXAMEN "]
+        const fecha_examen = objeto["FECHA INICIAL DE EXAMEN"]
           ? objeto["FECHA INICIAL DE EXAMEN "]
           : "";
         const condicion_aptitud = objeto["APTITUD MEDICA OCUPACIONAL"]
