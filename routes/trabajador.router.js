@@ -280,7 +280,6 @@ router.post("/comparar", async (req, res, next) => {
   const t = await sequelize.transaction();
   try {
     const body = req.body;
-    // console.log(PUESTO LABORALbody);
     const responses = [];
 
     const format = body.map((item) => {
@@ -308,19 +307,6 @@ router.post("/comparar", async (req, res, next) => {
       if (item.action === "disable") {
         const trabajador = await models.Trabajador.update(
           {
-            apellidoPaterno: item?.apellidoPaterno || "sin apellido paterno",
-            apellidoMaterno: item?.apellidoMaterno || "sin apellido materno",
-            nombres: item?.nombres || "sin nombres",
-            dni: item?.dni.toString(),
-            email: item?.email || "",
-            contraseña: item?.dni.toString(),
-            celular: item?.celular|| 0,
-            genero: item?.sexo || "sin genero",
-            edad: parseInt(item?.edad) || 0,
-            fechadenac: item?.fechaNacimiento || 0,
-            areadetrabajo: item.tipo ?? "sin area",
-            empresaId: item?.empresa_id,
-            cargo: item.cargo ?? "sin cargo",
             empresaId: 52, // se cambio null por id 52 = ISOSGROUP
             habilitado: false,
           },
@@ -329,6 +315,44 @@ router.post("/comparar", async (req, res, next) => {
         responses.push(
           trabajador || { message: "No se pudo actualizar el usuario" }
         );
+      }
+      else if (item.action === 'update') {
+        // console.log(item)
+        // Realiza la lógica para crear un nuevo registro
+        const dniExiste = await service.findByDni(item.dni);
+
+        if (dniExiste) {
+          if (dniExiste.empresaId === item.empresaId) {
+            var nacimiento=moment(item.fechadenac);
+            var hoy=moment();
+            var anios=hoy.diff(nacimiento,"years");
+            const edad = anios
+            console.log(edad)
+            const updatedTrabajador = await models.Trabajador.update(
+              { 
+                apellidoPaterno: item.apellidoPaterno,
+                apellidoMaterno: item.apellidoMaterno,
+                nombres: item.nombres,
+                dni: item.dni.toString(),
+                email: item.email,
+                celular: item.celular,
+                genero: item.sexo,
+                edad: edad,
+                fechadenac: item.fechadenac,
+                areadetrabajo: item.tipo,
+                cargo: item.cargo,
+                empresaId: item.empresaId, 
+                habilitado: true 
+              },
+              { where: { dni: item.dni.toString() }, transaction: t  }
+            );
+            responses.push(
+              updatedTrabajador || {
+                message: "No se pudo actualizar el usuario",
+              }
+            );
+          }
+        }
       }
       else if (item.action === "create") {
         // Realiza la lógica para crear un nuevo registro
