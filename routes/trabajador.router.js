@@ -297,6 +297,12 @@ router.post("/comparar", async (req, res, next) => {
         areadetrabajo: item.tipo ?? "sin area",
         empresaId: item?.empresa_id,
         cargo: item.cargo ?? "sin cargo",
+        fecha_examen: item.fechaExamen || 0,
+        fecha_vencimiento: item.fechaVencimiento || 0,
+        condicion_aptitud: item.condicion_aptitud ?? "",
+        clinica: item.clinica ?? "",
+        controles: item.controles ?? "",
+        recomendaciones: item.recomendaciones ?? "",
         user: item?.user,
         action: item.action,
         id: item.id,
@@ -327,7 +333,6 @@ router.post("/comparar", async (req, res, next) => {
             var hoy=moment();
             var anios=hoy.diff(nacimiento,"years");
             const edad = anios
-            console.log(edad)
             const updatedTrabajador = await models.Trabajador.update(
               { 
                 apellidoPaterno: item.apellidoPaterno,
@@ -349,6 +354,21 @@ router.post("/comparar", async (req, res, next) => {
             responses.push(
               updatedTrabajador || {
                 message: "No se pudo actualizar el usuario",
+              }
+            );
+            const updatedEmo = await models.Emo.update(
+              { 
+                fecha_examen: item.fecha_examen,
+                fecha_vencimiento: item.fecha_vencimiento,
+                clinica: item.clinica,
+                controles: item.controles,
+                recomendaciones: item.recomendaciones,
+              },
+              { where: { trabajadorId: item.dni.toString() }, transaction: t  }
+            );
+            responses.push(
+              updatedEmo || {
+                message: "No se pudo actualizar el emo",
               }
             );
           }
@@ -392,6 +412,16 @@ router.post("/comparar", async (req, res, next) => {
 
             responses.push(
               nuevotrabajador || { message: "No se pudo crear el usuario" }
+            );
+
+            const createEmo = await models.Emo.create(
+              nuevoData,
+              { transaction: t  }
+            );
+            responses.push(
+              createEmo || {
+                message: "No se pudo crear el emo",
+              }
             );
           }
         }

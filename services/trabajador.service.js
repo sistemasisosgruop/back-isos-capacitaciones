@@ -88,7 +88,10 @@ class TrabajadorService {
         const empresaId = empreId;
 
         const fecha_examen = objeto["FECHA INICIAL DE EXAMEN"]
-          ? objeto["FECHA INICIAL DE EXAMEN "]
+          ? objeto["FECHA INICIAL DE EXAMEN"]
+          : "";
+        const fecha_vencimiento = objeto["FECHA DE CADUCIDAD DEL EXAMEN"]
+          ? objeto["FECHA DE CADUCIDAD DEL EXAMEN"]
           : "";
         const condicion_aptitud = objeto["APTITUD MEDICA OCUPACIONAL"]
           ? objeto["APTITUD MEDICA OCUPACIONAL"]
@@ -118,6 +121,7 @@ class TrabajadorService {
           empresaId,
           celular,
           fecha_examen,
+          fecha_vencimiento,
           condicion_aptitud,
           clinica,
           controles,
@@ -162,17 +166,27 @@ class TrabajadorService {
         trabajadorExistente.update(trabajadorData);
       }
 
+      let fecha;
+      let fechav;
       if (!emoExistente) {
-        let fecha;
         trabajadorData.trabajadorId = trabajadorData.dni.toString();
         const fechaExcel = excelSerialDateToJSDate(trabajadorData.fecha_examen);
         fecha = moment(fechaExcel).format("DD-MM-YYYY");
+        const fechaVen = excelSerialDateToJSDate(trabajadorData.fecha_vencimiento);
+        fechav = moment(fechaVen).format("DD-MM-YYYY");
         trabajadorData.fecha_examen = fecha;
+        trabajadorData.fecha_vencimiento = fechav;
         trabajadorData.controles = trabajadorData.controles;
         trabajadorData.recomendaciones = trabajadorData.recomendaciones;
         emosNuevos.push(trabajadorData);
       } else {
         // Actualizamos los datos del emo existente
+        const fechaExcel = excelSerialDateToJSDate(trabajadorData.fecha_examen);
+        fecha = moment(fechaExcel).format("DD-MM-YYYY");
+        const fechaVen = excelSerialDateToJSDate(trabajadorData.fecha_vencimiento);
+        fechav = moment(fechaVen).format("DD-MM-YYYY");
+        trabajadorData.fecha_examen = fecha;
+        trabajadorData.fecha_vencimiento = fechav;
         trabajadorData.controles = trabajadorData.controles;
         trabajadorData.recomendaciones = trabajadorData.recomendaciones;
         emoExistente.update(trabajadorData);
@@ -209,6 +223,7 @@ class TrabajadorService {
                   "condicion_aptitud",
                   "clinica",
                   "trabajadorId",
+                  "fecha_vencimiento",
                   "controles",
                   "recomendaciones",
                 ],
