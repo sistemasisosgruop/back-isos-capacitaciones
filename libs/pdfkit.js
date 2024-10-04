@@ -34,14 +34,16 @@ const buildPDF = (data, tipo) => {
   
   doc.fontSize(12).text(`Así mismo, he sido informado(a) sobre los hallazgos, se me ha indicado las recomendaciones y/o restricciones producto de dicho examen médico, además se me explicó cuáles son los principales riesgos laborales de mi puesto de trabajo y qué acciones debo tomar para disminuir su impacto en mi salud. Por otro lado, me comprometo a cumplir las recomendaciones brindadas por el Médico Ocupacional respecto a mi evaluación médica. Todo esto en cumplimiento de la normativa legal vigente en Seguridad y Salud en el Trabajo. (Ley 29783, DS 005-2012 TR Y RM Nº 312-2011-MINSA). Afirmo que la información contenida en el presente documento es real firmando la presente.`, 50, top + 270, { lineGap:2, margin: 30, align: 'justify' } );
 
-  doc.fontSize(12).text('FIRMA DEL TRABAJADOR', 50, top + 470, { lineGap:2, margin: 30, align: 'left' })
-  doc.fontSize(12).text(`DNI -- ${data.dni}`, 50, top + 490, { lineGap:2, margin: 30, align: 'left' })
+  doc.fontSize(12).text(`FECHA DE LECTURA:  ${data.fecha_lectura}`, 50, top + 400, { lineGap:2, margin: 30, align: 'left' })
+
+  doc.fontSize(12).text('FIRMA DEL TRABAJADOR', 50, top + 490, { lineGap:2, margin: 30, align: 'left' })
+  doc.fontSize(12).text(`DNI -- ${data.dni}`, 50, top + 510, { lineGap:2, margin: 30, align: 'left' })
 
   doc.lineWidth(1);
 
   doc.lineCap('butt')
-    .moveTo(200, top + 460)
-    .lineTo(50, top + 460)
+    .moveTo(200, top + 480)
+    .lineTo(50, top + 480)
     .stroke();
 
 	// generateFooter(doc);
