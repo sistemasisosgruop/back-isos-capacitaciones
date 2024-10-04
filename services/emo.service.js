@@ -34,6 +34,19 @@ class EmoService{
         return emo;
     }
 
+    async findByTrabajadorId(dni) {
+
+        try {
+          const emo = await models.Emo.findOne({
+            where: { trabajadorId: dni },
+          });
+          return emo;
+        } catch (error) {
+          console.log(error);
+        }
+    
+      }
+
     async update(id, changes){
         const emo = await models.Emo.findByPk(id);
         if(!empresa){

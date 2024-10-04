@@ -1,6 +1,7 @@
 const express = require("express");
 
 const TrabajadorService = require("./../services/trabajador.service");
+const EmoService = require("../services/emo.service.js");
 const validatorHandler = require("./../middlewares/validator.handler");
 const {
   updateTrabajadorSchema,
@@ -13,6 +14,7 @@ const xlsx = require("xlsx");
 const multer = require("multer");
 const router = express.Router();
 const service = new TrabajadorService();
+const serviceEmo = new EmoService();
 const upload = multer({ dest: "excel/" });
 const EmpresasService = require("../services/empresas.service.js");
 const serviceEmpresa = new EmpresasService();
@@ -281,6 +283,7 @@ router.post("/comparar", async (req, res, next) => {
   try {
     const body = req.body;
     const responses = [];
+    // console.log(body)
 
     const format = body.map((item) => {
       return {
@@ -299,7 +302,7 @@ router.post("/comparar", async (req, res, next) => {
         cargo: item.cargo ?? "sin cargo",
         fecha_examen: item.fechaExamen || 0,
         fecha_vencimiento: item.fechaVencimiento || 0,
-        condicion_aptitud: item.condicion_aptitud ?? "",
+        condicion_aptitud: item.condicionAptitud ?? "",
         clinica: item.clinica ?? "",
         controles: item.controles ?? "",
         recomendaciones: item.recomendaciones ?? "",
@@ -323,9 +326,9 @@ router.post("/comparar", async (req, res, next) => {
         );
       }
       else if (item.action === 'update') {
-        // console.log(item)
         // Realiza la lógica para crear un nuevo registro
         const dniExiste = await service.findByDni(item.dni);
+        
 
         if (dniExiste) {
           if (dniExiste.empresaId === item.empresaId) {
@@ -356,23 +359,48 @@ router.post("/comparar", async (req, res, next) => {
                 message: "No se pudo actualizar el usuario",
               }
             );
-            const updatedEmo = await models.Emo.update(
-              { 
+
+            const emoExiste = await serviceEmo.findByTrabajadorId(item.dni);
+            // console.log(emoExiste)
+            if (!emoExiste){
+              const nuevoData = {
                 fecha_examen: item.fecha_examen,
                 fecha_vencimiento: item.fecha_vencimiento,
+                condicion_aptitud: item.condicion_aptitud,
                 clinica: item.clinica,
                 controles: item.controles,
                 recomendaciones: item.recomendaciones,
-              },
-              { where: { trabajadorId: item.dni.toString() }, transaction: t  }
-            );
-            responses.push(
-              updatedEmo || {
-                message: "No se pudo actualizar el emo",
-              }
-            );
+                trabajadorId: item.dni
+              };
+              const createEmo = await models.Emo.create(
+                nuevoData,
+                { transaction: t  }
+              );
+              responses.push(
+                createEmo || {
+                  message: "No se pudo crear el emo",
+                }
+              );
+            } else {
+              const updatedEmo = await models.Emo.update(
+                { 
+                  fecha_examen: item.fecha_examen,
+                  fecha_vencimiento: item.fecha_vencimiento,
+                  clinica: item.clinica,
+                  controles: item.controles,
+                  recomendaciones: item.recomendaciones,
+                },
+                { where: { trabajadorId: item.dni.toString() }, transaction: t  }
+              );
+              responses.push(
+                updatedEmo || {
+                  message: "No se pudo actualizar el emo",
+                }
+              );
+            }
+
           }
-        }
+        } 
       }
       else if (item.action === "create") {
         // Realiza la lógica para crear un nuevo registro
@@ -387,6 +415,27 @@ router.post("/comparar", async (req, res, next) => {
             responses.push(
               updatedTrabajador || {
                 message: "No se pudo actualizar el usuario",
+              }
+            );
+          } else {
+
+            const nuevoData = {
+              fecha_examen: item.fecha_examen,
+              fecha_vencimiento: item.fecha_vencimiento,
+              condicion_aptitud: item.condicion_aptitud,
+              clinica: item.clinica,
+              controles: item.controles,
+              recomendaciones: item.recomendaciones,
+              trabajadorId: item.dni
+            };
+
+            const createEmo = await models.Emo.create(
+              nuevoData,
+              { transaction: t  }
+            );
+            responses.push(
+              createEmo || {
+                message: "No se pudo crear el emo",
               }
             );
           }
@@ -414,12 +463,22 @@ router.post("/comparar", async (req, res, next) => {
               nuevotrabajador || { message: "No se pudo crear el usuario" }
             );
 
-            const createEmo = await models.Emo.create(
-              nuevoData,
+            const nuevoEmoCreate = {
+              fecha_examen: item.fecha_examen,
+              fecha_vencimiento: item.fecha_vencimiento,
+              condicion_aptitud: item.condicion_aptitud,
+              clinica: item.clinica,
+              controles: item.controles,
+              recomendaciones: item.recomendaciones,
+              trabajadorId: item.dni
+            };
+
+            const createEmoCreate = await models.Emo.create(
+              nuevoEmoCreate,
               { transaction: t  }
             );
             responses.push(
-              createEmo || {
+              createEmoCreate || {
                 message: "No se pudo crear el emo",
               }
             );
