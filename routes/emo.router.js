@@ -566,7 +566,7 @@ router.post("/send-emo-email", async (req, res) => {
     from: process.env.USER_GMAIL_ENV,
     to: body.email,
     subject: 'Envio del Examén Médico Ocupacional',
-    html: `<p>Saludos cordiales</p> <h5>${body.nombres} ${body.apellidoPaterno} ${body.apellidoMaterno}</h5><p>Nos es grato contactarnos con usted vía correo electrónico y le hacemos llegar su Examén Médico Ocupacional.</p><p>Atentamente.</p><h5>${ body.nombreEmpresa }</h5>`,
+    html: `<p>Saludos cordiales</p> <h5>${body.nombres} ${body.apellidoPaterno} ${body.apellidoMaterno}</h5><p>Nos es grato contactarnos con usted vía correo electrónico y le hacemos llegar su Examén Médico Ocupacional.</p><p>Atentamente.</p><br>MÉDICO OCUPACIONAL<br><h5>${ body.nombreEmpresa }</h5>`,
     attachments:[
       {
         filename: 'pdf',
