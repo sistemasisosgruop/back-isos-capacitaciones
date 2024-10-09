@@ -354,6 +354,7 @@ router.post("/comparar", async (req, res, next) => {
               },
               { where: { dni: item.dni.toString() }, transaction: t  }
             );
+            console.log(updatedTrabajador);
             responses.push(
               updatedTrabajador || {
                 message: "No se pudo actualizar el usuario",
@@ -386,6 +387,7 @@ router.post("/comparar", async (req, res, next) => {
                 { 
                   fecha_examen: item.fecha_examen,
                   fecha_vencimiento: item.fecha_vencimiento,
+                  condicion_aptitud: item.condicion_aptitud,
                   clinica: item.clinica,
                   controles: item.controles,
                   recomendaciones: item.recomendaciones,
