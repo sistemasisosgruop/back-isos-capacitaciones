@@ -5,6 +5,7 @@ const {
   CapacitacionEmpresaSchema,
 } = require("./capacitacionEmpresa.model");
 const { Empresa, EmpresaSchema } = require("./empresa.model");
+const { EmpresaRelaciones, EmpresaRelacionesSchema } = require("./empresaRelaciones.model");
 const { Test, TestSchema } = require("./test.model");
 const { Trabajador, TrabajadorSchema } = require("./trabajador.model");
 const { Capacitador, CapacitadorSchema } = require("./capacitador.model");
@@ -25,6 +26,7 @@ function setupModels(sequelize) {
   Capacitador.init(CapacitadorSchema, Capacitador.config(sequelize));
   Administrador.init(AdministradorSchema, Administrador.config(sequelize));
   Empresa.init(EmpresaSchema, Empresa.config(sequelize));
+  EmpresaRelaciones.init(EmpresaRelacionesSchema, EmpresaRelaciones.config(sequelize));
   Test.init(TestSchema, Test.config(sequelize));
   Capacitacion.init(CapacitacionSchema, Capacitacion.config(sequelize));
   CapacitacionEmpresa.init(
@@ -46,6 +48,7 @@ function setupModels(sequelize) {
   Capacitador.associate(sequelize.models);
   Administrador.associate(sequelize.models);
   Empresa.associate(sequelize.models);
+  EmpresaRelaciones.associate(sequelize.models);
   Test.associate(sequelize.models);
   Capacitacion.associate(sequelize.models);
   Examen.associate(sequelize.models);

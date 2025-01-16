@@ -59,6 +59,12 @@ class Empresa extends Model{
             through: models.CapacitacionEmpresa,
             foreignKey: 'empresaId',
         });
+        this.belongsToMany(models.Empresa, {
+            as: 'relacionadas',
+            through: models.EmpresaRelaciones,
+            foreignKey: 'empresaId',
+            otherKey: 'relacionadaConEmpresaId'
+        });
     }
     static config(sequelize){
         return{
