@@ -108,23 +108,26 @@ const sequelize = require("../libs/sequelize");
  *               items:
  *                 $ref: '#/components/schemas/Trabajador'
  */
-
 router.get("/", async (req, res, next) => {
   try {
     let { page, limit, nombreEmpresa, search, all } = req.query;
+
+    // Convertir page y limit a enteros o usar valores predeterminados
     page = page ? parseInt(page) : 1;
     limit = all === "true" ? null : limit ? parseInt(limit) : 15;
     const offset = all === "true" ? null : (page - 1) * limit;
 
+    // Condición para el nombre de la empresa
     const empresaCondition =
       nombreEmpresa && nombreEmpresa.trim() !== ""
         ? {
-            "$empresas_trabajadores.nombreEmpresa$": {
+            "nombreEmpresa": {
               [Op.like]: `%${nombreEmpresa}%`,
             },
           }
         : {};
 
+    // Condición de búsqueda
     const searchCondition =
       search && search.trim() !== ""
         ? {
@@ -137,20 +140,22 @@ router.get("/", async (req, res, next) => {
           }
         : {};
 
+    // Validar que la página es mayor o igual a 1
     if (page < 1) {
       return res.status(400).json({ message: "Invalid page value" });
     }
 
+    // Buscar trabajadores con las condiciones y las asociaciones
     const Trabajadores = await models.Trabajador.findAndCountAll({
       where: {
         ...searchCondition,
-        ...empresaCondition,
       },
       include: [
         {
           model: models.Empresa,
-          as: "empresas_trabajadores",
-          through: { attributes: [] }, 
+          as: "empresas",
+          through: { attributes: [] },
+          where: empresaCondition, 
         },
         { model: models.Usuario, as: "user" },
       ],
@@ -159,18 +164,21 @@ router.get("/", async (req, res, next) => {
       offset,
     });
 
+    // Información de paginación
     const pageInfo = {
       total: Trabajadores.count,
       page: page,
-      limit: limit || Trabajadores.count, 
+      limit: limit || Trabajadores.count,
       totalPage: limit ? Math.ceil(Trabajadores.count / limit) : 1,
     };
 
+    // Enviar respuesta
     res.json({ data: Trabajadores.rows, pageInfo });
   } catch (error) {
     next(error);
   }
 });
+
 
 
 router.get("/empresa", async (req, res, next) => {
