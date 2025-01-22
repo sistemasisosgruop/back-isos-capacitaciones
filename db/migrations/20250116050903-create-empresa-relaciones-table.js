@@ -1,5 +1,5 @@
 'use strict';
-const { EmpresaRelacionesSchema, EMPRESA_RELACIONES_TABLE } = require('./../models/empresaRelaciones');
+const { EmpresaRelacionesSchema, EMPRESA_RELACIONES_TABLE } = require('../models/empresaRelaciones.model');
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {

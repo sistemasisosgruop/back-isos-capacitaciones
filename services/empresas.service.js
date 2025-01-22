@@ -16,9 +16,9 @@ class EmpresaService{
             RUC: data.RUC
         });
 
-        // Si hay empresas para relacionar, agregar las relaciones
-        if (data.relaciones && Array.isArray(data.relaciones)) {
-            const relaciones = data.relaciones.map(relacionadaId => ({
+        const relacionesIds = JSON.parse(data.relaciones);
+        if (relacionesIds && Array.isArray(relacionesIds)) {
+            const relaciones = relacionesIds.map(relacionadaId => ({
                 empresaId: newEmpresa.id,
                 relacionadaConEmpresaId: relacionadaId,
             }));
@@ -26,7 +26,6 @@ class EmpresaService{
             await models.EmpresaRelaciones.bulkCreate(relaciones);
         }
         
-        // Recuperar la empresa con sus relaciones
         const empresaConRelaciones = await models.Empresa.findByPk(newEmpresa.id, {
             include: [
                 {
@@ -84,14 +83,13 @@ class EmpresaService{
 
     async update(id, changes) {
         const empresa = await models.Empresa.findByPk(id, {
-            include: ['relacionadas']  // Incluir las relaciones actuales de la empresa
+            include: ['relacionadas'] 
         });
     
         if (!empresa) {
             throw boom.notFound('Empresa no encontrada');
         }
     
-        // Actualizar la empresa
         const updatedEmpresa = await empresa.update({
             nombreEmpresa: changes.nombreEmpresa,
             direccion: changes.direccion,
@@ -102,15 +100,13 @@ class EmpresaService{
             RUC: changes.RUC
         });
     
-        // Si hay relaciones nuevas, actualizarlas
-        if (changes.relaciones && Array.isArray(changes.relaciones)) {
-            // Eliminar relaciones anteriores
+        const relacionesIds = JSON.parse(changes.relaciones);
+        if (relacionesIds && Array.isArray(relacionesIds)) {
             await models.EmpresaRelaciones.destroy({
                 where: { empresaId: id }
             });
     
-            // Agregar las nuevas relaciones
-            const relaciones = changes.relaciones.map(relacionadaId => ({
+            const relaciones = relacionesIds.map(relacionadaId => ({
                 empresaId: id,
                 relacionadaConEmpresaId: relacionadaId,
             }));
@@ -118,7 +114,6 @@ class EmpresaService{
             await models.EmpresaRelaciones.bulkCreate(relaciones);
         }
     
-        // Recuperar la empresa con sus relaciones actualizadas
         const empresaConRelaciones = await models.Empresa.findByPk(id, {
             include: [
                 {
