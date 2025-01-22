@@ -65,6 +65,12 @@ class Empresa extends Model{
             foreignKey: 'empresaId',
             otherKey: 'relacionadaConEmpresaId'
         });
+        this.belongsToMany(models.Trabajador, {
+            as: "trabajadores_empresas",
+            through: models.EmpresaTrabajador, 
+            foreignKey: "empresaId",
+            otherKey: "trabajadorId",
+          });
     }
     static config(sequelize){
         return{

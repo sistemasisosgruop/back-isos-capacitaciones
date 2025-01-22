@@ -15,6 +15,7 @@ const { Pregunta, PreguntaSchema } = require("./pregunta.model");
 const { TestEmpresa, TestEmpresaSchema } = require("./testEmpresa.model");
 const { Reporte, ReportesSchema } = require("./reportes.model");
 const { Emo, EmoSchema } = require("./emo.model");
+const { EmpresaTrabajador, EmpresaTrabajadorSchema } = require("./empresaTrabajador.model");
 const {
   RegistroDescarga,
   RegistroDescargaSchema,
@@ -38,6 +39,7 @@ function setupModels(sequelize) {
   TestEmpresa.init(TestEmpresaSchema, TestEmpresa.config(sequelize));
   Reporte.init(ReportesSchema, Reporte.config(sequelize));
   Emo.init(EmoSchema, Emo.config(sequelize));
+  EmpresaTrabajador.init(EmpresaTrabajadorSchema, EmpresaTrabajador.config(sequelize));
   RegistroDescarga.init(
     RegistroDescargaSchema,
     RegistroDescarga.config(sequelize)
@@ -56,6 +58,7 @@ function setupModels(sequelize) {
   Reporte.associate(sequelize.models);
   Emo.associate(sequelize.models);
   RegistroDescarga.associate(sequelize.models)
+  EmpresaTrabajador.associate(sequelize.models)
 }
 
 module.exports = setupModels;
