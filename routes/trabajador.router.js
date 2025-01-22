@@ -115,13 +115,18 @@ router.get("/", async (req, res, next) => {
     page = page ? parseInt(page) : 1;
     limit = all === "true" ? null : limit ? parseInt(limit) : 15;
     const offset = all === "true" ? null : (page - 1) * limit;
+
     const empresaCondition =
-      nombreEmpresa !== undefined && nombreEmpresa !== ""
-        ? { nombreEmpresa: { [Op.like]: `%${nombreEmpresa}%` } }
+      nombreEmpresa && nombreEmpresa.trim() !== ""
+        ? {
+            "$empresas_trabajadores.nombreEmpresa$": {
+              [Op.like]: `%${nombreEmpresa}%`,
+            },
+          }
         : {};
 
     const searchCondition =
-      search !== undefined && search !== ""
+      search && search.trim() !== ""
         ? {
             [Op.or]: [
               Sequelize.literal(
@@ -137,54 +142,62 @@ router.get("/", async (req, res, next) => {
     }
 
     const Trabajadores = await models.Trabajador.findAndCountAll({
-      where: searchCondition,
+      where: {
+        ...searchCondition,
+        ...empresaCondition,
+      },
       include: [
-        { model: models.Empresa, as: "empresa", where: empresaCondition},
+        {
+          model: models.Empresa,
+          as: "empresas_trabajadores",
+          through: { attributes: [] }, 
+        },
         { model: models.Usuario, as: "user" },
       ],
-      order: [['id', 'ASC']],
+      order: [["id", "ASC"]],
       limit,
       offset,
     });
+
     const pageInfo = {
       total: Trabajadores.count,
       page: page,
-      limit: limit,
-      totalPage: Math.ceil(Trabajadores.count / limit),
+      limit: limit || Trabajadores.count, 
+      totalPage: limit ? Math.ceil(Trabajadores.count / limit) : 1,
     };
+
     res.json({ data: Trabajadores.rows, pageInfo });
   } catch (error) {
     next(error);
   }
 });
 
+
 router.get("/empresa", async (req, res, next) => {
   try {
-    let { page, limit, nombreEmpresa, search, all } = req.query;
+    let { nombreEmpresa } = req.query;
+    const empresaCondition = nombreEmpresa
+      ? { nombreEmpresa: { [Op.like]: `%${nombreEmpresa}%` } }
+      : {};
 
-    // console.log(req.query);
-
-    const empresaCondition =
-      nombreEmpresa !== undefined && nombreEmpresa !== ""
-        ? { nombreEmpresa: { [Op.like]: `%${nombreEmpresa}%` } }
-        : {};
-
-
-    const Trabajadores = await models.Trabajador.findAll({
+    const trabajadores = await models.Trabajador.findAll({
       include: [
-        { model: models.Empresa, as: "empresa", where: empresaCondition},
+        {
+          model: models.Empresa,
+          as: "empresas",
+          through: { attributes: [] },
+          where: empresaCondition,
+        },
         { model: models.Usuario, as: "user" },
       ],
       order: [['id', 'ASC']],
-
     });
 
-    res.json({ data: Trabajadores});
+    res.json({ data: trabajadores });
   } catch (error) {
     next(error);
   }
 });
-
 /**
  * @swagger
  * /api/v1/trabajadores/{id}:
@@ -259,19 +272,10 @@ router.post(
       const body = req.body;
       const valdni = await service.findByDni(body.dni);
       if (valdni) {
-        return res.status(400).json({
-          message: `Ya existe un Dni igual`,
-        });
-      } else {
-        const nuevotrabajador = await service.create(body);
-        return res
-          .status(201)
-          .json(
-            nuevotrabajador
-              ? nuevotrabajador
-              : { message: "ya existe el usuario" }
-          );
+        return res.status(400).json({ message: "Ya existe un Dni igual" });
       }
+      const nuevotrabajador = await service.create(body);
+      res.status(201).json(nuevotrabajador || { message: "ya existe el usuario" });
     } catch (error) {
       next(error);
     }
@@ -283,223 +287,161 @@ router.post("/comparar", async (req, res, next) => {
   try {
     const body = req.body;
     const responses = [];
-    // console.log(body)
 
-    const format = body.map((item) => {
-      return {
-        apellidoPaterno: item?.apellidoPaterno || "sin apellido paterno",
-        apellidoMaterno: item?.apellidoMaterno || "sin apellido materno",
-        nombres: item?.nombres || "sin nombres",
-        dni: item?.dni.toString(),
-        email: item?.email || "",
-        contraseña: item?.dni.toString(),
-        celular: item?.celular|| 0,
-        genero: item?.sexo || "sin genero",
-        edad: parseInt(item?.edad) || 0,
-        fechadenac: item?.fechaNacimiento || 0,
-        areadetrabajo: item.tipo ?? "sin area",
-        empresaId: item?.empresa_id,
-        cargo: item.cargo ?? "sin cargo",
-        fecha_examen: item.fechaExamen || 0,
-        fecha_vencimiento: item.fechaVencimiento || 0,
-        condicion_aptitud: item.condicionAptitud ?? "",
-        clinica: item.clinica ?? "",
-        controles: item.controles ?? "",
-        recomendaciones: item.recomendaciones ?? "",
-        user: item?.user,
-        action: item.action,
-        id: item.id,
-      };
-    });
+    const format = body.map((item) => ({
+      apellidoPaterno: item?.apellidoPaterno || "sin apellido paterno",
+      apellidoMaterno: item?.apellidoMaterno || "sin apellido materno",
+      nombres: item?.nombres || "sin nombres",
+      dni: item?.dni.toString(),
+      email: item?.email || "",
+      contraseña: item?.dni.toString(),
+      celular: item?.celular || 0,
+      genero: item?.sexo || "sin genero",
+      edad: parseInt(item?.edad) || 0,
+      fechadenac: item?.fechaNacimiento || null,
+      areadetrabajo: item?.tipo || "sin area",
+      cargo: item?.cargo || "sin cargo",
+      empresaId: item?.empresa_id,
+      fecha_examen: item?.fechaExamen || null,
+      fecha_vencimiento: item?.fechaVencimiento || null,
+      condicion_aptitud: item?.condicionAptitud || "",
+      clinica: item?.clinica || "",
+      controles: item?.controles || "",
+      recomendaciones: item?.recomendaciones || "",
+      user: item?.user,
+      action: item.action,
+      id: item.id,
+    }));
 
     for (const item of format) {
       const { action, id, ...rest } = item;
-      if (item.action === "disable") {
+
+      if (action === "disable") {
         const trabajador = await models.Trabajador.update(
           {
-            empresaId: 52, // se cambio null por id 52 = ISOSGROUP
             habilitado: false,
           },
           { where: { id: id }, transaction: t  }
         );
-        responses.push(
-          trabajador || { message: "No se pudo actualizar el usuario" }
+
+        // Desvincular al trabajador de su empresa actual (si existe)
+        const empresaActual = await models.EmpresaTrabajador.findOne({
+          where: { trabajadorId: id, empresaId: item.empresaId },
+        });
+
+        if (empresaActual) {
+          await empresaActual.destroy({ transaction: t });
+        }
+
+        // Vincular al trabajador a la nueva empresa
+        await models.EmpresaTrabajador.create(
+          { trabajadorId: trabajador.id, empresaId: 52 },
+          { transaction: t }
         );
+
       }
-      else if (item.action === 'update') {
-        // Realiza la lógica para crear un nuevo registro
-        const dniExiste = await service.findByDni(item.dni);
-        
 
-        if (dniExiste) {
-          if (dniExiste.empresaId === item.empresaId) {
-            var nacimiento=moment(item.fechadenac);
-            var hoy=moment();
-            var anios=hoy.diff(nacimiento,"years");
-            const edad = anios
-            const updatedTrabajador = await models.Trabajador.update(
-              { 
-                apellidoPaterno: item.apellidoPaterno,
-                apellidoMaterno: item.apellidoMaterno,
-                nombres: item.nombres,
-                dni: item.dni.toString(),
-                email: item.email,
-                celular: item.celular,
-                genero: item.sexo,
-                edad: edad,
-                fechadenac: item.fechadenac,
-                areadetrabajo: item.tipo,
-                cargo: item.cargo,
-                empresaId: item.empresaId, 
-                habilitado: true 
-              },
-              { where: { dni: item.dni.toString() }, transaction: t  }
-            );
-            console.log(updatedTrabajador);
-            responses.push(
-              updatedTrabajador || {
-                message: "No se pudo actualizar el usuario",
-              }
-            );
+      else if (action === "update") {
+        const trabajador = await service.findByDni(item.dni);
 
-            const emoExiste = await serviceEmo.findByTrabajadorId(item.dni);
-            // console.log(emoExiste)
-            if (!emoExiste){
-              const nuevoData = {
+        if (trabajador) {
+          await trabajador.update(
+            {
+              apellidoPaterno: item.apellidoPaterno,
+              apellidoMaterno: item.apellidoMaterno,
+              nombres: item.nombres,
+              email: item.email,
+              celular: item.celular,
+              genero: item.genero,
+              edad: item.edad,
+              fechadenac: item.fechadenac,
+              areadetrabajo: item.areadetrabajo,
+              cargo: item.cargo,
+            },
+            { transaction: t }
+          );
+
+          // Asegurar relación con la empresa
+          await trabajador.addEmpresas(item.empresaId, { transaction: t });
+
+          responses.push({ message: `Trabajador ${item.dni} actualizado` });
+
+          const emo = await serviceEmo.findByTrabajadorId(item.dni);
+          if (!emo) {
+            await models.Emo.create(
+              {
                 fecha_examen: item.fecha_examen,
                 fecha_vencimiento: item.fecha_vencimiento,
                 condicion_aptitud: item.condicion_aptitud,
                 clinica: item.clinica,
                 controles: item.controles,
                 recomendaciones: item.recomendaciones,
-                trabajadorId: item.dni
-              };
-              const createEmo = await models.Emo.create(
-                nuevoData,
-                { transaction: t  }
-              );
-              responses.push(
-                createEmo || {
-                  message: "No se pudo crear el emo",
-                }
-              );
-            } else {
-              const updatedEmo = await models.Emo.update(
-                { 
-                  fecha_examen: item.fecha_examen,
-                  fecha_vencimiento: item.fecha_vencimiento,
-                  condicion_aptitud: item.condicion_aptitud,
-                  clinica: item.clinica,
-                  controles: item.controles,
-                  recomendaciones: item.recomendaciones,
-                },
-                { where: { trabajadorId: item.dni.toString() }, transaction: t  }
-              );
-
-              // console.log(updatedEmo)
-              responses.push(
-                updatedEmo || {
-                  message: "No se pudo actualizar el emo",
-                }
-              );
-            }
-
-          }
-        } 
-      }
-      else if (item.action === "create") {
-        // Realiza la lógica para crear un nuevo registro
-        const dniExiste = await service.findByDni(item.dni);
-
-        if (dniExiste) {
-          if (dniExiste.empresaId !== item.empresaId) {
-            const updatedTrabajador = await models.Trabajador.update(
-              { empresaId: item.empresaId, habilitado: true },
-              { where: { dni: item.dni.toString() }, transaction: t  }
-            );
-            responses.push(
-              updatedTrabajador || {
-                message: "No se pudo actualizar el usuario",
-              }
+                trabajadorId: item.dni,
+              },
+              { transaction: t }
             );
           } else {
-
-            const nuevoData = {
-              fecha_examen: item.fecha_examen,
-              fecha_vencimiento: item.fecha_vencimiento,
-              condicion_aptitud: item.condicion_aptitud,
-              clinica: item.clinica,
-              controles: item.controles,
-              recomendaciones: item.recomendaciones,
-              trabajadorId: item.dni
-            };
-
-            const createEmo = await models.Emo.create(
-              nuevoData,
-              { transaction: t  }
-            );
-            responses.push(
-              createEmo || {
-                message: "No se pudo crear el emo",
-              }
-            );
-          }
-        } else {
-          const contraseña = item.contraseña ?? item.dni;
-          const hash = await bcrypt.hash(contraseña.toString(), 10);
-          const nuevoData = {
-            ...item,
-            user: {
-              ...item.user,
-              contraseña: hash,
-              rol: "Trabajador"
-            },
-          };
-          const comprobarUsuario = await models.Usuario.findOne({
-            where: { username: nuevoData.user.username.toString() },
-          });
-          if (!comprobarUsuario) {
-            const { id, ...dataSinId } = nuevoData;
-            const nuevotrabajador = await models.Trabajador.create(dataSinId, {
-              include: ["user"], transaction: t 
-            });
-
-            responses.push(
-              nuevotrabajador || { message: "No se pudo crear el usuario" }
-            );
-
-            const nuevoEmoCreate = {
-              fecha_examen: item.fecha_examen,
-              fecha_vencimiento: item.fecha_vencimiento,
-              condicion_aptitud: item.condicion_aptitud,
-              clinica: item.clinica,
-              controles: item.controles,
-              recomendaciones: item.recomendaciones,
-              trabajadorId: item.dni
-            };
-
-            const createEmoCreate = await models.Emo.create(
-              nuevoEmoCreate,
-              { transaction: t  }
-            );
-            responses.push(
-              createEmoCreate || {
-                message: "No se pudo crear el emo",
-              }
+            await emo.update(
+              {
+                fecha_examen: item.fecha_examen,
+                fecha_vencimiento: item.fecha_vencimiento,
+                condicion_aptitud: item.condicion_aptitud,
+                clinica: item.clinica,
+                controles: item.controles,
+                recomendaciones: item.recomendaciones,
+              },
+              { transaction: t }
             );
           }
         }
-      } 
+      }
+
+      else if (action === "create") {
+        const [trabajador, created] = await models.Trabajador.findOrCreate({
+          where: { dni: item.dni },
+          defaults: {
+            ...item,
+            user: {
+              ...item.user,
+              contraseña: await bcrypt.hash(item.contraseña.toString(), 10),
+              rol: "Trabajador",
+            },
+          },
+          include: ["user"],
+          transaction: t,
+        });
+
+        if (!created) {
+          await trabajador.addEmpresa(item.empresaId, { transaction: t });
+          responses.push({ message: `Trabajador ${item.dni} vinculado a empresa ${item.empresaId}` });
+        } else {
+          responses.push({ message: `Trabajador ${item.dni} creado` });
+        }
+
+        await models.Emo.create(
+          {
+            fecha_examen: item.fecha_examen,
+            fecha_vencimiento: item.fecha_vencimiento,
+            condicion_aptitud: item.condicion_aptitud,
+            clinica: item.clinica,
+            controles: item.controles,
+            recomendaciones: item.recomendaciones,
+            trabajadorId: trabajador.dni,
+          },
+          { transaction: t }
+        );
+      }
     }
 
-    res.status(201).json(responses);
     await t.commit();
+    res.status(201).json(responses);
   } catch (error) {
-    if (t) await t.rollback();
-    console.log(error);
+    await t.rollback();
+    console.error(error);
     next(error);
   }
 });
+
 
 /**
  * @swagger

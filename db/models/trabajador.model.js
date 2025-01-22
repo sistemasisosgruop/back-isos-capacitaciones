@@ -85,17 +85,6 @@ const TrabajadorSchema = {
     onUpdate: "CASCADE",
     onDelete: "SET NULL",
   },
-  empresaId: {
-    field: "empresa_id",
-    allowNull: true,
-    type: DataTypes.INTEGER,
-    references: {
-      model: EMPRESA_TABLE,
-      key: "id",
-    },
-    onUpdate: "CASCADE",
-    onDelete: "SET NULL",
-  },
 };
 
 class Trabajador extends Model {
@@ -103,9 +92,6 @@ class Trabajador extends Model {
     //wait
     this.belongsTo(models.Usuario, {
       as: "user",
-    });
-    this.belongsTo(models.Empresa, {
-      as: "empresa",
     });
     this.hasOne(models.Reporte, {
       as: "reporte",
@@ -121,7 +107,7 @@ class Trabajador extends Model {
       foreignKey: "trabajador_id",
     });
     this.belongsToMany(models.Empresa, {
-      as: "empresas_trabajadores",
+      as: "empresas",
       through: models.EmpresaTrabajador,
       foreignKey: "trabajadorId",
       otherKey: "empresaId",
