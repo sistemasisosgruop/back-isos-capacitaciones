@@ -53,7 +53,7 @@ router.post(
     try {
       const user = req.user;
       const jwtconfig = {
-        expiresIn: "2d",
+        expiresIn: "30m",
       };
       const payload = {
         sub: user.id,
