@@ -22,6 +22,7 @@ router.get('/', async(req, res, next)=>{
         next(error);
     }
 })
+
 router.get('/capacitador/:id', async(req, res, next)=>{
     try {
         const {id} = req.params;
@@ -162,7 +163,7 @@ router.patch('/:id', upload.single('certificado'), async (req, res) => {
       }
   
       // Actualizar los datos de la capacitación
-      const { nombre, instructor, fechaInicio, fechaCulminacion, urlVideo, fechaAplazo, horas, habilitado } = req.body;
+      const { nombre, instructor, fechaInicio, fechaCulminacion, urlVideo, fechaAplazo, horas, habilitado, recuperacion } = req.body;
       const certificado = req.file ? req.file.path : capacitacion.certificado;
   
       
@@ -175,7 +176,8 @@ router.patch('/:id', upload.single('certificado'), async (req, res) => {
         fechaAplazo: fechaAplazo ?? capacitacion.fechaAplazo,
         horas: horas?? capacitacion.horas,
         certificado: certificado ?? capacitacion.certificado,
-        habilitado: habilitado ?? capacitacion.habilitado
+        habilitado: habilitado ?? capacitacion.habilitado,
+        recuperacion: recuperacion ?? capacitacion.recuperacion
       });
       
       const empresasdecap = req.body.empresas
@@ -233,6 +235,36 @@ router.patch('/:id', upload.single('certificado'), async (req, res) => {
       res.status(500).json({ message: 'Error al actualizar la capacitación.' });
     }
   });
+
+
+  // Ruta para actualizar el estado de recuperación de una capacitación
+router.patch('/:id/recuperacion', async (req, res) => {
+  const { id } = req.params;
+  const { recuperacion } = req.body;
+
+  try {
+    // Verificar si se proporcionó el estado de recuperación
+    if (recuperacion === undefined) {
+      return res.status(400).json({ message: 'El estado de recuperación es necesario.' });
+    }
+
+    // Buscar la capacitación por su ID
+    const capacitacion = await models.Capacitacion.findByPk(id);
+    if (!capacitacion) {
+      return res.status(404).json({ message: 'Capacitación no encontrada.' });
+    }
+
+    // Actualizar el estado de recuperación
+    capacitacion.recuperacion = recuperacion;
+    await capacitacion.save();
+
+    res.status(200).json({ message: 'Estado de recuperación actualizado correctamente.', capacitacion });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Error al actualizar el estado de recuperación.' });
+  }
+});
+
 
 router.delete('/:id', async(req,res,next)=>{
   try {

@@ -48,6 +48,11 @@ const CapacitacionSchema = {
         allowNull: false,
         defaultValue: true
     },
+    recuperacion: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false
+    },
     createdAt:{
         allowNull: false,
         type: DataTypes.DATE,
