@@ -17,13 +17,17 @@ router.get("/", async (req, res) => {
     const Trabajadores = await models.Trabajador.findAll({
       include: [
         { model: models.Emo, as: "emo" },
-        { model: models.Empresa, as: "empresa" },
+        { model: models.Empresa, as: "empresas" },
         { model: models.registroDescarga, as: "registroDescarga" },
       ],
     });
 
     // console.log(Trabajadores)
     const newData = Trabajadores?.map((item, index) => {
+      const empresas = item?.empresas?.map((empresa) => ({
+        empresa_id: empresa.id,
+        nombreEmpresa: empresa.nombreEmpresa,
+      }));
       return {
         nro: index + 1,
         id: item?.emo?.at(0)?.id,
@@ -58,8 +62,7 @@ router.get("/", async (req, res) => {
             ]).format("YYYY-MM-DD")
           : "",
         logo: item?.empresa?.imagenLogo,
-        nombreEmpresa: item?.empresa?.nombreEmpresa,
-        empresa_id: item?.empresa?.id,
+        empresas: empresas,
         fecha_email: item?.emo?.at(0)?.fecha_email
           ? moment(item?.emo?.at(0)?.fecha_email, [
               "YYYY-MM-DD HH:mm:ss",
