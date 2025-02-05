@@ -10,6 +10,10 @@ const CapacitacionSchema = {
         autoIncrement: true,
         type: DataTypes.INTEGER,
     },
+    codigo: {
+        allowNull: false,
+        type: DataTypes.STRING,
+    },
     nombre:{
         allowNull: false,
         type: DataTypes.STRING,
