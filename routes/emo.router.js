@@ -155,7 +155,7 @@ router.get("/reporte", async (req, res) => {
             {
               model: models.Empresa,
               where: empresaCondition,
-              as: "empresa",
+              as: "empresas",
               attributes: ["nombreEmpresa"],
             },
           ],
@@ -166,17 +166,17 @@ router.get("/reporte", async (req, res) => {
     });
 
     const formatData = reportes?.rows?.map((item) => {
-      return {
+      return item?.trabajador?.empresas?.map(empresa => ({
         id: item?.id,
         trabajador_id: item?.trabajador_id,
         fecha: item?.fecha,
         hora: item?.hora,
         apellidoMaterno: item?.trabajador?.apellidoMaterno,
         apellidoPaterno: item?.trabajador?.apellidoPaterno,
-        nombre: item?.trabajador?.nombres,
-        empresa: item?.trabajador?.empresa?.nombreEmpresa,
-      };
-    });
+          nombre: item?.trabajador?.nombres,
+          empresa: empresa?.nombreEmpresa,
+        }));
+    }).flat();
     const pageInfo = {
       total: reportes.count,
       page: page,
@@ -196,7 +196,7 @@ router.get("/reporte-descarga/:id", async (req, res) => {
     const Trabajadores = await models.Trabajador.findAll({
       include: [
         { model: models.registroDescarga, as: "registroDescarga" },
-        { model: models.Empresa, as: "empresa" },
+        { model: models.Empresa, as: "empresas" },
       ],
       where: { id }
     });

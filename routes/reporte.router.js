@@ -12,43 +12,69 @@ let globalProgress = { total: 0, completado: 0 };
 
 router.get("/", async (req, res) => {
   try {
-    let { page, limit, nombreEmpresa, capacitacion, mes, all } = req.query;
-
+    let { page, limit, nombreEmpresa, capacitacion, mes,codigo,anio, all } = req.query;
+    console.log(req.query);
     page = page ? parseInt(page) : 1;
     limit = all === "true" ? null : limit ? parseInt(limit) : 15;
     const offset = all === "true" ? null : (page - 1) * limit;
 
-    const startOfMonth = moment()
-      .set({ year: moment().year() - 1, month: mes - 1, date: 1 })
-      .startOf("day")
-      .format("YYYY-MM-DD");
-    const endOfMonth = moment()
-      .set({ year: moment().year() - 1, month: mes - 1 })
-      .endOf("month")
-      .endOf("day")
-      .format("YYYY-MM-DD");
+    let dateCondition = {};
 
-    const mesCondition =
-      mes !== undefined && mes !== ""
-        ? {
-            created_at: {
-              [Op.between]: [startOfMonth, endOfMonth],
-            },
-          }
-        : {};
+    if (anio && anio !== "") {
+      dateCondition = {
+        fechadeExamen: {
+          [Op.between]: [
+            `${anio}-01-01`,
+            `${anio}-12-31`
+          ]
+        }
+      };
+    }
+
+    if (mes && mes !== "") {
+      dateCondition = {
+        fechadeExamen: {
+          [Op.between]: [
+            moment().set({ month: mes - 1, date: 1 }).startOf("day").format("YYYY-MM-DD"),
+            moment().set({ month: mes - 1 }).endOf("month").endOf("day").format("YYYY-MM-DD")
+          ]
+        }
+      };
+    }
+
+    if (mes && mes !== "" && anio && anio !== "") {
+      dateCondition = {
+        fechadeExamen: {
+          [Op.between]: [
+            moment().set({ year: anio, month: mes - 1, date: 1 }).startOf("day").format("YYYY-MM-DD"),
+            moment().set({ year: anio, month: mes - 1 }).endOf("month").endOf("day").format("YYYY-MM-DD")
+          ]
+        }
+      };
+    }
+
     const empresaCondition =
-      nombreEmpresa !== undefined && nombreEmpresa !== ""
-        ? { nombreEmpresa: { [Op.like]: `%${nombreEmpresa}%` } }
+      nombreEmpresa && nombreEmpresa.trim() !== ""
+        ? { nombreEmpresa: { [Op.iLike]: `%${nombreEmpresa}%` } }
         : {};
+
     const capacitacionCondition =
-      capacitacion !== undefined && capacitacion !== ""
-        ? { nombre: { [Op.like]: `%${capacitacion}%` } }
+      capacitacion && capacitacion.trim() !== ""
+        ? { nombre: { [Op.iLike]: `%${capacitacion}%` } }
+        : {};
+
+    const codigoCondition =
+      codigo && codigo.trim() !== ""
+        ? { codigo: { [Op.iLike]: `%${codigo}%` } }
         : {};
     // Set default values for page and limit
 
     if (page < 1) {
       return res.status(400).json({ message: "Invalid page value" });
     }
+    const empresa = await models.Empresa.findOne({
+      where: { nombreEmpresa: { [Op.like]: `%${nombreEmpresa}%` } },
+    });
 
     const reporte = await models.Reporte.findAndCountAll({
       distinct: true,
@@ -65,13 +91,12 @@ router.get("/", async (req, res) => {
             "cargo",
             "edad",
             "genero",
-            "empresaId",
           ],
           as: "trabajador",
           include: [
             {
               model: models.Empresa,
-              as: "empresa",
+              as: "empresas",
               where: empresaCondition,
               attributes: [
                 "id",
@@ -85,20 +110,24 @@ router.get("/", async (req, res) => {
         {
           model: models.Capacitacion,
           as: "capacitacion",
-          where: capacitacionCondition,
+          where: {
+            ...capacitacionCondition,
+            ...codigoCondition
+          },
         },
         {
           model: models.Examen,
           as: "examen",
-          where: mesCondition,
+          where: dateCondition,
           include: [{ model: models.Pregunta, as: "pregunta" }],
         },
       ],
       limit,
       offset,
     });
+
     const format = reporte?.rows?.map((item) => {
-      return {
+      return item?.trabajador?.empresas?.map(empresa => ({
         trabajadorId: item?.trabajador?.id,
         nombreTrabajador:
           item?.trabajador?.apellidoPaterno +
@@ -106,17 +135,17 @@ router.get("/", async (req, res) => {
           item?.trabajador?.apellidoMaterno +
           " " +
           item?.trabajador?.nombres,
-        nombreCapacitacion: item?.capacitacion?.nombreCapacitacion,
-        nombreEmpresa: item?.trabajador?.empresa?.nombreEmpresa,
-        empresaId: item?.trabajador?.empresa?.id,
+        nombreCapacitacion: item?.capacitacion?.nombre,
+        nombreEmpresa: empresa.nombreEmpresa,
+        empresaId: empresa.id,
         fechaExamen: moment(item?.examen?.fechadeExamen).format("DD-MM-YYYY"),
         notaExamen: item?.notaExamen,
         examen: item.examen,
         asistenciaExamen: item?.asistenciaExamen,
         mesExamen: moment(item?.examen?.fechadeExamen)?.month() + 1,
         examenId: item?.examen?.id,
-        examenId: item?.examen,
         capacitacion: {
+          codigo: item?.capacitacion?.codigo,
           certificado: item?.capacitacion?.certificado,
           createdAt: item?.capacitacion?.createdAt,
           fechaAplazo: item?.capacitacion?.fechaAplazo,
@@ -150,7 +179,7 @@ router.get("/", async (req, res) => {
           genero: item?.trabajador?.genero,
           dni: item?.trabajador?.dni,
         },
-        empresa: item?.trabajador?.empresa,
+        empresa: empresa,
         reporte: {
           id: item?.id,
           notaExamen: item?.notaExamen,
@@ -161,8 +190,8 @@ router.get("/", async (req, res) => {
           rptpregunta4: item?.rptpregunta4,
           rptpregunta5: item?.rptpregunta5,
         },
-      };
-    });
+      }));
+    }).flat();
 
     const pageInfo = {
       total: reporte.count,
