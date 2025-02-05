@@ -10,31 +10,37 @@ class TrabajadorService {
 
   async create(data) {
     const hash = await bcrypt.hash(data.user.contraseña.toString(), 10);
-    // console.log(data);
+  
     const nuevoData = {
       ...data,
       user: {
         ...data.user,
-        celular: data.user.celular,
         contraseña: hash,
-        
       },
     };
+  
     const comprobarUsuario = await models.Usuario.findOne({
       where: { username: nuevoData.user.username.toString() },
     });
+  
     if (!comprobarUsuario) {
       const nuevotrabajador = await models.Trabajador.create(nuevoData, {
         include: ["user"],
       });
-
+  
+      // Asociar trabajador a múltiples empresas
+      if (data.empresas && data.empresas.length > 0) {
+        await nuevotrabajador.setEmpresas(data.empresas);
+      }
+  
       delete nuevotrabajador.dataValues.user.dataValues.password;
-      
       return nuevotrabajador;
     } else {
+      console.log("ya existe el usuario");
       return false;
     }
   }
+  
 
   async createExcel(datos, empreId) {
     const dnisSet = new Set(); // Conjunto para almacenar los DNIs
@@ -269,7 +275,7 @@ class TrabajadorService {
           [Op.in]: trabajadoresIds,
         },
       },
-      include: ["user", "empresa"],
+      include: ["user", "empresas"],
     });
 
     const trabajadoresUnicosSinDuplicados = trabajadoresUnicos.reduce(
@@ -291,7 +297,7 @@ class TrabajadorService {
     try {
       const trabajador = await models.Trabajador.findOne({
         where: { dni },
-        include: ["user", "empresa"],
+        include: ["user", "empresas"],
       });
       return trabajador;
     } catch (error) {
@@ -302,7 +308,7 @@ class TrabajadorService {
 
   async findOne(id) {
     const trabajador = await models.Trabajador.findByPk(id, {
-      include: ["user", "empresa"],
+      include: ["user", "empresas"],
     });
     if (!trabajador) {
       throw boom.notFound("Trabajador no encontrado");
@@ -312,6 +318,7 @@ class TrabajadorService {
 
   async update(id, changes) {
     const trabajador = await this.findOne(id);
+
     const userChanges = changes.user || {};
     const dniChanged = changes.dni !== undefined && changes.dni !== trabajador.dni;
   
@@ -324,10 +331,11 @@ class TrabajadorService {
       await emoRegistro.destroy();
     });
     await Promise.all(eliminacionesPromises);
+
   
     // Actualizar el campo dni en la tabla "trabajadores"
     const respuestaTrabajador = await trabajador.update({
-      nombres: changes.nombres ?? trabajador.nombres,
+      nombres: changes.nombres ?? trabajador.nombres ,
       apellidoPaterno: changes.apellidoPaterno ?? trabajador.apellidoPaterno,
       apellidoMaterno: changes.apellidoMaterno ?? trabajador.apellidoMaterno,
       dni: changes.dni ?? trabajador.dni,
@@ -339,9 +347,11 @@ class TrabajadorService {
       cargo: changes.cargo ?? trabajador.cargo,
       habilitado: changes.habilitado ?? trabajador.habilitado,
       celular: changes.celular ?? trabajador.celular,
-      empresaId: changes.empresaId ?? trabajador.empresa_id
     });
-  
+    if (changes.empresas) {
+      await trabajador.setEmpresas(changes.empresas);
+    }
+
     // Regenerar registros en la tabla "emo" con el nuevo DNI
     const regeneracionesPromises = copiasRegistrosEmoOriginales.map(async (copiaRegistro) => {
       await models.Emo.create({
@@ -365,7 +375,6 @@ class TrabajadorService {
       if (userChanges.contraseña) {
         hash = await bcrypt.hash(userChanges.contraseña, 10);
       }
-      console.log(changes);
        await user.update({
         username: userChanges.username ?? user.username,
         contraseña: hash ?? user.contraseña,

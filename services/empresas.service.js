@@ -1,5 +1,5 @@
 const boom = require('@hapi/boom');
-
+const { Op } = require("sequelize");
 const {models} = require('./../libs/sequelize')
 
 class EmpresaService{
@@ -139,6 +139,28 @@ class EmpresaService{
             throw new Error('Existen trabajadores en la empresa')
         }
     }
+
+    
+    async getEmpresasRelacionadas(empresaIds) {
+        if (!Array.isArray(empresaIds) || empresaIds.length === 0) {
+            return [];
+        }
+        const empresasRelacionadas = await models.Empresa.findAll({
+            include: [
+                {
+                    model: models.Empresa,
+                    as: "relacionadas",
+                    through: { attributes: [] },
+                    where: {
+                        id: { [Op.in]: empresaIds }  // Asegura que `empresaIds` sea un array válido
+                    }
+                }
+            ]
+        });
+
+        return empresasRelacionadas;
+    }
+      
 
 }
 

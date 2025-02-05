@@ -156,6 +156,7 @@ router.get("/", async (req, res, next) => {
           as: "empresas",
           through: { attributes: [] },
           where: empresaCondition, 
+          required: false,
         },
         { model: models.Usuario, as: "user" },
       ],

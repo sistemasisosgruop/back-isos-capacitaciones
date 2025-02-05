@@ -176,9 +176,9 @@ router.post('/',
   async (req, res,next) => {
     try {
       const body = req.body;
-      const files = req.files;
-      const nuevoEmpresa = await service.create({...body, ...files});
-      res.status(201).json(nuevoEmpresa);
+      // const files = req.files;
+      // const nuevoEmpresa = await service.create({...body, ...files});
+      // res.status(201).json(nuevoEmpresa);
     } catch (error) {
       next(error);
     }
@@ -225,6 +225,8 @@ router.get('/:id/logo', async (req, res, next) => {
     next(error);
   }
 });
+
+
 /**
  * @swagger
  * /api/v1/empresas/{id}/certificado:
@@ -378,5 +380,17 @@ router.delete('/:id',
   }
   }
 );
+
+
+
+router.post("/relaciones", async (req, res, next) => {
+  try {
+    const empresaIds  = req.body;
+    const empresasRelacionadas = await service.getEmpresasRelacionadas(empresaIds);
+    res.json(empresasRelacionadas);
+  } catch (error) {
+    next(error);
+  }
+});
 
 module.exports = router;
