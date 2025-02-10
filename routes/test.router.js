@@ -54,15 +54,17 @@ router.post('/', async (req, res) => {
 
 router.patch('/:id', async(req,res,next)=>{
     const {id} = req.params;
+    
     try {
       const tes = await models.Test.findByPk(id);
       if (!tes) {
         return res.status(404).json({message: 'No existe el test'})
       }   
 
-      const { detalle, urlTest, fechaCr, fechaVen, fechaAplazo } = req.body;
+      const { detalle, codigo, urlTest, fechaCr, fechaVen, fechaAplazo } = req.body;
       await tes.update({
         detalle: detalle ?? tes.detalle,
+        codigo: codigo ?? tes.codigo,
         urlTest: urlTest ?? tes.urlTest,
         fechaCr: fechaCr ?? tes.fechaCr,
         fechaVen: fechaVen ?? tes.fechaVen,

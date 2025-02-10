@@ -30,7 +30,6 @@ router.get('/capacitador/:id', async(req, res, next)=>{
             include: ['examen', 'Empresas'],
             where: {'$Empresas->CapacitacionEmpresa.empresa_id$': id}
         });
-
         res.json(capacitaciones)
     } catch (error) {
         next(error);
@@ -43,7 +42,6 @@ router.get('/:id', async(req,res,next)=>{
         const capacitacion = await models.Capacitacion.findByPk(id,{
             include: ['examen', 'Empresas']
         });
-
         let preguntas = null;
         if (capacitacion.examen) {
             preguntas = await models.Pregunta.findAll({
@@ -74,9 +72,7 @@ router.get('/:id/certificado', async (req, res, next) => {
 router.post('/', upload.single('certificado'), async (req, res) => {
   try {
     const { nombre, instructor, fechaInicio, fechaCulminacion, urlVideo, empresas, examen, horas, userId } = req.body;
-    console.log(req.body)
     const certificado = req.file ? req.file.path : null;
-    
     
     if (!empresas) {
       res.json({message: "Faltan empresas" })
@@ -91,6 +87,14 @@ router.post('/', upload.single('certificado'), async (req, res) => {
       certificado,
       userId
     });
+
+    // Generar el código con el formato CAP[AÑO][MES]-[ID]
+    const fecha = new Date(fechaInicio);
+    const año = fecha.getFullYear();
+    const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+    const id = String(capacitacion.id).padStart(4, '0');
+    capacitacion.codigo = `CAP${año}${mes}-${id}`;
+    await capacitacion.save();
     
     const splitempresa = empresas.split(',')
     const empresasArray = Array.isArray(empresas) ? empresas : splitempresa;

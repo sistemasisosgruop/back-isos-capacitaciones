@@ -15,6 +15,10 @@ const TestSchema = {
         allownull: false,
         type: DataTypes.STRING
     },
+    codigo: {
+        allowNull: false,
+        type: DataTypes.STRING,
+    },
     fechaCr:{
         allownull: false,
         type: DataTypes.DATEONLY

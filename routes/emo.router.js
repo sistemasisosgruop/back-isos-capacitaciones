@@ -24,11 +24,7 @@ router.get("/", async (req, res) => {
 
     // console.log(Trabajadores)
     const newData = Trabajadores?.map((item, index) => {
-      const empresas = item?.empresas?.map((empresa) => ({
-        empresa_id: empresa.id,
-        nombreEmpresa: empresa.nombreEmpresa,
-      }));
-      return {
+      return item?.empresas?.map((empresa) => ({
         nro: index + 1,
         id: item?.emo?.at(0)?.id,
         trabajador_id: item?.id,
@@ -36,6 +32,8 @@ router.get("/", async (req, res) => {
         apellidoMaterno: item?.apellidoMaterno,
         nombres: item?.nombres,
         dni: item?.dni,
+        empresa_id: empresa.id,
+        nombreEmpresa: empresa.nombreEmpresa,
         celular: item?.celular,
         email: item?.email,
         edad: item?.edad,
@@ -61,8 +59,8 @@ router.get("/", async (req, res) => {
               "DD-MM-YYYY",
             ]).format("YYYY-MM-DD")
           : "",
-        logo: item?.empresa?.imagenLogo,
-        empresas: empresas,
+        logo: empresa?.imagenLogo,
+        empresas: empresa,
         fecha_email: item?.emo?.at(0)?.fecha_email
           ? moment(item?.emo?.at(0)?.fecha_email, [
               "YYYY-MM-DD HH:mm:ss",
@@ -93,9 +91,9 @@ router.get("/", async (req, res) => {
         estado_emo_whatsapp: item?.emo?.at(0)?.estado_emo_whatsapp,
         estado: item?.emo?.at(0)?.estado,
         registroDescarga: item.registroDescarga
-      };
-    });
-
+      }));
+    })?.flat();
+    console.log(newData)
     return res.status(200).json({ data: newData });
   } catch (error) {
     console.log(error);

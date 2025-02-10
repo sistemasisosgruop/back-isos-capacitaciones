@@ -46,7 +46,6 @@ router.get("/", async (req, res) => {
         }
       };
     }
-    console.log(dateCondition)
 
     const empresaCondition =
       nombreEmpresa && nombreEmpresa.trim() !== ""
