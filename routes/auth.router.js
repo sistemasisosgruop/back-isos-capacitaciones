@@ -60,7 +60,6 @@ router.post(
         role: user.rol,
       };
       const token = jwt.sign(payload, config.jwtSecret, jwtconfig);
-      console.log(user);
       if (user.rol === "Trabajador") {
         const worker = await models.Trabajador.findOne({
           where: { userId: user.id },
@@ -91,14 +90,24 @@ router.post(
       } else if(user.rol === "Supervisor"){
         const supervisor = await models.Trabajador.findOne({
           where: { userId: user.id },
+          include: [{
+            model: models.Empresa,
+            as: "empresas",
+          }]
         });
+        
         if(supervisor.habilitado === false){
           return res.status(401).json({ message: "Usted está deshabilitado" });
         }
-        const userData = {...user.toJSON(), empresaId:supervisor.empresaId, dni: supervisor.dni}
+        
+        const userData = {
+          ...user.toJSON(), 
+          dni: supervisor.dni,
+          empresas: supervisor.empresas
+        }
 
         res.json({
-          user:userData,
+          user: userData,
           token,
           supervisor,
         });

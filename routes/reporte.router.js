@@ -6,7 +6,7 @@ const passport = require("passport");
 const moment = require("moment");
 
 const { checkWorkRol } = require("./../middlewares/auth.handler");
-const { Op } = require("sequelize");
+const { Op, fn, col, where } = require("sequelize");
 const { botonGenerarReporte } = require("../services/reporte.service");
 let globalProgress = { total: 0, completado: 0 };
 
@@ -30,15 +30,9 @@ router.get("/", async (req, res) => {
         }
       };
     }
-
     if (mes && mes !== "") {
       dateCondition = {
-        fechadeExamen: {
-          [Op.between]: [
-            moment().set({ month: mes - 1, date: 1 }).startOf("day").format("YYYY-MM-DD"),
-            moment().set({ month: mes - 1 }).endOf("month").endOf("day").format("YYYY-MM-DD")
-          ]
-        }
+        fechadeExamen: where(fn('date_part', 'month', col('examen.fechadeExamen')), '=', mes)
       };
     }
 
@@ -52,6 +46,7 @@ router.get("/", async (req, res) => {
         }
       };
     }
+    console.log(dateCondition)
 
     const empresaCondition =
       nombreEmpresa && nombreEmpresa.trim() !== ""
@@ -125,6 +120,7 @@ router.get("/", async (req, res) => {
       limit,
       offset,
     });
+    console.log(reporte)
 
     const format = reporte?.rows?.map((item) => {
       return item?.trabajador?.empresas?.map(empresa => ({
@@ -358,12 +354,7 @@ router.get("/recuperacion", async (req, res) => {
 
     if (mes && mes !== "") {
       dateCondition = {
-        fechadeExamen: {
-          [Op.between]: [
-            moment().set({ month: mes - 1, date: 1 }).startOf("day").format("YYYY-MM-DD"),
-            moment().set({ month: mes - 1 }).endOf("month").endOf("day").format("YYYY-MM-DD")
-          ]
-        }
+        fechadeExamen: where(fn('date_part', 'month', col('examen.fechadeExamen')), '=', mes)
       };
     }
 
