@@ -74,25 +74,9 @@ router.get("/data/:id", async (req, res, next) => {
               model: models.Capacitacion,
               where: {
                 [Op.or]: [
-                  {
-                    // Capacitaciones dentro de fecha
-                    [Op.and]: [
-                      { habilitado: true },
-                      {
-                        fechaCulminacion: {
-                          [Op.gte]: fechaActual.format('YYYY-MM-DD')
-                        }
-                      }
-                    ]
-                  },
-                  {
-                    // Capacitaciones en recuperación
-                    [Op.and]: [
-                      { recuperacion: true },
-                      { habilitado: true }
-                    ]
-                  }
-                ],
+                  { habilitado: true },
+                  { recuperacion: true }
+                ]
               },
               include: ["examen"],
             },
@@ -100,6 +84,7 @@ router.get("/data/:id", async (req, res, next) => {
         },
       ],
     });
+
 
     const reportes = await models.Reporte.findAll({
       where: { trabajador_id: trabajador.id },
@@ -117,22 +102,15 @@ router.get("/data/:id", async (req, res, next) => {
     if (trabajador?.empresas) {
       // Iteramos sobre las empresas asociadas al trabajador
       trabajador?.empresas.forEach((empresa) => {
+        
         // Iteramos sobre las capacitaciones asociadas a cada empresa
         empresa?.Capacitacions.forEach((capacitacion) => {
+
           // Buscamos el reporte relacionado con la capacitación
           const reporte = reportes?.find(
             (reporte) => reporte.capacitacionId === capacitacion.id
           );
 
-          const estaFueraDeFecha = moment(capacitacion.fechaCulminacion).isBefore(fechaActual, 'day');
-          const tieneRecuperacionHabilitada = capacitacion.recuperacion;
-          const noHaDadoExamen = !reporte?.asistenciaExamen;
-          const haJalado = reporte?.notaExamen < 14; // Asumiendo que 14 es la nota aprobatoria
-
-          // Solo incluir la capacitación si:
-          // 1. Está dentro de fecha, o
-          // 2. Está en recuperación y (no ha dado el examen o ha jalado)
-          if (!estaFueraDeFecha || (tieneRecuperacionHabilitada && (noHaDadoExamen || haJalado))) {
             newData.push({
               maximaNotaExamen:
                 reporte?.examen?.pregunta?.reduce(
@@ -164,7 +142,7 @@ router.get("/data/:id", async (req, res, next) => {
               id: reporte?.id,
               mesExamen: parseInt(reporte?.examen?.fechadeExamen?.split("-")[1]),
               nombreCapacitacion: capacitacion?.nombre,
-              nombreEmpresa: trabajador?.empresa?.nombreEmpresa,
+              nombreEmpresa: empresa.nombreEmpresa,
               nombreTrabajador:
                 trabajador?.nombres +
                 " " +
@@ -183,20 +161,17 @@ router.get("/data/:id", async (req, res, next) => {
                 apellidoMaterno: trabajador?.apellidoMaterno,
                 dni: trabajador?.dni,
                 edad: trabajador?.edad,
-                empresa: trabajador?.empresa,
-                empresaId: trabajador?.empresa?.id,
+                empresa: empresa,
+                empresaId: empresa.id,
                 fechadenac: trabajador?.fechadenac,
                 genero: trabajador?.genero,
                 habilitado: trabajador?.habilitado,
               },
               trabajadorId: trabajador?.id,
-              estaEnRecuperacion: estaFueraDeFecha && tieneRecuperacionHabilitada
             });
-          }
         });
       });
     }
-
     // Enviar la respuesta como JSON
     res.json(newData);
 
