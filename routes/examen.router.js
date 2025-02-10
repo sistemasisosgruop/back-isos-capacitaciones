@@ -1,4 +1,5 @@
 const { Router } = require("express");
+const moment = require("moment");
 
 const { models } = require("../libs/sequelize");
 const generarReporte = require("../services/reporte.service");
@@ -56,9 +57,12 @@ router.get("/:id", async (req, res, next) => {
     next(error);
   }
 });
+
 router.get("/data/:id", async (req, res, next) => {
   try {
     const id = req.params.id;
+    const fechaActual = moment();
+
     const trabajador = await models.Trabajador.findOne({
       where: { dni: id },
       include: [
@@ -70,8 +74,24 @@ router.get("/data/:id", async (req, res, next) => {
               model: models.Capacitacion,
               where: {
                 [Op.or]: [
-                  { habilitado: true },       // Capacitaciones habilitadas
-                  { recuperacion: true } // Capacitaciones en modo recuperación
+                  {
+                    // Capacitaciones dentro de fecha
+                    [Op.and]: [
+                      { habilitado: true },
+                      {
+                        fechaCulminacion: {
+                          [Op.gte]: fechaActual.format('YYYY-MM-DD')
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    // Capacitaciones en recuperación
+                    [Op.and]: [
+                      { recuperacion: true },
+                      { habilitado: true }
+                    ]
+                  }
                 ],
               },
               include: ["examen"],
@@ -104,71 +124,81 @@ router.get("/data/:id", async (req, res, next) => {
             (reporte) => reporte.capacitacionId === capacitacion.id
           );
 
-          newData.push({
-            maximaNotaExamen:
-              reporte?.examen?.pregunta?.reduce(
-                (acc, val) => acc + val.puntajeDePregunta,
-                0
-              ) ?? null,
-            notaExamen: reporte?.notaExamen,
-            asistenciaExamen: reporte?.asistenciaExamen,
-            capacitacion: {
-              certificado: capacitacion?.certificado,
-              createdAt: capacitacion?.createdAt,
-              fechaAplazo: capacitacion?.fechaAplazo,
-              fechaCulminacion: capacitacion?.fechaCulminacion,
-              fechaInicio: capacitacion?.fechaInicio,
-              habilitado: capacitacion?.habilitado,
-              horas: capacitacion?.horas,
-              id: capacitacion?.id,
-              instructor: capacitacion?.instructor,
-              nombre: capacitacion?.nombre,
-              recuperacion: capacitacion?.recuperacion,
-              urlVideo: capacitacion?.urlVideo,
-            },
-            capacitacionId: capacitacion?.CapacitacionEmpresa?.capacitacionId,
-            createdAt: trabajador?.createdAt,
-            examen: reporte?.examen,
-            examenId: reporte?.examenId,
-            fechaCapacitacion: capacitacion?.fechaInicio,
-            fechaExamen: reporte?.examen?.fechadeExamen,
-            id: reporte?.id,
-            mesExamen: parseInt(reporte?.examen?.fechadeExamen?.split("-")[1]),
-            nombreCapacitacion: capacitacion?.nombre,
-            nombreEmpresa: trabajador?.empresa?.nombreEmpresa,
-            nombreTrabajador:
-              trabajador?.nombres +
-              " " +
-              trabajador?.apellidoPaterno +
-              " " +
-              trabajador?.apellidoMaterno,
-            rptpregunta1: reporte?.rptpregunta1,
-            rptpregunta2: reporte?.rptpregunta2,
-            rptpregunta3: reporte?.rptpregunta3,
-            rptpregunta4: reporte?.rptpregunta4,
-            rptpregunta5: reporte?.rptpregunta5,
-            trabajador: {
-              id: trabajador?.id,
-              nombres: trabajador?.nombres,
-              apellidoPaterno: trabajador?.apellidoPaterno,
-              apellidoMaterno: trabajador?.apellidoMaterno,
-              dni: trabajador?.dni,
-              edad: trabajador?.edad,
-              empresa: trabajador?.empresa,
-              empresaId: trabajador?.empresa?.id,
-              fechadenac: trabajador?.fechadenac,
-              genero: trabajador?.genero,
-              habilitado: trabajador?.habilitado,
-            },
-            trabajadorId: trabajador?.id,
-          });
+          const estaFueraDeFecha = moment(capacitacion.fechaCulminacion).isBefore(fechaActual, 'day');
+          const tieneRecuperacionHabilitada = capacitacion.recuperacion;
+          const noHaDadoExamen = !reporte?.asistenciaExamen;
+          const haJalado = reporte?.notaExamen < 14; // Asumiendo que 14 es la nota aprobatoria
+
+          // Solo incluir la capacitación si:
+          // 1. Está dentro de fecha, o
+          // 2. Está en recuperación y (no ha dado el examen o ha jalado)
+          if (!estaFueraDeFecha || (tieneRecuperacionHabilitada && (noHaDadoExamen || haJalado))) {
+            newData.push({
+              maximaNotaExamen:
+                reporte?.examen?.pregunta?.reduce(
+                  (acc, val) => acc + val.puntajeDePregunta,
+                  0
+                ) ?? null,
+              notaExamen: reporte?.notaExamen,
+              asistenciaExamen: reporte?.asistenciaExamen,
+              capacitacion: {
+                certificado: capacitacion?.certificado,
+                createdAt: capacitacion?.createdAt,
+                fechaAplazo: capacitacion?.fechaAplazo,
+                fechaCulminacion: capacitacion?.fechaCulminacion,
+                fechaInicio: capacitacion?.fechaInicio,
+                habilitado: capacitacion?.habilitado,
+                horas: capacitacion?.horas,
+                id: capacitacion?.id,
+                instructor: capacitacion?.instructor,
+                nombre: capacitacion?.nombre,
+                recuperacion: capacitacion?.recuperacion,
+                urlVideo: capacitacion?.urlVideo,
+              },
+              capacitacionId: capacitacion?.CapacitacionEmpresa?.capacitacionId,
+              createdAt: trabajador?.createdAt,
+              examen: reporte?.examen,
+              examenId: reporte?.examenId,
+              fechaCapacitacion: capacitacion?.fechaInicio,
+              fechaExamen: reporte?.examen?.fechadeExamen,
+              id: reporte?.id,
+              mesExamen: parseInt(reporte?.examen?.fechadeExamen?.split("-")[1]),
+              nombreCapacitacion: capacitacion?.nombre,
+              nombreEmpresa: trabajador?.empresa?.nombreEmpresa,
+              nombreTrabajador:
+                trabajador?.nombres +
+                " " +
+                trabajador?.apellidoPaterno +
+                " " +
+                trabajador?.apellidoMaterno,
+              rptpregunta1: reporte?.rptpregunta1,
+              rptpregunta2: reporte?.rptpregunta2,
+              rptpregunta3: reporte?.rptpregunta3,
+              rptpregunta4: reporte?.rptpregunta4,
+              rptpregunta5: reporte?.rptpregunta5,
+              trabajador: {
+                id: trabajador?.id,
+                nombres: trabajador?.nombres,
+                apellidoPaterno: trabajador?.apellidoPaterno,
+                apellidoMaterno: trabajador?.apellidoMaterno,
+                dni: trabajador?.dni,
+                edad: trabajador?.edad,
+                empresa: trabajador?.empresa,
+                empresaId: trabajador?.empresa?.id,
+                fechadenac: trabajador?.fechadenac,
+                genero: trabajador?.genero,
+                habilitado: trabajador?.habilitado,
+              },
+              trabajadorId: trabajador?.id,
+              estaEnRecuperacion: estaFueraDeFecha && tieneRecuperacionHabilitada
+            });
+          }
         });
       });
     }
 
     // Enviar la respuesta como JSON
     res.json(newData);
-    console.log(newData);
 
   } catch (error) {
     console.log(error);

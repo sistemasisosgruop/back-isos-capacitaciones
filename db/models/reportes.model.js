@@ -53,6 +53,12 @@ const ReportesSchema = {
         field: 'created_at',
         defaultValue: Sequelize.NOW
     },
+    isRecuperacion: {
+        field: 'is_recuperacion',
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false
+    },
     trabajadorId: {
       field: 'trabajador_id',
       allowNull: false,

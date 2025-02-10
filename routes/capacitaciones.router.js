@@ -30,6 +30,7 @@ router.get('/capacitador/:id', async(req, res, next)=>{
             include: ['examen', 'Empresas'],
             where: {'$Empresas->CapacitacionEmpresa.empresa_id$': id}
         });
+
         res.json(capacitaciones)
     } catch (error) {
         next(error);
@@ -42,6 +43,7 @@ router.get('/:id', async(req,res,next)=>{
         const capacitacion = await models.Capacitacion.findByPk(id,{
             include: ['examen', 'Empresas']
         });
+
         let preguntas = null;
         if (capacitacion.examen) {
             preguntas = await models.Pregunta.findAll({
