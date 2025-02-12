@@ -212,6 +212,209 @@ router.get("/", async (req, res) => {
   }
 });
 
+
+router.get("/reporte2", async (req, res) => {
+  try {
+    let { page, limit, nombreEmpresa, capacitacion, mes,codigo,anio, all } = req.query;
+    page = page ? parseInt(page) : 1;
+    limit = all === "true" ? null : limit ? parseInt(limit) : 15;
+    const offset = all === "true" ? null : (page - 1) * limit;
+
+    let dateCondition = {};
+
+    if (anio && anio !== "") {
+      dateCondition = {
+        fechadeExamen: {
+          [Op.between]: [
+            `${anio}-01-01`,
+            `${anio}-12-31`
+          ]
+        }
+      };
+    }
+    if (mes && mes !== "") {
+      dateCondition = {
+        fechadeExamen: where(fn('date_part', 'month', col('examen.fechadeExamen')), '=', mes)
+      };
+    }
+
+    if (mes && mes !== "" && anio && anio !== "") {
+      dateCondition = {
+        fechadeExamen: {
+          [Op.between]: [
+            moment().set({ year: anio, month: mes - 1, date: 1 }).startOf("day").format("YYYY-MM-DD"),
+            moment().set({ year: anio, month: mes - 1 }).endOf("month").endOf("day").format("YYYY-MM-DD")
+          ]
+        }
+      };
+    }
+
+    const empresaCondition =
+      nombreEmpresa && nombreEmpresa.trim() !== ""
+        ? { nombreEmpresa: { [Op.iLike]: `%${nombreEmpresa}%` } }
+        : {};
+
+    const capacitacionCondition =
+      capacitacion && capacitacion.trim() !== ""
+        ? { codigo: { [Op.iLike]: `%${capacitacion}%` } }
+        : {};
+
+    const codigoCondition =
+      codigo && codigo.trim() !== ""
+        ? { codigo: { [Op.iLike]: `%${codigo}%` } }
+        : {};
+    // Set default values for page and limit
+
+    if (page < 1) {
+      return res.status(400).json({ message: "Invalid page value" });
+    }
+    const empresa = await models.Empresa.findOne({
+      where: { nombreEmpresa: { [Op.like]: `%${nombreEmpresa}%` } },
+    });
+
+    const reporte = await models.Reporte.findAndCountAll({
+      distinct: true,
+      include: [
+        {
+          model: models.Trabajador,
+          where: { habilitado: true },
+          attributes: [
+            "id",
+            "nombres",
+            "apellidoMaterno",
+            "apellidoPaterno",
+            "dni",
+            "cargo",
+            "edad",
+            "genero",
+          ],
+          as: "trabajador",
+          include: [
+            {
+              model: models.Empresa,
+              as: "empresas",
+              where: empresaCondition,
+              attributes: [
+                "id",
+                "nombreEmpresa",
+                "imagenLogo",
+                "imagenCertificado",
+              ],
+            },
+          ],
+        },
+        {
+          model: models.Capacitacion,
+          as: "capacitacion",
+          where: {
+            ...capacitacionCondition,
+            ...codigoCondition,
+          },
+          include: [
+            {
+              model: models.Empresa,
+              as: 'Empresas',
+              through: { attributes: [] }, // Esto evita que se incluyan los atributos de la tabla intermedia
+              where: { nombreEmpresa: nombreEmpresa }
+            }
+          ]
+        },
+        {
+          model: models.Examen,
+          as: "examen",
+          where: dateCondition,
+          include: [{ model: models.Pregunta, as: "pregunta" }],
+        },
+      ],
+      limit,
+      offset,
+    });
+    
+    const format = reporte?.rows?.map((item) => {
+      return item?.trabajador?.empresas?.map(empresa => ({
+        trabajadorId: item?.trabajador?.id,
+        nombreTrabajador:
+          item?.trabajador?.apellidoPaterno +
+          " " +
+          item?.trabajador?.apellidoMaterno +
+          " " +
+          item?.trabajador?.nombres,
+        nombreCapacitacion: item?.capacitacion?.nombre,
+        nombreEmpresa: empresa.nombreEmpresa,
+        empresaId: empresa.id,
+        fechaExamen: moment(item?.fechaExamen).format("DD-MM-YYYY"),
+        horaExamen: moment(item?.fechaExamen).format("HH:mm"),
+        notaExamen: item?.notaExamen,
+        examen: item.examen,
+        asistenciaExamen: item?.asistenciaExamen,
+        mesExamen: moment(item?.examen?.fechadeExamen)?.month() + 1,
+        examenId: item?.examen?.id,
+        capacitacion: {
+          codigo: item?.capacitacion?.codigo,
+          certificado: item?.capacitacion?.certificado,
+          createdAt: item?.capacitacion?.createdAt,
+          fechaAplazo: item?.capacitacion?.fechaAplazo,
+          fechaCulminacion: item?.capacitacion?.fechaCulminacion,
+          fechaInicio: item?.capacitacion?.fechaInicio,
+          horas: item?.capacitacion?.horas,
+          habilitado: item?.capacitacion?.habilitado,
+          id: item?.capacitacion?.id,
+          instructor: item?.capacitacion?.instructor,
+          nombre: item?.capacitacion?.nombre,
+          urlVideo: item?.capacitacion?.urlVideo,
+        },
+        createdAt: moment(item?.capacitacion?.createdAt),
+        nombreCapacitacion: item?.capacitacion?.nombre,
+        capacitacionId: item?.capacitacion?.id,
+        pregunta: item?.examen?.pregunta.sort((a, b) => {
+          // Extraer el número del texto de cada pregunta
+          const numA = a.texto ? parseInt(a.texto.split(".")[0]) : 0;
+          const numB = b.texto ? parseInt(b.texto.split(".")[0]) : 0;
+
+          // Devolver la diferencia entre los números para ordenar
+          return numA - numB;
+        }),
+        trabajador: {
+          id: item?.trabajador?.id,
+          apellidoMaterno: item?.trabajador?.apellidoMaterno,
+          apellidoPaterno: item?.trabajador?.apellidoPaterno,
+          nombres: item?.trabajador?.nombres,
+          cargo: item?.trabajador?.cargo,
+          edad: item?.trabajador?.edad,
+          genero: item?.trabajador?.genero,
+          dni: item?.trabajador?.dni,
+        },
+        empresa: empresa,
+        reporte: {
+          id: item?.id,
+          notaExamen: item?.notaExamen,
+          asistenciaExamen: item?.asistenciaExamen,
+          rptpregunta1: item?.rptpregunta1,
+          rptpregunta2: item?.rptpregunta2,
+          rptpregunta3: item?.rptpregunta3,
+          rptpregunta4: item?.rptpregunta4,
+          rptpregunta5: item?.rptpregunta5,
+        },
+      }));
+    }).flat();
+
+
+    const pageInfo = {
+      total: reporte.count,
+      page: page,
+      limit: limit,
+      totalPage: Math.ceil(reporte.count / limit),
+      next: parseInt(page) + 1,
+    };
+
+    // Enviar la respuesta con la paginación
+    res.json({ data: format, pageInfo });
+  } catch (error) {
+    console.log(error);
+    res.json({ message: "no encuentra reportes" });
+  }
+});
+
 router.get("/generar", async (req, res) => {
   try {
     await botonGenerarReporte(globalProgress);
