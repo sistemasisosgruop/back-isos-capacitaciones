@@ -13,7 +13,6 @@ let globalProgress = { total: 0, completado: 0 };
 router.get("/", async (req, res) => {
   try {
     let { page, limit, nombreEmpresa, capacitacion, mes,codigo,anio, all } = req.query;
-    console.log(req.query);
     page = page ? parseInt(page) : 1;
     limit = all === "true" ? null : limit ? parseInt(limit) : 15;
     const offset = all === "true" ? null : (page - 1) * limit;
@@ -119,8 +118,7 @@ router.get("/", async (req, res) => {
       limit,
       offset,
     });
-    console.log(reporte)
-
+    
     const format = reporte?.rows?.map((item) => {
       return item?.trabajador?.empresas?.map(empresa => ({
         trabajadorId: item?.trabajador?.id,
@@ -133,7 +131,8 @@ router.get("/", async (req, res) => {
         nombreCapacitacion: item?.capacitacion?.nombre,
         nombreEmpresa: empresa.nombreEmpresa,
         empresaId: empresa.id,
-        fechaExamen: moment(item?.examen?.fechadeExamen).format("DD-MM-YYYY"),
+        fechaExamen: moment(item?.fechaExamen).format("DD-MM-YYYY"),
+        horaExamen: moment(item?.fechaExamen).format("HH:mm"),
         notaExamen: item?.notaExamen,
         examen: item.examen,
         asistenciaExamen: item?.asistenciaExamen,
@@ -187,6 +186,7 @@ router.get("/", async (req, res) => {
         },
       }));
     }).flat();
+
 
     const pageInfo = {
       total: reporte.count,
@@ -254,14 +254,9 @@ router.patch(
       });
 
       // Verificar fechas
-      const fechaActual = moment();
-      const fechaCulminacion = moment(capacitacion.fechaCulminacion);
-      const esExamenFueraDeFecha = fechaActual.isAfter(fechaCulminacion);
-      console.log(esExamenFueraDeFecha);
-
 
       // Si no es primera vez o está fuera de fecha, necesita recuperación habilitada
-      if ((intentoPrevio || esExamenFueraDeFecha) && !capacitacion.recuperacion) {
+      if ((intentoPrevio) && !capacitacion.recuperacion) {
         return res.status(403).json({
           message: "No está habilitada la recuperación para esta capacitación"
         });
@@ -301,6 +296,7 @@ router.patch(
       // Actualizar el reporte
       const reporteActualizado = await reporte.update({
         notaExamen,
+        fechaExamen: moment().tz('America/Lima').format('YYYY-MM-DD HH:mm:ss'),
         asistenciaExamen: true,
         isRecuperacion: !!(intentoPrevio || esExamenFueraDeFecha),
         rptpregunta1: examen.pregunta[0]
@@ -320,7 +316,6 @@ router.patch(
           : 0,
       });
 
-      console.log(reporteActualizado);
 
       res.json(reporteActualizado);
     } catch (err) {
@@ -331,7 +326,6 @@ router.patch(
 );
 
 router.get("/recuperacion", async (req, res) => {
-  console.log("---------------------------------------------------------entraa");
   try {
     let { page, limit, nombreEmpresa, capacitacion, mes, codigo, anio, all } = req.query;
     page = page ? parseInt(page) : 1;
@@ -451,6 +445,7 @@ router.get("/recuperacion", async (req, res) => {
         nombreEmpresa: empresa.nombreEmpresa,
         empresaId: empresa.id,
         fechaExamen: moment(item?.examen?.fechadeExamen).format("DD-MM-YYYY"),
+        horaExamen: moment(item?.examen?.fechadeExamen).format("HH:mm"),
         notaExamen: item?.notaExamen,
         examen: item.examen,
         asistenciaExamen: item?.asistenciaExamen,

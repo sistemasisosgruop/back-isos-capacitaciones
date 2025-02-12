@@ -47,7 +47,9 @@ const generarReporte = async (id, trabajador) => {
 
 const botonGenerarReporte = async (globalProgress) => {
   const capacitaciones = await models.Capacitacion.findAll({
-    where: { habilitado: true },
+    where: {
+      [Op.or]: [{ habilitado: true }, { recuperacion: true }]
+     },
     include: ["examen", "Empresas"],
   });
 
