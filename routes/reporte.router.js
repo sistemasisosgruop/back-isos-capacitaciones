@@ -105,8 +105,16 @@ router.get("/", async (req, res) => {
           as: "capacitacion",
           where: {
             ...capacitacionCondition,
-            ...codigoCondition
+            ...codigoCondition,
           },
+          include: [
+            {
+              model: models.Empresa,
+              as: 'Empresas',
+              through: { attributes: [] }, // Esto evita que se incluyan los atributos de la tabla intermedia
+              where: { nombreEmpresa: nombreEmpresa }
+            }
+          ]
         },
         {
           model: models.Examen,
@@ -298,7 +306,7 @@ router.patch(
         notaExamen,
         fechaExamen: moment().tz('America/Lima').format('YYYY-MM-DD HH:mm:ss'),
         asistenciaExamen: true,
-        isRecuperacion: !!(intentoPrevio || esExamenFueraDeFecha),
+        isRecuperacion: !!(intentoPrevio),
         rptpregunta1: examen.pregunta[0]
           ? respuestasPorPregunta[examen.pregunta[0].id] || 0
           : 0,

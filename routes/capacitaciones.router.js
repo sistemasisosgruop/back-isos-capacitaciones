@@ -22,6 +22,30 @@ router.get('/', async(req, res, next)=>{
         next(error);
     }
 })
+ 
+router.get('/empresa', async(req, res, next)=>{
+  try {
+      const { empresaId } = req.query;
+      if (!empresaId) {
+        return res.status(400).json({ message: 'Debe proporcionar un empresaId' });
+      }
+
+      const capacitaciones = await models.Capacitacion.findAll({
+          include: [
+            {
+              model: models.Empresa,
+              as: 'Empresas',
+              through: { attributes: [] }, // Esto evita que se incluyan los atributos de la tabla intermedia
+              where: { id: empresaId }
+            }
+          ]
+      });
+
+      res.json(capacitaciones)
+  } catch (error) {
+      next(error);
+  }
+})
 
 router.get('/capacitador/:id', async(req, res, next)=>{
     try {
