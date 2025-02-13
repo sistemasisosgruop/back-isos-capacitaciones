@@ -6,7 +6,7 @@ const passport = require("passport");
 const moment = require("moment");
 
 const { checkWorkRol } = require("./../middlewares/auth.handler");
-const { Op, fn, col, where } = require("sequelize");
+const { Op, fn, col, where, Sequelize } = require("sequelize");
 const { botonGenerarReporte } = require("../services/reporte.service");
 let globalProgress = { total: 0, completado: 0 };
 
@@ -212,6 +212,167 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.get("/capacitaciones/:dni", async (req, res) => {
+  try {
+    let { page, limit, capacitacion, mes, anio } = req.query;
+    const { dni } = req.params;
+    console.log(dni)
+    page = page ? parseInt(page) : 1;
+
+    let dateCondition = {};
+
+    if (anio && anio !== "") {
+      dateCondition = {
+        fechadeExamen: {
+          [Op.between]: [
+            `${anio}-01-01`,
+            `${anio}-12-31`
+          ]
+        }
+      };
+    }
+    if (mes && mes !== "") {
+      dateCondition = {
+        fechadeExamen: where(fn('date_part', 'month', col('examen.fechadeExamen')), '=', mes)
+      };
+    }
+
+    if (mes && mes !== "" && anio && anio !== "") {
+      dateCondition = {
+        fechadeExamen: {
+          [Op.between]: [
+            moment().set({ year: anio, month: mes - 1, date: 1 }).startOf("day").format("YYYY-MM-DD"),
+            moment().set({ year: anio, month: mes - 1 }).endOf("month").endOf("day").format("YYYY-MM-DD")
+          ]
+        }
+      };
+    }
+
+    const capacitacionCondition =
+      capacitacion && capacitacion.trim() !== ""
+        ? { nombre: { [Op.iLike]: `%${capacitacion}%` } }
+        : {};
+
+    if (page < 1) {
+      return res.status(400).json({ message: "Invalid page value" });
+    }
+    
+    const reporte = await models.Reporte.findAndCountAll({
+      distinct: true,
+      include: [
+        {
+          model: models.Trabajador,
+          where: { 
+            habilitado: true,
+            dni: dni
+           },
+          attributes: [
+            "id",
+            "nombres",
+            "apellidoMaterno",
+            "apellidoPaterno",
+            "dni",
+          ],
+          as: "trabajador",
+          include: [
+            {
+              model: models.Empresa,
+              as: "empresas",
+              attributes: [
+                "id",
+                "nombreEmpresa",
+                "imagenLogo",
+                "imagenCertificado",
+              ],
+              through: { attributes: [] },
+            },
+          ],
+        },
+        {
+          model: models.Capacitacion,
+          as: "capacitacion",
+          where: {
+            ...capacitacionCondition,
+          },
+          include: [
+            {
+              model: models.Empresa,
+              as: 'Empresas',
+              through: { attributes: [] },
+              required: true,
+            }
+          ],
+          required: true,
+        },
+        {
+          model: models.Examen,
+          as: "examen",
+          where: dateCondition,
+          include: [
+            { 
+              model: models.Pregunta, 
+              as: "pregunta",
+            }
+          ],
+          required: true,
+        },
+      ],
+      where: Sequelize.where(
+        Sequelize.col('"trabajador->empresas"."id"'),
+        '=',
+        Sequelize.col('"capacitacion->Empresas"."id"')
+      ),
+      subQuery: false,
+    });
+
+    // Formatea los resultados para mostrar claramente la relación empresa-capacitación
+    const format = reporte?.rows?.map((item) => ({
+      reporteId: item.id,
+      fechaExamen: moment(item.fechaExamen).format("DD-MM-YYYY"),
+      horaExamen: moment(item.fechaExamen).format("HH:mm"),
+      asistenciaExamen: item.asistenciaExamen,
+      notaExamen: item.notaExamen,
+      trabajadorId: item.trabajador.id,
+      capacitacionId: item.capacitacion.id,
+      empresaId: item.capacitacion.Empresas[0].id,
+      trabajador: {
+        id: item.trabajador.id,
+        dni: item.trabajador.dni,
+        nombreCompleto: `${item.trabajador.apellidoPaterno} ${item.trabajador.apellidoMaterno} ${item.trabajador.nombres}`,
+        apellidoMaterno: item.trabajador.apellidoMaterno,
+        apellidoPaterno: item.trabajador.apellidoPaterno,
+        nombres: item.trabajador.nombres,
+      },
+      empresa: {
+        id: item.capacitacion.Empresas[0].id,
+        nombreEmpresa: item.capacitacion.Empresas[0].nombreEmpresa,
+      },
+      capacitacion: {
+        id: item.capacitacion.id,
+        nombre: item.capacitacion.nombre,
+        codigo: item.capacitacion.codigo,
+        horas: item.capacitacion.horas,
+        fechaInicio: item.capacitacion.fechaInicio,
+      },
+      examen: {
+        id: item.examen.id,
+        fecha: moment(item.examen.fechadeExamen).format("DD-MM-YYYY"),
+        nota: item.notaExamen,
+      }
+    }));
+
+    console.log(format)
+
+    res.json({ 
+      data: format,
+      count: reporte.count
+    });
+
+  } catch (error) {
+    console.log(error);
+    res.json({ message: "no encuentra reportes" });
+  }
+});
 
 router.get("/reporte2", async (req, res) => {
   try {
