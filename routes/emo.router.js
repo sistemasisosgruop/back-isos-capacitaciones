@@ -103,6 +103,58 @@ router.get("/", async (req, res) => {
   }
 });
 
+
+router.get("/emo/:dni", async (req, res) => {
+  try {
+    const { dni } = req.params;
+    const ultimoEmo = await models.Emo.findOne({
+      where: { trabajadorId: dni },
+      order: [['fecha_examen', 'DESC']],
+      include: [
+        {
+          model: models.Trabajador,
+          as: 'trabajador',
+        }
+      ]
+    });
+
+    console.log(ultimoEmo)
+    const newData = [
+      {
+        nro: 1,
+        id: ultimoEmo?.id,
+        trabajador_id: ultimoEmo?.trabajadorId,
+        apellidoPaterno: ultimoEmo?.trabajador?.apellidoPaterno,
+        apellidoMaterno: ultimoEmo?.trabajador?.apellidoMaterno,
+        nombres: ultimoEmo?.trabajador?.nombres,
+        controles: ultimoEmo?.controles,
+        recomendaciones: ultimoEmo?.recomendaciones,
+        dni: ultimoEmo?.trabajador?.dni,
+        clinica: ultimoEmo?.clinica,
+        fecha_examen: ultimoEmo?.fecha_examen
+          ? moment(ultimoEmo?.fecha_examen, [
+              "YYYY-MM-DD",
+              "DD-MM-YYYY",
+            ]).format("YYYY-MM-DD")
+          : "",
+        fecha_vencimiento: ultimoEmo?.fecha_vencimiento
+          ? moment(ultimoEmo?.fecha_vencimiento, [
+              "YYYY-MM-DD",
+              "DD-MM-YYYY",
+            ]).format("YYYY-MM-DD")
+          : "",
+      },
+    ];
+
+    return res.status(200).json({ data: newData });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json({ msg: "No se pudo obtener los trabajadores." });
+  }
+});
+
 router.get("/reporte", async (req, res) => {
   try {
     let { page, limit, nombreEmpresa, search, all } = req.query;
