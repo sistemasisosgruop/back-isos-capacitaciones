@@ -11,6 +11,7 @@ const examenRouter = require('./examen.router')
 const testsRouter = require('./test.router')
 const reporteRouter = require('./reporte.router')
 const emoRouter = require('./emo.router')
+const solicitudRouter = require('./solicitud.router')   
 
 function routerApi(app){
     const router = express.Router();
@@ -26,6 +27,7 @@ function routerApi(app){
     router.use('/test', testsRouter);
     router.use('/reporte', reporteRouter);
     router.use('/emo', emoRouter)
+    router.use('/solicitud', solicitudRouter)
 }
 
 module.exports = routerApi;

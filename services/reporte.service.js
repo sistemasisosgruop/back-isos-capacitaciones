@@ -39,9 +39,7 @@ const generarReporte = async (id, trabajador) => {
     }
 
   } catch (error) {
-    console.log("====================================");
     console.log(error);
-    console.log("====================================");
   }
 };
 

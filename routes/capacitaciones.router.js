@@ -22,6 +22,44 @@ router.get('/', async(req, res, next)=>{
         next(error);
     }
 })
+
+
+router.get('/codigo/:codigo', async(req, res, next)=>{
+  try {
+      const { codigo } = req.params;
+      const reporte = await models.Reporte.findOne({
+        where: {id: codigo},
+        include: [{
+          model: models.Capacitacion,
+          as: 'capacitacion',
+          attributes: ['codigo', 'nombre', 'horas']
+        }]
+      });
+
+      if (!reporte) {
+        return res.status(404).json({ message: 'Reporte no encontrado' });
+      }
+
+      // Validar si la capacitación tiene menos de un año
+      const fechaCapacitacion = new Date(reporte.fechaExamen);
+      const fechaActual = new Date();
+      const diferenciaMeses = (fechaActual - fechaCapacitacion) / (1000 * 60 * 60 * 24 * 30);
+      const estado = diferenciaMeses <= 12 ? 1 : 0;
+
+      const respuesta = {
+        codigoCertificado: reporte.id,
+        codigoCapacitacion: reporte.capacitacion.codigo,
+        capacitacion: reporte.capacitacion.nombre,
+        fecha: reporte.fechaExamen,
+        duracion: `${reporte.capacitacion.horas} horas`,
+        estado: estado
+      };
+
+      res.json(respuesta);
+  } catch (error) {
+      next(error);
+  }
+})
  
 router.get('/empresa', async(req, res, next)=>{
   try {

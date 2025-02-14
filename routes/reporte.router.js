@@ -65,9 +65,6 @@ router.get("/", async (req, res) => {
     if (page < 1) {
       return res.status(400).json({ message: "Invalid page value" });
     }
-    const empresa = await models.Empresa.findOne({
-      where: { nombreEmpresa: { [Op.like]: `%${nombreEmpresa}%` } },
-    });
 
     const reporte = await models.Reporte.findAndCountAll({
       distinct: true,
@@ -112,7 +109,7 @@ router.get("/", async (req, res) => {
               model: models.Empresa,
               as: 'Empresas',
               through: { attributes: [] }, // Esto evita que se incluyan los atributos de la tabla intermedia
-              where: { nombreEmpresa: nombreEmpresa }
+              where: nombreEmpresa ? { nombreEmpresa } : {}
             }
           ]
         },
