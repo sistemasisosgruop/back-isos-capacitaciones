@@ -176,10 +176,11 @@ router.post('/',
   async (req, res,next) => {
     try {
       const body = req.body;
-      // const files = req.files;
-      // const nuevoEmpresa = await service.create({...body, ...files});
-      // res.status(201).json(nuevoEmpresa);
+      const files = req.files;
+      const nuevoEmpresa = await service.create({...body, ...files});
+      res.status(201).json(nuevoEmpresa);
     } catch (error) {
+      console.log(error);
       next(error);
     }
   }
