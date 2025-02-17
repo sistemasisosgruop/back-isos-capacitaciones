@@ -85,6 +85,58 @@ router.get('/empresa', async(req, res, next)=>{
   }
 })
 
+router.get('/trabajador', async(req, res, next)=>{
+  try {
+      const { dni } = req.query;
+      if (!dni) {
+        return res.status(400).json({ message: 'Debe proporcionar un DNI' });
+      }
+
+      // Primero encontramos al trabajador por su DNI
+      const trabajador = await models.Trabajador.findOne({
+        where: { dni },
+        include: [{
+          model: models.Empresa,
+          as: 'empresas'
+        }]
+      });
+
+      if (!trabajador) {
+        return res.status(404).json({ message: 'Trabajador no encontrado' });
+      }
+
+      // Obtenemos los IDs de todas las empresas donde está el trabajador
+      const empresasIds = trabajador.empresas.map(empresa => empresa.id);
+
+      // Buscamos todas las capacitaciones de esas empresas
+      const capacitaciones = await models.Capacitacion.findAll({
+        include: [
+          {
+            model: models.Empresa,
+            as: 'Empresas',
+            through: { attributes: [] },
+            where: { 
+              id: empresasIds 
+            }
+          },
+          {
+            model: models.Reporte,
+            as: 'reporte',
+            required: true,
+            where: {
+              trabajadorId: trabajador.id
+            }
+          }
+        ]
+      });
+      console.log(capacitaciones);
+      res.json(capacitaciones);
+  } catch (error) {
+      next(error);
+  }
+})
+
+
 router.get('/capacitador/:id', async(req, res, next)=>{
     try {
         const {id} = req.params;

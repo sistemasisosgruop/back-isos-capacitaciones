@@ -213,7 +213,6 @@ router.get("/capacitaciones/:dni", async (req, res) => {
   try {
     let { page, limit, capacitacion, mes, anio } = req.query;
     const { dni } = req.params;
-    console.log(dni)
     page = page ? parseInt(page) : 1;
 
     let dateCondition = {};
@@ -357,8 +356,6 @@ router.get("/capacitaciones/:dni", async (req, res) => {
         nota: item.notaExamen,
       }
     }));
-
-    console.log(format)
 
     res.json({ 
       data: format,
