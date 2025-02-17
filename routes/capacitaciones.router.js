@@ -137,8 +137,22 @@ router.post('/', upload.single('certificado'), async (req, res) => {
     const certificado = req.file ? req.file.path : null;
     
     if (!empresas) {
-      res.json({message: "Faltan empresas" })
+      return res.json({message: "Faltan empresas" });
     }
+
+    // Generar el código antes de crear la capacitación
+    const fecha = new Date(fechaInicio);
+    const año = fecha.getFullYear();
+    const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+    
+    // Obtener el último ID de capacitación
+    const ultimaCapacitacion = await models.Capacitacion.findOne({
+      order: [['id', 'DESC']]
+    });
+    const nextId = ultimaCapacitacion ? ultimaCapacitacion.id + 1 : 1;
+    const idPadded = String(nextId).padStart(4, '0');
+    const codigo = `CAP${año}${mes}-${idPadded}`;
+
     const capacitacion = await models.Capacitacion.create({
       nombre,
       instructor,
@@ -147,16 +161,9 @@ router.post('/', upload.single('certificado'), async (req, res) => {
       urlVideo,
       horas,
       certificado,
-      userId
+      userId,
+      codigo // Incluimos el código al crear la capacitación
     });
-
-    // Generar el código con el formato CAP[AÑO][MES]-[ID]
-    const fecha = new Date(fechaInicio);
-    const año = fecha.getFullYear();
-    const mes = String(fecha.getMonth() + 1).padStart(2, '0');
-    const id = String(capacitacion.id).padStart(4, '0');
-    capacitacion.codigo = `CAP${año}${mes}-${id}`;
-    await capacitacion.save();
     
     const splitempresa = empresas.split(',')
     const empresasArray = Array.isArray(empresas) ? empresas : splitempresa;
@@ -340,27 +347,73 @@ router.delete('/:id', async(req,res,next)=>{
 
     const capacitacion = await models.Capacitacion.findByPk(id);
     if (!capacitacion) {
-      return res.status(404).json({ message: 'Capacitación no encontrada.' });
+      return res.status(404).json({ 
+        message: 'No se encontró la capacitación solicitada.' 
+      });
     }
 
+    // Verificar si existen reportes asociados
+    const reportesAsociados = await models.Reporte.findOne({
+      where: { capacitacionId: id }
+    });
+
+    if (reportesAsociados) {
+      return res.status(400).json({ 
+        message: 'No se puede eliminar esta capacitación porque tiene reportes asociados.',
+        tipo: 'REPORTES_EXISTENTES'
+      });
+    }
+
+    // Eliminar examen y preguntas asociadas
     const examen = await models.Examen.findOne({ where: { capacitacionId: id } });
     if (examen) {
-      const preguntas = await models.Pregunta.findAll({ where: {examenId: examen.id}})
-      for (pregunta of preguntas){
-        await pregunta.destroy()
+      try {
+        const preguntas = await models.Pregunta.findAll({ where: {examenId: examen.id}})
+        for (pregunta of preguntas){
+          await pregunta.destroy()
+        }
+        await examen.destroy()
+      } catch (error) {
+        return res.status(400).json({ 
+          message: 'Hubo un problema al eliminar el examen y sus preguntas. Por favor, inténtelo nuevamente.',
+          tipo: 'ERROR_EXAMEN'
+        });
       }
-      await examen.destroy()
     }
-    await models.CapacitacionEmpresa.destroy({
-      where: {
-        capacitacion_id: capacitacion.id
-      }
-    });
-    await capacitacion.destroy();
-    res.status(201).json({message: 'eliminados'});
+
+    // Eliminar relaciones con empresas
+    try {
+      await models.CapacitacionEmpresa.destroy({
+        where: {
+          capacitacion_id: capacitacion.id
+        }
+      });
+    } catch (error) {
+      return res.status(400).json({ 
+        message: 'No se pudieron eliminar las asociaciones con las empresas. Por favor, inténtelo nuevamente.',
+        tipo: 'ERROR_EMPRESAS'
+      });
+    }
+
+    // Eliminar la capacitación
+    try {
+      await capacitacion.destroy();
+      res.status(200).json({ 
+        message: 'La capacitación ha sido eliminada exitosamente junto con todos sus datos relacionados.',
+        tipo: 'ELIMINACION_EXITOSA'
+      });
+    } catch (error) {
+      return res.status(400).json({ 
+        message: 'No se pudo eliminar la capacitación. Es posible que tenga datos relacionados que impiden su eliminación.',
+        tipo: 'ERROR_ELIMINACION'
+      });
+    }
+
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Error al eliminar la capacitación.' });
+    res.status(500).json({ 
+      message: 'Ocurrió un error inesperado. Por favor, inténtelo más tarde o contacte al administrador del sistema.',
+      tipo: 'ERROR_INESPERADO'
+    });
   }
 })
 
