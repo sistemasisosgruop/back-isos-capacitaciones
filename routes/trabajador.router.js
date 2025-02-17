@@ -377,7 +377,7 @@ router.post("/comparar", async (req, res, next) => {
               [Op.or]: [
                 { 
                   empresaId: empresasActuales[0]?.id, 
-                  relacionadaConEmprsesaId: item.empresaId 
+                  relacionadaConEmpresaId: item.empresaId 
                 },
                 { 
                   empresaId: item.empresaId, 
