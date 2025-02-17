@@ -28,12 +28,12 @@ router.get('/:id', async (req,res, next)=>{
 })
 
 router.post('/', async (req, res) => {
-    const { detalle, urlTest, fechaCr, fechaVen, empresas } = req.body;
+    const { detalle, codigo,  urlTest, fechaCr, fechaVen, empresas } = req.body;
   
     try {
       // Crear el Test en la base de datos
       const nuevoTest = await models.Test.create({ 
-        detalle, urlTest, fechaCr, fechaVen, empresaId: empresas[0] 
+        detalle, codigo,urlTest, fechaCr, fechaVen, empresaId: empresas[0] 
       });
   
       // Asociar cada empresa especificada en el cuerpo de la solicitud con el nuevo Test
