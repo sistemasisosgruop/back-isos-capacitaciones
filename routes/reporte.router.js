@@ -21,7 +21,7 @@ router.get("/", async (req, res) => {
 
     if (anio && anio !== "") {
       dateCondition = {
-        fechadeExamen: {
+        fechaExamen: {
           [Op.between]: [
             `${anio}-01-01`,
             `${anio}-12-31`
@@ -31,13 +31,13 @@ router.get("/", async (req, res) => {
     }
     if (mes && mes !== "") {
       dateCondition = {
-        fechadeExamen: where(fn('date_part', 'month', col('examen.fechadeExamen')), '=', mes)
+        fechaExamen: where(fn('date_part', 'month', col('Reporte.fecha_examen')), '=', mes)
       };
     }
 
     if (mes && mes !== "" && anio && anio !== "") {
       dateCondition = {
-        fechadeExamen: {
+        fechaExamen: {
           [Op.between]: [
             moment().set({ year: anio, month: mes - 1, date: 1 }).startOf("day").format("YYYY-MM-DD"),
             moment().set({ year: anio, month: mes - 1 }).endOf("month").endOf("day").format("YYYY-MM-DD")
@@ -68,6 +68,7 @@ router.get("/", async (req, res) => {
 
     const reporte = await models.Reporte.findAndCountAll({
       distinct: true,
+      where: dateCondition,
       include: [
         {
           model: models.Trabajador,
@@ -108,7 +109,7 @@ router.get("/", async (req, res) => {
             {
               model: models.Empresa,
               as: 'Empresas',
-              through: { attributes: [] }, // Esto evita que se incluyan los atributos de la tabla intermedia
+              through: { attributes: [] },
               where: nombreEmpresa ? { nombreEmpresa } : {}
             }
           ]
@@ -116,7 +117,6 @@ router.get("/", async (req, res) => {
         {
           model: models.Examen,
           as: "examen",
-          where: dateCondition,
           include: [{ model: models.Pregunta, as: "pregunta" }],
         },
       ],
@@ -619,10 +619,8 @@ router.patch(
         }
       });
 
-      // Verificar fechas
-
       // Si no es primera vez o está fuera de fecha, necesita recuperación habilitada
-      if ((intentoPrevio) && !capacitacion.recuperacion) {
+      if (!capacitacion.recuperacion) {
         return res.status(403).json({
           message: "No está habilitada la recuperación para esta capacitación"
         });
@@ -694,6 +692,7 @@ router.patch(
 router.get("/recuperacion", async (req, res) => {
   try {
     let { page, limit, nombreEmpresa, capacitacion, mes, codigo, anio, all } = req.query;
+    console.log(req.query)
     page = page ? parseInt(page) : 1;
     limit = all === "true" ? null : limit ? parseInt(limit) : 15;
     const offset = all === "true" ? null : (page - 1) * limit;
@@ -729,7 +728,6 @@ router.get("/recuperacion", async (req, res) => {
     }
 
     const empresaCondition =
-    
       nombreEmpresa && nombreEmpresa.trim() !== ""
         ? { nombreEmpresa: { [Op.iLike]: `%${nombreEmpresa}%` } }
         : {};
@@ -747,7 +745,7 @@ router.get("/recuperacion", async (req, res) => {
     const reporte = await models.Reporte.findAndCountAll({
       distinct: true,
       where: {
-        isRecuperacion: true // Filtrar solo recuperaciones
+        isRecuperacion: true
       },
       include: [
         {
@@ -784,7 +782,6 @@ router.get("/recuperacion", async (req, res) => {
           where: {
             ...capacitacionCondition,
             ...codigoCondition,
-            recuperacion: true // Asegurar que la capacitación tiene recuperación habilitada
           },
         },
         {
