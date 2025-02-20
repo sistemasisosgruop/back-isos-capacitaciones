@@ -24,42 +24,64 @@ router.get('/', async(req, res, next)=>{
 })
 
 
-router.get('/codigo/:codigo', async(req, res, next)=>{
+router.get('/codigo/:codigo', async (req, res, next) => {
   try {
-      const { codigo } = req.params;
-      const reporte = await models.Reporte.findOne({
-        where: {id: codigo},
-        include: [{
-          model: models.Capacitacion,
-          as: 'capacitacion',
-          attributes: ['codigo', 'nombre', 'horas']
-        }]
-      });
+    const { codigo } = req.params;
 
-      if (!reporte) {
-        return res.status(404).json({ message: 'Reporte no encontrado' });
-      }
+    // Validar el formato del código
+    const regex = /^CERT-(\d+)\.(\d+)-(\d{4})$/;
+    const match = codigo.match(regex);
+    if (!match) {
+      return res.status(400).json({ message: 'Código de certificado inválido' });
+    }
 
-      // Validar si la capacitación tiene menos de un año
-      const fechaCapacitacion = new Date(reporte.fechaExamen);
-      const fechaActual = new Date();
-      const diferenciaMeses = (fechaActual - fechaCapacitacion) / (1000 * 60 * 60 * 24 * 30);
-      const estado = diferenciaMeses <= 12 ? 1 : 0;
+    const [, trabajadorId, capacitacionId, anio] = match;
+    // Buscar el reporte con los identificadores extraídos
+    const reporte = await models.Reporte.findOne({
+      where: {
+        trabajadorId,
+        capacitacionId,
+      },
+      include: [{
+        model: models.Capacitacion,
+        as: 'capacitacion',
+        attributes: ['codigo', 'nombre', 'horas', 'fechaInicio']
+      }]
+    });
 
-      const respuesta = {
-        codigoCertificado: reporte.id,
-        codigoCapacitacion: reporte.capacitacion.codigo,
-        capacitacion: reporte.capacitacion.nombre,
-        fecha: reporte.fechaExamen,
-        duracion: `${reporte.capacitacion.horas} horas`,
-        estado: estado
-      };
+    if (!reporte) {
+      return res.status(404).json({ message: 'Reporte no encontrado' });
+    }
 
-      res.json(respuesta);
+    // Calcular si la capacitación tiene menos de un año
+    const fechaCapacitacion = new Date(reporte.capacitacion.fechaInicio);
+    const anioReporte = fechaCapacitacion.getFullYear().toString();
+    if (anio !== anioReporte) {
+      return res.status(400).json({ message: 'El año del código no coincide con el año del examen' });
+    }
+
+    // Validar si la capacitación tiene menos de un año
+    const fechaExamen = new Date(reporte.fechaExamen);
+    const fechaActual = new Date();
+    const diferenciaMeses = (fechaActual - fechaExamen) / (1000 * 60 * 60 * 24 * 30);
+    const estado = diferenciaMeses <= 12 ? 1 : 0;
+
+    // Respuesta JSON
+    const respuesta = {
+      codigoCertificado: codigo,
+      codigoCapacitacion: reporte.capacitacion?.codigo || 'N/A',
+      capacitacion: reporte.capacitacion?.nombre || 'Sin registro',
+      fecha: reporte.fechaExamen,
+      duracion: reporte.capacitacion ? `${reporte.capacitacion.horas} horas` : '0 horas',
+      estado: estado
+    };
+
+    res.json(respuesta);
   } catch (error) {
-      next(error);
+    next(error);
   }
-})
+});
+
  
 router.get('/empresa', async(req, res, next)=>{
   try {
