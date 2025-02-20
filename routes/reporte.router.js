@@ -619,13 +619,6 @@ router.patch(
         }
       });
 
-      // Si no es primera vez o está fuera de fecha, necesita recuperación habilitada
-      if (!capacitacion.recuperacion) {
-        return res.status(403).json({
-          message: "No está habilitada la recuperación para esta capacitación"
-        });
-      }
-
       // Calcular nota
       let notaExamen = 0;
       const respuestasPorPregunta = {};
