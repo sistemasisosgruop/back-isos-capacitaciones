@@ -685,7 +685,6 @@ router.patch(
 router.get("/recuperacion", async (req, res) => {
   try {
     let { page, limit, nombreEmpresa, capacitacion, mes, codigo, anio, all } = req.query;
-    console.log(req.query)
     page = page ? parseInt(page) : 1;
     limit = all === "true" ? null : limit ? parseInt(limit) : 15;
     const offset = all === "true" ? null : (page - 1) * limit;

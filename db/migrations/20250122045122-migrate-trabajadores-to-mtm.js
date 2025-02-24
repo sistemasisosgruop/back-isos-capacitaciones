@@ -25,11 +25,6 @@ module.exports = {
       onDelete: 'CASCADE',
     });
 
-    // Reinsertar los datos de vuelta a trabajadores
-    await queryInterface.sequelize.query(`
-      UPDATE trabajadores
-      SET empresa_id = (SELECT empresaId FROM empresa_trabajador WHERE empresa_trabajador.trabajadorId = trabajadores.id)
-      WHERE EXISTS (SELECT 1 FROM empresa_trabajador WHERE empresa_trabajador.trabajadorId = trabajadores.id);
-    `);
+   
   }
 };

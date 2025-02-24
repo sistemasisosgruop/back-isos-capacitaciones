@@ -22,7 +22,6 @@ router.get("/", async (req, res) => {
       ],
     });
 
-    // console.log(Trabajadores)
     const newData = Trabajadores?.map((item, index) => {
       return item?.empresas?.map((empresa) => ({
         nro: index + 1,
@@ -93,7 +92,6 @@ router.get("/", async (req, res) => {
         registroDescarga: item.registroDescarga
       }));
     })?.flat();
-    console.log(newData)
     return res.status(200).json({ data: newData });
   } catch (error) {
     console.log(error);
@@ -118,7 +116,6 @@ router.get("/emo/:dni", async (req, res) => {
       ]
     });
 
-    console.log(ultimoEmo)
     const newData = [
       {
         nro: 1,
@@ -711,7 +708,6 @@ router.post("/send-emo-whatsapp", async(req, res) => {
   } catch (error) {
     console.log(error);
   }
-  // console.log(body.dni);
   await models.Emo.update(data, { where: { trabajadorId: body.dni } });
   res.status(200).json({ msg: "Se actualizaron los datos con éxito!" });
 });

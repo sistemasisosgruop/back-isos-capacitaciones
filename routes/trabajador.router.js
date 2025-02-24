@@ -463,7 +463,6 @@ router.post("/comparar", async (req, res, next) => {
             transaction: t
           });
 
-          console.log(empresaRelacionada);
       
           if (empresaRelacionada) {
             // Si hay relación, agregar la nueva empresa manteniendo la actual
@@ -582,7 +581,6 @@ router.post(
     if (!empresa) {
       res.json(empresa);
     } else {
-      // console.log(trabajadores)
       try {
         await service.createExcel(trabajadores, Number(id));
         res.status(201).json({ message: "Creado con éxito!" });

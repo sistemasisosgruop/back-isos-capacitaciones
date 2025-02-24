@@ -151,7 +151,6 @@ router.get('/trabajador', async(req, res, next)=>{
           }
         ]
       });
-      console.log(capacitaciones);
       res.json(capacitaciones);
   } catch (error) {
       next(error);
@@ -359,7 +358,6 @@ router.patch('/:id', upload.single('certificado'), async (req, res) => {
             res.json({message: "Debes tener 5 preguntas, no más ni menos"})
           }
         }else{
-          console.log(capacitacion.examen);
           const parseexamen = JSON.parse(req.body.examen)
           capacitacion.examen.titulo = parseexamen.titulo;
           await capacitacion.examen.save();

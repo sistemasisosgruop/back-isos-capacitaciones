@@ -362,7 +362,6 @@ class TrabajadorService {
     await Promise.all(regeneracionesPromises);
     if(userChanges.rol){
       const user = await trabajador.getUser();
-      console.log(changes);
        await user.update({
         rol: userChanges.rol,
       });
@@ -393,7 +392,6 @@ class TrabajadorService {
     const trabajador = await models.Trabajador.findByPk(id)
     const user_id = trabajador.dataValues.userId
     const usuario = await models.Usuario.findByPk(user_id);
-    // console.log(usuario);
     await Promise.all([  trabajador.destroy(),usuario.destroy()]);
     return { id };
   }
