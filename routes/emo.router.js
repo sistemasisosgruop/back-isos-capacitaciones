@@ -654,6 +654,7 @@ router.post("/send-emo-email", async (req, res) => {
     }
   });
 });
+
 router.post("/send-whatsapp", async(req, res) => {
   const body = req.body;
 
@@ -662,7 +663,7 @@ router.post("/send-whatsapp", async(req, res) => {
     estado_whatsapp: 'Enviado'
   };
 
-  console.log('Whatsapp enviado correctamente a ' + body.celular);
+  console.log('Whatsapp enviando a ' + body.celular);
 
   try {
     buildPDF(body, 'constancia');
@@ -683,6 +684,8 @@ router.post("/send-whatsapp", async(req, res) => {
   await models.Emo.update(data, { where: { trabajadorId: body.dni } });
   res.status(200).json({ msg: "Se actualizaron los datos con éxito!" });
 });
+
+
 router.post("/send-emo-whatsapp", async(req, res) => {
   const body = req.body;
 
