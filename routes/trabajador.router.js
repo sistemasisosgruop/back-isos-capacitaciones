@@ -444,35 +444,10 @@ router.post("/comparar", async (req, res, next) => {
           transaction: t,
         });
 
-        if (!created) {
-          const empresasActuales = await trabajador.getEmpresas();
-    
-          const empresaRelacionada = await models.EmpresaRelaciones.findOne({
-            where: {
-              [Op.or]: [
-                { 
-                  empresaId: empresasActuales[0]?.id, 
-                  relacionadaConEmpresaId: item.empresaId 
-                },
-                { 
-                  empresaId: item.empresaId, 
-                  relacionadaConEmpresaId: empresasActuales[0]?.id 
-                }
-              ]
-            },
-            transaction: t
-          });
 
-      
-          if (empresaRelacionada) {
-            // Si hay relación, agregar la nueva empresa manteniendo la actual
-            await trabajador.addEmpresas(item.empresaId, { transaction: t });
-            responses.push({ message: `Trabajador ${item.dni} vinculado adicionalmente a empresa ${item.empresaId}` });
-          } else {
-            // Si no hay relación, reemplazar todas las empresas con la nueva
-            await trabajador.setEmpresas([item.empresaId], { transaction: t });
-            responses.push({ message: `Trabajador ${item.dni} transferido a empresa ${item.empresaId}` });
-          }
+        if (!created) {
+          await trabajador.setEmpresas([item.empresaId], { transaction: t });
+          responses.push({ message: `Trabajador ${item.dni} transferido a empresa ${item.empresaId}` });
         } else {
           responses.push({ message: `Trabajador ${item.dni} creado` });
         }
