@@ -121,9 +121,7 @@ router.get("/", async (req, res, next) => {
     const empresaCondition =
       nombreEmpresa && nombreEmpresa.trim() !== ""
         ? {
-            "nombreEmpresa": {
-              [Op.like]: `%${nombreEmpresa}%`,
-            },
+            "nombreEmpresa": nombreEmpresa,
           }
         : {};
 
@@ -185,7 +183,7 @@ router.get("/empresa", async (req, res, next) => {
   try {
     let { nombreEmpresa } = req.query;
     const empresaCondition = nombreEmpresa
-      ? { nombreEmpresa: { [Op.like]: `%${nombreEmpresa}%` } }
+      ? { nombreEmpresa: nombreEmpresa }
       : {};
 
     const trabajadores = await models.Trabajador.findAll({
