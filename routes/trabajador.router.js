@@ -155,11 +155,33 @@ router.get("/", async (req, res, next) => {
           through: { attributes: [] },
           where: empresaCondition, 
         },
+        {
+          model: models.Emo,
+          as: "emo",
+          order: [['fecha_examen', 'DESC']], // Ordenar por fecha de examen descendente
+          limit: 1 
+        },
         { model: models.Usuario, as: "user" },
       ],
       order: [["id", "ASC"]],
       limit,
       offset,
+    });
+
+    const hoy = new Date();
+    Trabajadores.rows.forEach(trabajador => {
+      // Accedemos de manera segura al EMO y su fecha de vencimiento
+      const emoFechaVencimiento = trabajador?.emo?.[0]?.fecha_vencimiento;
+      
+      if (emoFechaVencimiento) {
+        const fechaVencimiento = new Date(emoFechaVencimiento);
+        // Solo actualizamos emoPdf si la fecha es válida y ha vencido
+        if (!isNaN(fechaVencimiento) && fechaVencimiento <= hoy) {
+          trabajador.emoPdf = null;
+        }
+      }else{
+        trabajador.emoPdf = null;
+      }
     });
 
     // Información de paginación
