@@ -3,6 +3,7 @@ const { Model, DataTypes, Sequelize } = require("sequelize");
 const { USUARIO_TABLE } = require("./usuario.model");
 const { EMPRESA_TABLE } = require("./empresa.model");
 const { EMPRESA_TRABAJADOR_TABLE } = require("./empresaTrabajador.model");
+const { boolean } = require("joi");
 
 const TRABAJADOR_TABLE = "trabajadores";
 
@@ -66,6 +67,14 @@ const TrabajadorSchema = {
   habilitado: {
     type: DataTypes.STRING,
     defaultValue: true,
+  },
+  actualizado_fecha_caducidad: {
+    type: boolean,
+    defaultValue: false,
+  },
+  actualizado_fecha_examen: {
+    type: boolean,
+    defaultValue: false,
   },
   createdAt: {
     allowNull: false,

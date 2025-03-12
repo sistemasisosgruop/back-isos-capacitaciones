@@ -27,6 +27,8 @@ router.get("/", async (req, res) => {
         nro: index + 1,
         id: item?.emo?.at(0)?.id,
         trabajador_id: item?.id,
+        actualizado_fecha_caducidad: item?.actualizado_fecha_caducidad,
+        actualizado_fecha_examen: item?.actualizado_fecha_examen,
         apellidoPaterno: item?.apellidoPaterno,
         apellidoMaterno: item?.apellidoMaterno,
         nombres: item?.nombres,
@@ -654,7 +656,6 @@ router.post("/send-emo-email", async (req, res) => {
     }
   });
 });
-
 router.post("/send-whatsapp", async(req, res) => {
   const body = req.body;
 
@@ -663,7 +664,7 @@ router.post("/send-whatsapp", async(req, res) => {
     estado_whatsapp: 'Enviado'
   };
 
-  console.log('Whatsapp enviando a ' + body.celular);
+  console.log('Whatsapp enviado correctamente a ' + body.celular);
 
   try {
     buildPDF(body, 'constancia');
@@ -684,8 +685,6 @@ router.post("/send-whatsapp", async(req, res) => {
   await models.Emo.update(data, { where: { trabajadorId: body.dni } });
   res.status(200).json({ msg: "Se actualizaron los datos con éxito!" });
 });
-
-
 router.post("/send-emo-whatsapp", async(req, res) => {
   const body = req.body;
 
@@ -711,6 +710,7 @@ router.post("/send-emo-whatsapp", async(req, res) => {
   } catch (error) {
     console.log(error);
   }
+  // console.log(body.dni);
   await models.Emo.update(data, { where: { trabajadorId: body.dni } });
   res.status(200).json({ msg: "Se actualizaron los datos con éxito!" });
 });
