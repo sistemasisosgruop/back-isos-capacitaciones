@@ -68,14 +68,6 @@ const TrabajadorSchema = {
     type: DataTypes.STRING,
     defaultValue: true,
   },
-  actualizado_fecha_caducidad: {
-    type: boolean,
-    defaultValue: false,
-  },
-  actualizado_fecha_examen: {
-    type: boolean,
-    defaultValue: false,
-  },
   createdAt: {
     allowNull: false,
     type: DataTypes.DATE,

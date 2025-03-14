@@ -1,5 +1,6 @@
 const { Model, DataTypes, Sequelize } = require('sequelize');
 const { TRABAJADOR_TABLE } = require('./trabajador.model');
+const { boolean } = require("joi");
 
 const EMO_TABLE = 'emo';
 
@@ -57,6 +58,14 @@ const EmoSchema = {
   },
   recomendaciones: {
     type: DataTypes.TEXT,
+  },
+  actualizado_fecha_caducidad: {
+    type: boolean,
+    defaultValue: false,
+  },
+  actualizado_fecha_examen: {
+    type: boolean,
+    defaultValue: false,
   },
   trabajadorId:{
     allowNull: false,

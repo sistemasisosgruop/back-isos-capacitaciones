@@ -27,8 +27,8 @@ router.get("/", async (req, res) => {
         nro: index + 1,
         id: item?.emo?.at(0)?.id,
         trabajador_id: item?.id,
-        actualizado_fecha_caducidad: item?.actualizado_fecha_caducidad,
-        actualizado_fecha_examen: item?.actualizado_fecha_examen,
+        actualizado_fecha_caducidad: item?.emo?.at(0)?.actualizado_fecha_caducidad,
+        actualizado_fecha_examen: item?.emo?.at(0)?.actualizado_fecha_examen,
         apellidoPaterno: item?.apellidoPaterno,
         apellidoMaterno: item?.apellidoMaterno,
         nombres: item?.nombres,
@@ -545,9 +545,22 @@ router.put("/:id", async (req, res) => {
       ...body,
       trabajadorId: id,
     };
-    emos == null
-      ? await models.Emo.create(nuevoData)
-      : await models.Emo.update(body, { where: { trabajadorId: id } });
+
+    
+
+    if (emos == null){
+      await models.Emo.create(nuevoData)
+    }else{
+      if(emos.fecha_vencimiento != body.fecha_vencimiento){
+        console.log("Se actualiza fecha vencimiento");
+        body.actualizado_fecha_caducidad = true;
+      }
+      if(emos.fecha_examen != body.fecha_examen){
+        console.log("Se actualiza fecha Examen");
+        body.actualizado_fecha_examen = true;
+      }
+      await models.Emo.update(body, { where: { trabajadorId: id } });
+    }
     
     res.status(200).json({ msg: "Se actualizaron los datos con éxito!" });
   } catch (error) {
