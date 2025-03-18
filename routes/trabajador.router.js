@@ -454,6 +454,7 @@ router.post("/comparar", async (req, res, next) => {
           where: { dni: item.dni },
           defaults: {
             ...item,
+            id: undefined,
             user: {
               ...item.user,
               contraseña: await bcrypt.hash(item.contraseña.toString(), 10),

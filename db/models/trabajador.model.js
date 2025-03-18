@@ -3,7 +3,6 @@ const { Model, DataTypes, Sequelize } = require("sequelize");
 const { USUARIO_TABLE } = require("./usuario.model");
 const { EMPRESA_TABLE } = require("./empresa.model");
 const { EMPRESA_TRABAJADOR_TABLE } = require("./empresaTrabajador.model");
-const { boolean } = require("joi");
 
 const TRABAJADOR_TABLE = "trabajadores";
 

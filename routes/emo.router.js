@@ -21,7 +21,7 @@ router.get("/", async (req, res) => {
         { model: models.registroDescarga, as: "registroDescarga" },
       ],
     });
-
+    const hoy = new Date();
     const newData = Trabajadores?.map((item, index) => {
       return item?.empresas?.map((empresa) => ({
         nro: index + 1,
@@ -82,15 +82,22 @@ router.get("/", async (req, res) => {
               "DD-MM-YYYY HH:mm:ss",
             ]).format("YYYY-MM-DD HH:mm:ss")
           : "",
-        estado_emo: item?.emo?.at(0)?.estado_emo,
+        estado_emo: (item?.emo?.at(0)?.estado_emo != "") 
+                  ? (item?.emo?.at(0)?.estado != "ACTUALIZADO" &&
+                  new Date(item?.emo?.at(0)?.fecha_vencimiento) >= hoy) ? "ENVIADO" : "PENDIENTE" : "PENDIENTE",
         fecha_emo_whatsapp: item?.emo?.at(0)?.fecha_emo_whatsapp
           ? moment(item?.emo?.at(0)?.fecha_emo_whatsapp, [
               "YYYY-MM-DD HH:mm:ss",
               "DD-MM-YYYY HH:mm:ss",
             ]).format("YYYY-MM-DD HH:mm:ss")
           : "",
-        estado_emo_whatsapp: item?.emo?.at(0)?.estado_emo_whatsapp,
-        estado: item?.emo?.at(0)?.estado,
+        estado_emo_whatsapp: (item?.emo?.at(0)?.estado_emo_whatsapp != "") 
+                             ? (item?.emo?.at(0)?.estado != "ACTUALIZADO" &&
+                             new Date(item?.emo?.at(0)?.fecha_vencimiento) >= hoy) ? "ENVIADO" : "PENDIENTE" : "PENDIENTE",
+        estado: item?.emo?.at(0)?.estado == "ACTUALIZADO" ? "ACTUALIZADO" : 
+                (item?.emo?.at(0)?.fecha_vencimiento
+                  ? ((new Date(item?.emo?.at(0)?.fecha_vencimiento) >= hoy) ? "VALIDO" : "VENCIDO")
+                  : "SIN EMO"),
         registroDescarga: item.registroDescarga
       }));
     })?.flat();
@@ -554,11 +561,14 @@ router.put("/:id", async (req, res) => {
       if(emos.fecha_vencimiento != body.fecha_vencimiento){
         console.log("Se actualiza fecha vencimiento");
         body.actualizado_fecha_caducidad = true;
+        body.estado = "ACTUALIZADO";
       }
       if(emos.fecha_examen != body.fecha_examen){
         console.log("Se actualiza fecha Examen");
         body.actualizado_fecha_examen = true;
+        body.estado = "ACTUALIZADO";
       }
+      console.log(body);
       await models.Emo.update(body, { where: { trabajadorId: id } });
     }
     
