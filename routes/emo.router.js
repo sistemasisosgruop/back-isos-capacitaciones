@@ -546,24 +546,22 @@ router.put("/:id", async (req, res) => {
     const body = req.body;
     const emos = await models.Emo.findOne({
       where: { trabajadorId: id },
+      order: [['fecha_examen', 'DESC']]
     });
-    // console.log(body, id);
     const nuevoData = {
       ...body,
       trabajadorId: id,
     };
 
-    
-
     if (emos == null){
       await models.Emo.create(nuevoData)
     }else{
-      if(emos.fecha_vencimiento != body.fecha_vencimiento){
+      if(new Date(emos.fecha_vencimiento).getTime() != new Date(body.fecha_vencimiento).getTime()){
         console.log("Se actualiza fecha vencimiento");
         body.actualizado_fecha_caducidad = true;
         body.estado = "ACTUALIZADO";
       }
-      if(emos.fecha_examen != body.fecha_examen){
+      if(new Date(emos.fecha_examen).getTime() != new Date(body.fecha_examen).getTime()){
         console.log("Se actualiza fecha Examen");
         body.actualizado_fecha_examen = true;
         body.estado = "ACTUALIZADO";
