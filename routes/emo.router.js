@@ -629,11 +629,28 @@ router.post("/send-email", async (req, res) => {
         };
         // Registra el nuevo registro de descarga en la tabla registro_descargas
         await models.registroDescarga.create(dataRegister);
+
+        // Actualizar estado del trabajador
+        await models.Trabajador.update(
+          { state_created: false },
+          { where: { id: body.trabajador_id } }
+        );
+
+        // Actualizar estados del EMO
+        await models.Emo.update(
+          {
+            fecha_email: moment().format("DD-MM-YYYY HH:mm:ss"),
+            estado_email: 'Enviado',
+            actualizado_fecha_caducidad: false,
+            actualizado_fecha_examen: false,
+            estado: "VALIDO"
+          },
+          { where: { trabajadorId: body.dni } }
+        );
       } catch (error) {
         console.log(error);
       }
       // console.log(body.dni);
-      await models.Emo.update(data, { where: { trabajadorId: body.dni } });
       res.status(200).json({ msg: "Se actualizaron los datos con éxito!" });
     }
   });
@@ -641,25 +658,16 @@ router.post("/send-email", async (req, res) => {
 
 router.post("/send-emo-email", async (req, res) => {
   const body = req.body;
-  // buildPDF(body, 'emo');
-  // console.log(body);
   let mailOption = {
     from: process.env.USER_GMAIL_ENV,
     to: body.email,
     subject: 'Envio del Examen Médico Ocupacional',
     html: `<p>Saludos cordiales</p> <h5>${body.nombres} ${body.apellidoPaterno} ${body.apellidoMaterno}</h5><p>Nos es grato contactarnos con usted vía correo electrónico y le hacemos llegar su Examen Médico Ocupacional.</p><p>Atentamente.</p><br>MÉDICO OCUPACIONAL<br><h5>${ body.nombreEmpresa }</h5>`,
-    attachments:[
-      {
-        filename: 'pdf',
-        path: `emo/${body.trabajador_id}.pdf`
-      }
-    ]
+    attachments:[{
+      filename: 'pdf',
+      path: `emo/${body.trabajador_id}.pdf`
+    }]
   }
-
-  const data = {
-    fecha_emo: moment().format("DD-MM-YYYY HH:mm:ss"),
-    estado_emo: 'Enviado'
-  };
 
   transporter.sendMail(mailOption, async (error, info) => {
     if (error) {
@@ -674,27 +682,37 @@ router.post("/send-emo-email", async (req, res) => {
           hora: moment().format("HH:mm:ss"),
           tipo: 'emo',
         };
-        // Registra el nuevo registro de descarga en la tabla registro_descargas
         await models.registroDescarga.create(dataRegister);
+
+        // Actualizar estado del trabajador
+        await models.Trabajador.update(
+          { state_created: false },
+          { where: { id: body.trabajador_id } }
+        );
+
+        // Actualizar estados del EMO
+        await models.Emo.update(
+          {
+            fecha_emo: moment().format("DD-MM-YYYY HH:mm:ss"),
+            estado_emo: 'Enviado',
+            actualizado_fecha_caducidad: false,
+            actualizado_fecha_examen: false,
+            estado: "VALIDO"
+          },
+          { where: { trabajadorId: body.dni } }
+        );
+
+        res.status(200).json({ msg: "Se actualizaron los datos con éxito!" });
       } catch (error) {
         console.log(error);
+        res.status(500).json({ msg: "Error al actualizar los datos" });
       }
-      // console.log(body.dni);
-      await models.Emo.update(data, { where: { trabajadorId: body.dni } });
-      res.status(200).json({ msg: "Se actualizaron los datos con éxito!" });
     }
   });
 });
+
 router.post("/send-whatsapp", async(req, res) => {
   const body = req.body;
-
-  const data = {
-    fecha_whatsapp: moment().format("DD-MM-YYYY HH:mm:ss"),
-    estado_whatsapp: 'Enviado'
-  };
-
-  console.log('Whatsapp enviado correctamente a ' + body.celular);
-
   try {
     buildPDF(body, 'constancia');
 
@@ -704,44 +722,69 @@ router.post("/send-whatsapp", async(req, res) => {
       hora: moment().format("HH:mm:ss"),
       tipo: 'whatsapp',
     };
-    // Registra el nuevo registro de descarga en la tabla registro_descargas
     await models.registroDescarga.create(dataRegister);
-    // res.status(200).json({ msg: "Constancia EMO creada y enviada con éxito!" });
+
+    // Actualizar estado del trabajador
+    await models.Trabajador.update(
+      { state_created: false },
+      { where: { id: body.trabajador_id } }
+    );
+
+    // Actualizar estados del EMO
+    await models.Emo.update(
+      {
+        fecha_whatsapp: moment().format("DD-MM-YYYY HH:mm:ss"),
+        estado_whatsapp: 'Enviado',
+        actualizado_fecha_caducidad: false,
+        actualizado_fecha_examen: false,
+        estado: "VALIDO"
+      },
+      { where: { trabajadorId: body.dni } }
+    );
+
+    console.log('Whatsapp enviado correctamente a ' + body.celular);
+    res.status(200).json({ msg: "Se actualizaron los datos con éxito!" });
   } catch (error) {
     console.log(error);
+    res.status(500).json({ msg: "Error al actualizar los datos" });
   }
-  // console.log(body.dni);
-  await models.Emo.update(data, { where: { trabajadorId: body.dni } });
-  res.status(200).json({ msg: "Se actualizaron los datos con éxito!" });
 });
+
 router.post("/send-emo-whatsapp", async(req, res) => {
   const body = req.body;
-
-  const data = {
-    fecha_emo_whatsapp: moment().format("DD-MM-YYYY HH:mm:ss"),
-    estado_emo_whatsapp: 'Enviado'
-  };
-
-  console.log('Whatsapp enviado correctamente a ' + body.celular);
-
   try {
-    // buildPDF(body, 'emo');
-
     const dataRegister = {
       trabajador_id: parseInt(body.trabajador_id),
       fecha: moment().format("DD-MM-YYYY"),
       hora: moment().format("HH:mm:ss"),
       tipo: 'emo-whatsapp',
     };
-    // Registra el nuevo registro de descarga en la tabla registro_descargas
     await models.registroDescarga.create(dataRegister);
-    // res.status(200).json({ msg: "Constancia EMO creada y enviada con éxito!" });
+
+    // Actualizar estado del trabajador
+    await models.Trabajador.update(
+      { state_created: false },
+      { where: { id: body.trabajador_id } }
+    );
+
+    // Actualizar estados del EMO
+    await models.Emo.update(
+      {
+        fecha_emo_whatsapp: moment().format("DD-MM-YYYY HH:mm:ss"),
+        estado_emo_whatsapp: 'Enviado',
+        actualizado_fecha_caducidad: false,
+        actualizado_fecha_examen: false,
+        estado: "VALIDO"
+      },
+      { where: { trabajadorId: body.dni } }
+    );
+
+    console.log('Whatsapp enviado correctamente a ' + body.celular);
+    res.status(200).json({ msg: "Se actualizaron los datos con éxito!" });
   } catch (error) {
     console.log(error);
+    res.status(500).json({ msg: "Error al actualizar los datos" });
   }
-  // console.log(body.dni);
-  await models.Emo.update(data, { where: { trabajadorId: body.dni } });
-  res.status(200).json({ msg: "Se actualizaron los datos con éxito!" });
 });
 
 module.exports = router;

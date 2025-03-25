@@ -66,6 +66,8 @@ const updateTrabajadorSchema = Joi.object({
     habilitado: habilitado,
     celular: celular,
     rol:rol,
+    state_created: Joi.boolean().optional(), 
+    emo: Joi.array().optional(), 
     user: Joi.object({
       username: username,
       contraseña: contraseña,

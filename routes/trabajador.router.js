@@ -681,6 +681,10 @@ router.patch(
     try {
       const { id } = req.params;
       const body = req.body;
+      
+      delete body.state_created;
+      delete body.emo;
+
       const trabajador = await service.update(id, body);
       res.json(trabajador);
     } catch (error) {
