@@ -37,6 +37,7 @@ router.get("/", async (req, res) => {
         nombreEmpresa: empresa.nombreEmpresa,
         celular: item?.celular,
         email: item?.email,
+        state_created: item?.state_created,
         edad: item?.edad,
         area: item?.areadetrabajo,
         cargo: item?.cargo,
@@ -419,6 +420,13 @@ router.post("/subir/:id", emo.single("file"), async (req, res) => {
       // Actualizar el campo emoPdf del trabajador en la base de datos
       trabajador.emoPdf = newFileName;
       await trabajador.save();
+
+      await models.Emo.update(
+        { 
+          fecha_lectura: moment().format('YYYY-MM-DD'),
+        }, 
+        { where: { trabajadorId: trabajador.dni } }
+      );
 
       return res.status(200).json("Se guardó correctamente el PDF.");
     } else {

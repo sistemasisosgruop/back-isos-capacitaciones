@@ -67,6 +67,10 @@ const TrabajadorSchema = {
     type: DataTypes.STRING,
     defaultValue: true,
   },
+  state_created: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
+  },
   createdAt: {
     allowNull: false,
     type: DataTypes.DATE,
