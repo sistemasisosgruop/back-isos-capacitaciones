@@ -209,6 +209,142 @@ router.get("/", async (req, res) => {
   }
 });
 
+
+
+router.get("/constancias", async (req, res) => {
+  try {
+    let { page, limit, nombreEmpresa,codigo, mes, anio, all } = req.query;
+    page = page ? parseInt(page) : 1;
+    limit = all === "true" ? null : limit ? parseInt(limit) : 15;
+    const offset = all === "true" ? null : (page - 1) * limit;
+
+    let dateCondition = {};
+    let whereCondition = {};
+    if (anio && anio !== "") {
+      dateCondition = {
+        fecha: {
+          [Op.between]: [
+            `${anio}-01-01`,
+            `${anio}-12-31`
+          ]
+        }
+      };
+    }
+
+    if (codigo && codigo !== "") {
+      whereCondition = Sequelize.where(
+        Sequelize.fn(
+          'CONCAT',
+          Sequelize.col('Constancia.trabajador_id'),
+          '-',
+          Sequelize.col('Constancia.serial')
+        ),
+        {
+          [Op.iLike]: `%${codigo}%`
+        }
+      );
+    }
+
+    if (mes && mes !== "") {
+      dateCondition = {
+        fecha: where(fn('date_part', 'month', col('Constancia.fecha')), '=', mes)
+      };
+    }
+
+    if (mes && mes !== "" && anio && anio !== "") {
+      dateCondition = {
+        fecha: {
+          [Op.between]: [
+            moment().set({ year: anio, month: mes - 1, date: 1 }).startOf("day").format("YYYY-MM-DD"),
+            moment().set({ year: anio, month: mes - 1 }).endOf("month").endOf("day").format("YYYY-MM-DD")
+          ]
+        }
+      };
+    }
+
+    const empresaCondition =
+      nombreEmpresa && nombreEmpresa.trim() !== ""
+        ? { nombreEmpresa: { [Op.iLike]: `%${nombreEmpresa}%` } }
+        : {};
+
+    if (page < 1) {
+      return res.status(400).json({ message: "Invalid page value" });
+    }
+
+    const constancias = await models.Constancia.findAndCountAll({
+      distinct: true,
+      where: {
+        ...dateCondition,
+        ...(codigo ? { [Op.and]: [whereCondition] } : {})
+      },
+      include: [
+        {
+          model: models.Trabajador,
+          as: 'trabajador',
+          attributes: [
+            'id',
+            'nombres',
+            'apellidoMaterno',
+            'apellidoPaterno',
+            'dni'
+          ],
+          include: [{
+            model: models.Emo,
+            as: 'emo',
+            attributes: [
+              'fecha_examen',
+              'fecha_vencimiento',
+              'fecha_lectura'
+            ]
+          }]
+        },
+        {
+          model: models.Empresa,
+          as: 'empresa',
+          where: empresaCondition,
+          attributes: ['nombreEmpresa']
+        }
+      ],
+      limit,
+      offset,
+      order: [['fecha', 'DESC'], ['hora', 'DESC']]
+    });
+
+    const format = constancias.rows.map(item => ({
+      trabajadorId: item.trabajador_id,
+      serie: item.serial,
+      fecha: moment(item.fecha).format("DD-MM-YYYY"),
+      hora: moment(item.hora, "HH:mm:ss").format("HH:mm"),
+      nombreTrabajador: `${item.trabajador.apellidoPaterno} ${item.trabajador.apellidoMaterno} ${item.trabajador.nombres}`,
+      nombreEmpresa: item.empresa.nombreEmpresa,
+      fechaExamen: item.trabajador.emo[0]?.fecha_examen 
+        ? moment(item.trabajador.emo[0].fecha_examen).format("DD-MM-YYYY")
+        : "",
+      fechaVencimiento: item.trabajador.emo[0]?.fecha_vencimiento
+        ? moment(item.trabajador.emo[0].fecha_vencimiento).format("DD-MM-YYYY")
+        : "",
+      fechaLectura: item.trabajador.emo[0]?.fecha_lectura
+        ? moment(item.trabajador.emo[0].fecha_lectura).format("DD-MM-YYYY")
+        : "",
+      empresa_id: item.empresa_id,
+      url: `/emo/descargar/constancia/${item.trabajador_id}`
+    }));
+
+    const pageInfo = {
+      total: constancias.count,
+      page: page,
+      limit: limit,
+      totalPage: Math.ceil(constancias.count / limit),
+      next: parseInt(page) + 1,
+    };
+
+    res.status(200).json({ data: format, pageInfo });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Error al obtener las constancias" });
+  }
+});
+
 router.get("/capacitaciones/:dni", async (req, res) => {
   try {
     let { page, limit, capacitacion, mes, anio } = req.query;

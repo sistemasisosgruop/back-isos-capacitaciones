@@ -349,6 +349,70 @@ router.get("/descargar/constancia/:id", async (req, res) => {
     }
   });
 });
+
+router.get("/generar/constancia/:id", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const { empresa_id } = req.query;
+
+    // Buscar el trabajador y su último EMO
+    const trabajador = await models.Trabajador.findOne({
+      where: { id: id },
+      include: [{
+        model: models.Emo,
+        as: 'emo',
+        order: [['fecha_examen', 'DESC']],
+        limit: 1
+      }]
+    });
+
+    if (!trabajador || !trabajador.emo) {
+      return res.status(404).json("No se encontró EMO para el trabajador");
+    }
+
+    // Obtener el último EMO del trabajador
+    const ultimoEmo = await models.Emo.findOne({
+      where: { trabajadorId: trabajador.dni },
+      order: [['fecha_examen', 'DESC']]
+    });
+
+    if (!ultimoEmo) {
+      return res.status(404).json("No se encontró EMO para el trabajador");
+    }
+
+    // Buscar el último serial para este trabajador y empresa
+    const ultimaConstancia = await models.Constancia.findOne({
+      where: {
+        trabajador_id: id,
+        empresa_id: empresa_id
+      },
+      order: [['serial', 'DESC']]
+    });
+
+    // Calcular el nuevo serial
+    const nuevoSerial = ultimaConstancia ? ultimaConstancia.serial + 1 : 1;
+
+    // Crear el registro de la nueva constancia
+    await models.Constancia.create({
+      trabajador_id: id,
+      empresa_id: empresa_id,
+      emo_id: ultimoEmo.id, 
+      serial: nuevoSerial,
+      fecha: moment().format('YYYY-MM-DD'),
+      hora: moment().format('HH:mm:ss')
+    });
+
+    // Construye la ruta del archivo PDF
+    const filePath = path.join(__dirname, "..", "constancia", `${id}.pdf`);
+    res.setHeader("Content-Type", "application/pdf");
+    return res.status(200).json({ serial: nuevoSerial});
+    
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json("Error en el proceso.");
+  }
+});
+
 router.get("/descargar/emo/:id", async (req, res) => {
   const id = parseInt(req.params.id);
 
@@ -672,6 +736,7 @@ router.post("/send-emo-email", async (req, res) => {
   transporter.sendMail(mailOption, async (error, info) => {
     if (error) {
       console.log('Ocurrió un error ' + error);
+    
     } else {
       console.log('Email enviado correctamente a ' + mailOption.to);
 

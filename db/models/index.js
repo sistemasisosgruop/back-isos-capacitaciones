@@ -15,6 +15,7 @@ const { Pregunta, PreguntaSchema } = require("./pregunta.model");
 const { TestEmpresa, TestEmpresaSchema } = require("./testEmpresa.model");
 const { Reporte, ReportesSchema } = require("./reportes.model");
 const { Emo, EmoSchema } = require("./emo.model");
+const { Constancia, ConstanciaSchema} = require("./constancia.model");
 const { EmpresaTrabajador, EmpresaTrabajadorSchema } = require("./empresaTrabajador.model");
 const {
   RegistroDescarga,
@@ -44,7 +45,12 @@ function setupModels(sequelize) {
     RegistroDescargaSchema,
     RegistroDescarga.config(sequelize)
   );
+  Constancia.init(
+    ConstanciaSchema,
+    Constancia.config(sequelize)
+  )
 
+  Constancia.associate(sequelize.models)
   Usuario.associate(sequelize.models);
   Trabajador.associate(sequelize.models);
   Capacitador.associate(sequelize.models);
