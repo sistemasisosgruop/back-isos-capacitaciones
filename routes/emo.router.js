@@ -16,7 +16,11 @@ router.get("/", async (req, res) => {
   try {
     const Trabajadores = await models.Trabajador.findAll({
       include: [
-        { model: models.Emo, as: "emo" },
+        { 
+          model: models.Emo, 
+          as: "emo",
+          order: [['createdAt', 'DESC']]
+        },
         { model: models.Empresa, as: "empresas" },
         { model: models.registroDescarga, as: "registroDescarga" },
       ],
