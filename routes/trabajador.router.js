@@ -167,7 +167,7 @@ router.get("/", async (req, res, next) => {
       limit,
       offset,
     });
-
+f
     const hoy = new Date();
     Trabajadores.rows.forEach(trabajador => {
       // Accedemos de manera segura al EMO y su fecha de vencimiento
@@ -371,7 +371,6 @@ router.post("/comparar", async (req, res, next) => {
 
       else if (action === "update") {
         const trabajador = await service.findByDni(item.dni);
-
         if (trabajador) {
           await trabajador.update(
             {
@@ -473,18 +472,33 @@ router.post("/comparar", async (req, res, next) => {
           responses.push({ message: `Trabajador ${item.dni} creado` });
         }
 
-        await models.Emo.create(
-          {
-            fecha_examen: item.fecha_examen,
-            fecha_vencimiento: item.fecha_vencimiento,
-            condicion_aptitud: item.condicion_aptitud,
-            clinica: item.clinica,
-            controles: item.controles,
-            recomendaciones: item.recomendaciones,
-            trabajadorId: trabajador.dni,
-          },
-          { transaction: t }
-        );
+        const emo = await serviceEmo.findByTrabajadorId(item.dni);
+          if (!emo) {
+            await models.Emo.create(
+              {
+                fecha_examen: item.fecha_examen,
+                fecha_vencimiento: item.fecha_vencimiento,
+                condicion_aptitud: item.condicion_aptitud,
+                clinica: item.clinica,
+                controles: item.controles,
+                recomendaciones: item.recomendaciones,
+                trabajadorId: item.dni,
+              },
+              { transaction: t }
+            );
+          } else {
+            await emo.update(
+              {
+                fecha_examen: item.fecha_examen,
+                fecha_vencimiento: item.fecha_vencimiento,
+                condicion_aptitud: item.condicion_aptitud,
+                clinica: item.clinica,
+                controles: item.controles,
+                recomendaciones: item.recomendaciones,
+              },
+              { transaction: t }
+            );
+          }
       }
     }
 

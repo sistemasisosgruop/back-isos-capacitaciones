@@ -21,8 +21,14 @@ router.get("/", async (req, res) => {
         { model: models.registroDescarga, as: "registroDescarga" },
       ],
     });
-    const hoy = new Date();
+    const hoy = moment().format("YYYY-MM-DD");
     const newData = Trabajadores?.map((item, index) => {
+      const fechaVencimiento = item?.emo?.at(0)?.fecha_vencimiento
+      ? moment(item?.emo?.at(0)?.fecha_vencimiento, [
+          "YYYY-MM-DD",
+          "DD-MM-YYYY",
+        ]).format("YYYY-MM-DD")
+      : "";
       return item?.empresas?.map((empresa) => ({
         nro: index + 1,
         id: item?.emo?.at(0)?.id,
@@ -55,12 +61,7 @@ router.get("/", async (req, res) => {
               "DD-MM-YYYY",
             ]).format("YYYY-MM-DD")
           : "",
-        fecha_vencimiento: item?.emo?.at(0)?.fecha_vencimiento
-          ? moment(item?.emo?.at(0)?.fecha_vencimiento, [
-              "YYYY-MM-DD",
-              "DD-MM-YYYY",
-            ]).format("YYYY-MM-DD")
-          : "",
+        fecha_vencimiento: fechaVencimiento,
         logo: empresa?.imagenLogo,
         empresas: empresa,
         fecha_email: item?.emo?.at(0)?.fecha_email
@@ -97,7 +98,7 @@ router.get("/", async (req, res) => {
                              new Date(item?.emo?.at(0)?.fecha_vencimiento) >= hoy) ? "ENVIADO" : "PENDIENTE" : "PENDIENTE",
         estado: item?.emo?.at(0)?.estado == "ACTUALIZADO" ? "ACTUALIZADO" : 
                 (item?.emo?.at(0)?.fecha_vencimiento
-                  ? ((new Date(item?.emo?.at(0)?.fecha_vencimiento) >= hoy) ? "VALIDO" : "VENCIDO")
+                  ? (moment(fechaVencimiento).isSameOrAfter(hoy) ? "VALIDO" : "VENCIDO")
                   : "SIN EMO"),
         registroDescarga: item.registroDescarga
       }));
