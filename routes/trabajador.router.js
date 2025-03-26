@@ -418,7 +418,7 @@ router.post("/comparar", async (req, res, next) => {
 
           responses.push({ message: `Trabajador ${item.dni} actualizado` });
 
-          const emo = await serviceEmo.findByTrabajadorId(item.dni);
+          const emo = await serviceEmo.findByTrabajadorId(item.dni, { order: [['createdAt', 'DESC']] });
           if (!emo) {
             await models.Emo.create(
               {
@@ -472,33 +472,33 @@ router.post("/comparar", async (req, res, next) => {
           responses.push({ message: `Trabajador ${item.dni} creado` });
         }
 
-        const emo = await serviceEmo.findByTrabajadorId(item.dni);
-          if (!emo) {
-            await models.Emo.create(
-              {
-                fecha_examen: item.fecha_examen,
-                fecha_vencimiento: item.fecha_vencimiento,
-                condicion_aptitud: item.condicion_aptitud,
-                clinica: item.clinica,
-                controles: item.controles,
-                recomendaciones: item.recomendaciones,
-                trabajadorId: item.dni,
-              },
-              { transaction: t }
-            );
-          } else {
-            await emo.update(
-              {
-                fecha_examen: item.fecha_examen,
-                fecha_vencimiento: item.fecha_vencimiento,
-                condicion_aptitud: item.condicion_aptitud,
-                clinica: item.clinica,
-                controles: item.controles,
-                recomendaciones: item.recomendaciones,
-              },
-              { transaction: t }
-            );
-          }
+        const emo = await serviceEmo.findByTrabajadorId(item.dni, { order: [['createdAt', 'DESC']] });
+        if (!emo) {
+          await models.Emo.create(
+            {
+              fecha_examen: item.fecha_examen,
+              fecha_vencimiento: item.fecha_vencimiento,
+              condicion_aptitud: item.condicion_aptitud,
+              clinica: item.clinica,
+              controles: item.controles,
+              recomendaciones: item.recomendaciones,
+              trabajadorId: item.dni,
+            },
+            { transaction: t }
+          );
+        } else {
+          await emo.update(
+            {
+              fecha_examen: item.fecha_examen,
+              fecha_vencimiento: item.fecha_vencimiento,
+              condicion_aptitud: item.condicion_aptitud,
+              clinica: item.clinica,
+              controles: item.controles,
+              recomendaciones: item.recomendaciones,
+            },
+            { transaction: t }
+          );
+        }
       }
     }
 
