@@ -418,7 +418,7 @@ router.post("/comparar", async (req, res, next) => {
 
           responses.push({ message: `Trabajador ${item.dni} actualizado` });
 
-          const emo = await serviceEmo.findByTrabajadorId(item.dni, { order: [['createdAt', 'DESC']] });
+          const emo = await serviceEmo.findByTrabajadorId(item.dni, { limit: 1, order: [['createdAt', 'DESC']] });
           if (!emo) {
             await models.Emo.create(
               {
@@ -472,7 +472,7 @@ router.post("/comparar", async (req, res, next) => {
           responses.push({ message: `Trabajador ${item.dni} creado` });
         }
 
-        const emo = await serviceEmo.findByTrabajadorId(item.dni, { order: [['createdAt', 'DESC']] });
+        const emo = await serviceEmo.findByTrabajadorId(item.dni, { limit: 1, order: [['createdAt', 'DESC']] });
         if (!emo) {
           await models.Emo.create(
             {
