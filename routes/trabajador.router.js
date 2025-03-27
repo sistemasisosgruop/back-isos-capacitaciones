@@ -419,7 +419,10 @@ router.post("/comparar", async (req, res, next) => {
       
 
           responses.push({ message: `Trabajador ${item.dni} actualizado` });
-          const emo = await serviceEmo.findByTrabajadorId(item.dni);
+          const emo = await models.Emo.findOne({
+            where: { trabajadorId: item.dni },
+            order: [['fecha_examen', 'DESC']], // Obtiene el último registro
+          });
           if (!emo) {
             await models.Emo.create(
               {
@@ -436,12 +439,12 @@ router.post("/comparar", async (req, res, next) => {
           } else {
             await emo.update(
               {
-                fecha_examen: item?.at(0)?.fecha_examen,
-                fecha_vencimiento: item?.at(0)?.fecha_vencimiento,
-                condicion_aptitud: item?.at(0)?.condicion_aptitud,
-                clinica: item?.at(0)?.clinica,
-                controles: item?.at(0)?.controles,
-                recomendaciones: item?.at(0)?.recomendaciones,
+                fecha_examen: item.fecha_examen,
+                fecha_vencimiento: item.fecha_vencimiento,
+                condicion_aptitud: item.condicion_aptitud,
+                clinica: item.clinica,
+                controles: item.controles,
+                recomendaciones: item.recomendaciones,
               },
               { transaction: t }
             );
