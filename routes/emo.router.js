@@ -19,11 +19,11 @@ router.get("/", async (req, res) => {
         { 
           model: models.Emo, 
           as: "emo",
-          order: [['createdAt', 'DESC']]
         },
         { model: models.Empresa, as: "empresas" },
         { model: models.registroDescarga, as: "registroDescarga" },
       ],
+      order: [[models.Emo, 'createdAt', 'DESC']]
     });
     const hoy = moment().format("YYYY-MM-DD");
     const newData = Trabajadores?.map((item, index) => {
