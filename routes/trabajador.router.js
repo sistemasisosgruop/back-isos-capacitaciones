@@ -167,7 +167,6 @@ router.get("/", async (req, res, next) => {
       limit,
       offset,
     });
-f
     const hoy = new Date();
     Trabajadores.rows.forEach(trabajador => {
       // Accedemos de manera segura al EMO y su fecha de vencimiento
