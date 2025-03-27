@@ -16,15 +16,13 @@ router.get("/", async (req, res) => {
   try {
     const Trabajadores = await models.Trabajador.findAll({
       include: [
-        { 
-          model: models.Emo, 
-          as: "emo",
-        },
+        { model: models.Emo, as: "emo" },
         { model: models.Empresa, as: "empresas" },
         { model: models.registroDescarga, as: "registroDescarga" },
       ],
-      order: [[models.Emo, 'createdAt', 'DESC']]
+      order: [['emo', 'createdAt', 'DESC']] 
     });
+    
     const hoy = moment().format("YYYY-MM-DD");
     const newData = Trabajadores?.map((item, index) => {
       const fechaVencimiento = item?.emo?.at(0)?.fecha_vencimiento
