@@ -421,7 +421,7 @@ router.post("/comparar", async (req, res, next) => {
           responses.push({ message: `Trabajador ${item.dni} actualizado` });
           const emo = await models.Emo.findOne({
             where: { trabajadorId: item.dni },
-            order: [['fecha_examen', 'DESC']], // Obtiene el último registro
+            order: [['fecha_examen', 'DESC']], 
           });
           if (!emo) {
             await models.Emo.create(
