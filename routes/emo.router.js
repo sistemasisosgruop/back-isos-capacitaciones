@@ -89,7 +89,7 @@ router.get("/", async (req, res) => {
         estado_emo: 
           item?.emo?.at(0)?.estado_emo !== "" 
             ? (item?.emo?.at(0)?.estado !== "ACTUALIZADO" && 
-               new Date(item?.emo?.at(0)?.fecha_vencimiento) >= hoy) 
+              moment(fechaVencimiento).isSameOrAfter(hoy))
               ? "ENVIADO" 
               : "PENDIENTE"
             : "PENDIENTE",
