@@ -86,18 +86,26 @@ router.get("/", async (req, res) => {
               "DD-MM-YYYY HH:mm:ss",
             ]).format("YYYY-MM-DD HH:mm:ss")
           : "",
-        estado_emo: (item?.emo?.at(0)?.estado_emo != "") 
-                  ? (item?.emo?.at(0)?.estado != "ACTUALIZADO" &&
-                  new Date(item?.emo?.at(0)?.fecha_vencimiento) >= hoy) ? "ENVIADO" : "PENDIENTE" : "PENDIENTE",
+        estado_emo: 
+          item?.emo?.at(0)?.estado_emo !== "" 
+            ? (item?.emo?.at(0)?.estado !== "ACTUALIZADO" && 
+               new Date(item?.emo?.at(0)?.fecha_vencimiento) >= hoy) 
+              ? "ENVIADO" 
+              : "PENDIENTE"
+            : "PENDIENTE",
         fecha_emo_whatsapp: item?.emo?.at(0)?.fecha_emo_whatsapp
           ? moment(item?.emo?.at(0)?.fecha_emo_whatsapp, [
               "YYYY-MM-DD HH:mm:ss",
               "DD-MM-YYYY HH:mm:ss",
             ]).format("YYYY-MM-DD HH:mm:ss")
           : "",
-        estado_emo_whatsapp: (item?.emo?.at(0)?.estado_emo_whatsapp != "") 
-                             ? (item?.emo?.at(0)?.estado != "ACTUALIZADO" &&
-                             new Date(item?.emo?.at(0)?.fecha_vencimiento) >= hoy) ? "ENVIADO" : "PENDIENTE" : "PENDIENTE",
+        estado_emo_whatsapp: 
+          item?.emo?.at(0)?.estado_emo_whatsapp !== "" 
+            ? (item?.emo?.at(0)?.estado !== "ACTUALIZADO" && 
+               moment(fechaVencimiento).isSameOrAfter(hoy)) 
+              ? "ENVIADO" 
+              : "PENDIENTE"
+            : "PENDIENTE",
         estado: item?.emo?.at(0)?.estado == "ACTUALIZADO" ? "ACTUALIZADO" : 
                 (item?.emo?.at(0)?.fecha_vencimiento
                   ? (moment(fechaVencimiento).isSameOrAfter(hoy) ? "VALIDO" : "VENCIDO")
