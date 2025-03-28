@@ -117,13 +117,16 @@ router.get("/", async (req, res, next) => {
     limit = all === "true" ? null : limit ? parseInt(limit) : 15;
     const offset = all === "true" ? null : (page - 1) * limit;
 
-    // Condición para el nombre de la empresa
-    const empresaCondition =
-      nombreEmpresa && nombreEmpresa.trim() !== ""
-        ? {
-            "nombreEmpresa": nombreEmpresa,
-          }
-        : {};
+    empresaCondition = {};
+    console.log(nombreEmpresa)
+    if (nombreEmpresa && nombreEmpresa.trim() !== "") {
+      empresaCondition =
+        nombreEmpresa  !== ""
+          ? {
+              "nombreEmpresa": nombreEmpresa,
+            }
+          : {};
+    }
 
     // Condición de búsqueda
     const searchCondition =
