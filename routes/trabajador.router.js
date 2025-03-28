@@ -436,6 +436,25 @@ router.post("/comparar", async (req, res, next) => {
               { transaction: t }
             );
           } else {
+            let actualizado_fecha_caducidad = false;
+            let actualizado_fecha_examen = false;
+            let estado = "VALIDO";
+
+            // Convertir las fechas a timestamp para comparación correcta
+            const fechaVencimientoEmo = new Date(emo.fecha_vencimiento).getTime();
+            const fechaVencimientoItem = new Date(item.fecha_vencimiento).getTime();
+            const fechaExamenEmo = new Date(emo.fecha_examen).getTime();
+            const fechaExamenItem = new Date(item.fecha_examen).getTime();
+
+            if (fechaVencimientoEmo !== fechaVencimientoItem) {
+              actualizado_fecha_caducidad = true;
+              estado = "ACTUALIZADO";
+            }
+
+            if (fechaExamenEmo !== fechaExamenItem) {
+              actualizado_fecha_examen = true;
+              estado = "ACTUALIZADO";
+            }
             await emo.update(
               {
                 fecha_examen: item.fecha_examen,
@@ -444,6 +463,9 @@ router.post("/comparar", async (req, res, next) => {
                 clinica: item.clinica,
                 controles: item.controles,
                 recomendaciones: item.recomendaciones,
+                actualizado_fecha_examen: actualizado_fecha_examen,
+                estado: estado,
+                actualizado_fecha_caducidad: actualizado_fecha_caducidad
               },
               { transaction: t }
             );
