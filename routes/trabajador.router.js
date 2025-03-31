@@ -118,7 +118,6 @@ router.get("/", async (req, res, next) => {
     const offset = all === "true" ? null : (page - 1) * limit;
 
     empresaCondition = {};
-    console.log(nombreEmpresa)
     if (nombreEmpresa && nombreEmpresa.trim() !== "") {
       empresaCondition =
         nombreEmpresa  !== ""
@@ -449,12 +448,12 @@ router.post("/comparar", async (req, res, next) => {
             const fechaExamenEmo = new Date(emo.fecha_examen).getTime();
             const fechaExamenItem = new Date(item.fecha_examen).getTime();
 
-            if (fechaVencimientoEmo !== fechaVencimientoItem) {
+            if (!isNaN(fechaVencimientoEmo) && fechaVencimientoEmo !== fechaVencimientoItem) {
               actualizado_fecha_caducidad = true;
               estado = "ACTUALIZADO";
             }
 
-            if (fechaExamenEmo !== fechaExamenItem) {
+            if (!isNaN(fechaExamenEmo) && fechaExamenEmo !== fechaExamenItem) {
               actualizado_fecha_examen = true;
               estado = "ACTUALIZADO";
             }

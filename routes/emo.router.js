@@ -30,7 +30,7 @@ router.get("/", async (req, res) => {
           "YYYY-MM-DD",
           "DD-MM-YYYY",
         ]).format("YYYY-MM-DD")
-      : "";
+      : '01-01-2000';
       return item?.empresas?.map((empresa) => ({
         nro: index + 1,
         id: item?.emo?.at(0)?.id,
@@ -54,7 +54,7 @@ router.get("/", async (req, res) => {
               "YYYY-MM-DD",
               "DD-MM-YYYY",
             ]).format("YYYY-MM-DD")
-          : "",
+          : '01-01-2000',
         condicion_aptitud: item?.emo?.at(0)?.condicion_aptitud,
         clinica: item?.emo?.at(0)?.clinica,
         fecha_lectura: item?.emo?.at(0)?.fecha_lectura
@@ -62,7 +62,7 @@ router.get("/", async (req, res) => {
               "YYYY-MM-DD",
               "DD-MM-YYYY",
             ]).format("YYYY-MM-DD")
-          : "",
+          : '01-01-2000',
         fecha_vencimiento: fechaVencimiento,
         logo: empresa?.imagenLogo,
         empresas: empresa,
@@ -106,7 +106,7 @@ router.get("/", async (req, res) => {
               ? "ENVIADO" 
               : "PENDIENTE"
             : "PENDIENTE",
-        estado: item?.emo?.at(0)?.estado == "ACTUALIZADO" ? "ACTUALIZADO" : 
+        estado: item?.emo?.at(0)?.fecha_vencimiento && item?.emo?.at(0)?.estado == "ACTUALIZADO" ? "ACTUALIZADO" : 
                 (item?.emo?.at(0)?.fecha_vencimiento
                   ? (moment(fechaVencimiento).isSameOrAfter(hoy) ? "VALIDO" : "VENCIDO")
                   : "SIN EMO"),
