@@ -391,6 +391,15 @@ router.get("/generar/constancia/:id", async (req, res) => {
       return res.status(404).json("No se encontró EMO para el trabajador");
     }
 
+    // Buscar la empresa para obtener el logo
+    const empresa = await models.Empresa.findByPk(empresa_id);
+    if (!empresa) {
+      return res.status(404).json("No se encontró la empresa");
+    }
+
+    // Construir la ruta del logo
+    const logoPath = empresa.imagenLogo ? path.join(__dirname, "..", "images", empresa.imagenLogo) : null;
+    console.log(logoPath);
     // Buscar el último serial para este trabajador y empresa
     const ultimaConstancia = await models.Constancia.findOne({
       where: {
@@ -412,6 +421,19 @@ router.get("/generar/constancia/:id", async (req, res) => {
       fecha: moment().format('YYYY-MM-DD'),
       hora: moment().format('HH:mm:ss')
     });
+
+    // Construir los datos para el PDF incluyendo el logo
+    const pdfData = {
+      ...trabajador.toJSON(),
+      emo: ultimoEmo.toJSON(),
+      empresa: empresa.toJSON(),
+      logoPath: logoPath,
+      serial: nuevoSerial
+    };
+
+
+    // Generar el PDF con el logo
+    await buildPDF(pdfData, 'constancia');
 
     // Construye la ruta del archivo PDF
     const filePath = path.join(__dirname, "..", "constancia", `${id}.pdf`);
