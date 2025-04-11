@@ -387,6 +387,7 @@ router.get("/generar/constancia/:id", async (req, res) => {
       order: [['fecha_examen', 'DESC']]
     });
 
+
     if (!ultimoEmo) {
       return res.status(404).json("No se encontró EMO para el trabajador");
     }
@@ -399,7 +400,6 @@ router.get("/generar/constancia/:id", async (req, res) => {
 
     // Construir la ruta del logo
     const logoPath = empresa.imagenLogo ? path.join(__dirname, "..", "images", empresa.imagenLogo) : null;
-    console.log(logoPath);
     // Buscar el último serial para este trabajador y empresa
     const ultimaConstancia = await models.Constancia.findOne({
       where: {
@@ -430,6 +430,8 @@ router.get("/generar/constancia/:id", async (req, res) => {
       logoPath: logoPath,
       serial: nuevoSerial
     };
+
+    console.log(pdfData);
 
 
     // Generar el PDF con el logo

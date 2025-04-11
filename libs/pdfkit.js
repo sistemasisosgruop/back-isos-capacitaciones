@@ -1,6 +1,7 @@
 const PDFDocument = require('pdfkit');
 const path = require("path");
 const fs = require("fs");
+const moment = require("moment");
 
 const buildPDF = (data, tipo) => {
   return new Promise((resolve, reject) => {
@@ -42,7 +43,7 @@ const buildPDF = (data, tipo) => {
       const top = 180;
       doc.fontSize(15).text('CONSTANCIA DE ENTREGA DE RESULTADOS DE EXAMEN MEDICO OCUPACIONAL', 80, top, { align: "center", width: 420 });
       doc.fontSize(12).text(`Yo, ${data.apellidoPaterno} ${data.apellidoMaterno} ${data.nombres}, identificado (a) con DNI Nº ${data.dni}, quien ocupa el cargo de: ${data.cargo} mediante el presente documento dejo constancia de haber recibido, de manera personalizada y por parte del médico ocupacional de la empresa el informe médico de los resultados del Examen Médico Ocupacional (EMO).`, 50, top + 50, { align: "justify", lineGap: 2 });
-      doc.fontSize(12).text(`Que me fue realizado por mi empleador ${data.nombreEmpresa} en la fecha: ${data.fecha_examen} en la clínica ${data.clinica}.`, 50, top + 120, { align: "justify", lineGap: 2, margin: 30 });
+      doc.fontSize(12).text(`Que me fue realizado por mi empleador ${data.empresa?.nombreEmpresa} en la fecha: ${moment(data?.emo?.fecha_examen).format('DD-MM-YYYY')} en la clínica ${data.emo?.clinica}.`, 50, top + 120, { align: "justify", lineGap: 2, margin: 30 });
       doc.fontSize(12).text('CONDICIÓN DE APTITUD:', 50, top + 160, { lineGap: 2, margin: 30 });
 
       doc.lineCap('butt')
@@ -50,9 +51,9 @@ const buildPDF = (data, tipo) => {
         .lineTo(110, top + 250)
         .stroke();
 
-      if (data.condicion_aptitud === 'APTO') textInRowFirst(doc, 'X', top + 195, -5, 3);
-      if (data.condicion_aptitud === 'APTO CON RESTRICCIONES') textInRowFirst(doc, 'X', top + 215, -5, 3);
-      if (data.condicion_aptitud === 'NO APTO') textInRowFirst(doc, 'X', top + 235, -5, 3);
+      if (data.emo?.condicion_aptitud === 'APTO') textInRowFirst(doc, 'X', top + 195, -5, 3);
+      if (data.emo?.condicion_aptitud === 'APTO CON RESTRICCIONES') textInRowFirst(doc, 'X', top + 215, -5, 3);
+      if (data.emo?.condicion_aptitud === 'NO APTO') textInRowFirst(doc, 'X', top + 235, -5, 3);
 
       row(doc, top + 190);
       row(doc, top + 210);
@@ -63,8 +64,8 @@ const buildPDF = (data, tipo) => {
       textInRowFirst(doc, 'NO APTO', top + 235, 100);
 
       doc.fontSize(12).text(`Así mismo, he sido informado(a) sobre los hallazgos, se me ha indicado las recomendaciones y/o restricciones producto de dicho examen médico, además se me explicó cuáles son los principales riesgos laborales de mi puesto de trabajo y qué acciones debo tomar para disminuir su impacto en mi salud. Por otro lado, me comprometo a cumplir las recomendaciones brindadas por el Médico Ocupacional respecto a mi evaluación médica. Todo esto en cumplimiento de la normativa legal vigente en Seguridad y Salud en el Trabajo. (Ley 29783, DS 005-2012 TR Y RM Nº 312-2011-MINSA). Afirmo que la información contenida en el presente documento es real firmando la presente.`, 50, top + 270, { lineGap: 2, margin: 30, align: 'justify' });
-
-      doc.fontSize(12).text(`FECHA DE LECTURA:  ${data.fecha_lectura}`, 50, top + 400, { lineGap: 2, margin: 30, align: 'left' });
+      
+      doc.fontSize(12).text(`FECHA DE LECTURA:  ${moment(data?.emo?.fecha_lectura).format('DD-MM-YYYY')}`, 50, top + 400, { lineGap: 2, margin: 30, align: 'left' });
 
       doc.fontSize(12).text('FIRMA DEL TRABAJADOR', 50, top + 490, { lineGap: 2, margin: 30, align: 'left' });
       doc.fontSize(12).text(`DNI -- ${data.dni}`, 50, top + 510, { lineGap: 2, margin: 30, align: 'left' });
