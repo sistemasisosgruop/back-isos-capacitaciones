@@ -617,8 +617,8 @@ router.get("/reporte2", async (req, res) => {
           include: [{ model: models.Pregunta, as: "pregunta" }],
         },
       ],
-      limit,
-      offset,
+      ...(limit && { limit }),     
+      ...(offset && { offset }), 
     });
     
     const format = reporte?.rows?.map((item) => {
