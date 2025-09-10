@@ -65,7 +65,12 @@ const CapacitacionSchema = {
         },
         onUpdate: 'CASCADE',
         onDelete: 'SET NULL'
-    }
+    },
+    codigo: {
+       type: DataTypes.STRING,
+       allowNull: true,
+       defaultValue: null
+    },
 }
 
 class Capacitacion extends Model{
