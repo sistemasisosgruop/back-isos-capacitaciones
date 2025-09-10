@@ -12,18 +12,25 @@ let globalProgress = { total: 0, completado: 0 };
 
 router.get("/", async (req, res) => {
   try {
-    let { page, limit, nombreEmpresa, capacitacion, mes, all } = req.query;
+    let { page, limit, nombreEmpresa, capacitacion, mes, all, year, dniname } = req.query;
 
     page = page ? parseInt(page) : 1;
     limit = all === "true" ? null : limit ? parseInt(limit) : 15;
     const offset = all === "true" ? null : (page - 1) * limit;
+    
+    let currentYear = moment().year();
+    if (year ===  currentYear) {
+      currentYear = year - 1;
+    } else {
+      currentYear = year;
+    }
 
     const startOfMonth = moment()
-      .set({ year: moment().year() - 1, month: mes - 1, date: 1 })
+      .set({ year: year !== undefined && year !== "" ? currentYear : parseInt(year), month: mes - 1, date: 1 })
       .startOf("day")
       .format("YYYY-MM-DD");
     const endOfMonth = moment()
-      .set({ year: moment().year() - 1, month: mes - 1 })
+      .set({ year: year !== undefined && year !== "" ? currentYear : parseInt(year), month: mes - 1 })
       .endOf("month")
       .endOf("day")
       .format("YYYY-MM-DD");
@@ -40,9 +47,23 @@ router.get("/", async (req, res) => {
       nombreEmpresa !== undefined && nombreEmpresa !== ""
         ? { nombreEmpresa: { [Op.like]: `%${nombreEmpresa}%` } }
         : {};
+    
+    const concat = {[Op.or]: [
+      sequelize.where(
+        sequelize.fn('CONCAT', sequelize.col('nombres'), ' ', sequelize.col('apellidoPaterno'), ' ', sequelize.col('apellidoMaterno')),
+        {
+          [Op.like]: `%${dniname}%`, // dniname is the name's input
+        }
+      ),
+    ]}
+
+    const dninameCondition =
+      dniname !== undefined && dniname !== ""
+        ? dniname.length === 8 ? {dni: `${dniname}`} : concat
+        : {};
     const capacitacionCondition =
       capacitacion !== undefined && capacitacion !== ""
-        ? { nombre: { [Op.like]: `%${capacitacion}%` } }
+        ? { codigo: { [Op.match]: `${capacitacion}` } }
         : {};
     // Set default values for page and limit
 
@@ -97,6 +118,68 @@ router.get("/", async (req, res) => {
       limit,
       offset,
     });
+
+    const reporteAcum = await models.Reporte.findAndCountAll({
+      distinct: true,
+      include: [
+        {
+          model: models.Trabajador,
+          // Add consulta where nombres y dni,
+          where: {
+            [Op.and]: [
+              { habilitado: true },
+              dninameCondition
+            ]
+          },
+          attributes: [
+            "id",
+            "nombres",
+            "apellidoMaterno",
+            "apellidoPaterno",
+            "dni",
+            "cargo",
+            "edad",
+            "genero",
+            "empresaId",
+          ],
+          as: "trabajador",
+          include: [
+            {
+              model: models.Empresa,
+              as: "empresa",
+              where: empresaCondition,
+              attributes: [
+                "id",
+                "nombreEmpresa",
+                "imagenLogo",
+                "imagenCertificado",
+              ],
+            },
+          ],
+        },
+        {
+          model: models.Capacitacion,
+          as: "capacitacion",
+          where: capacitacionCondition,
+        },
+        {
+          model: models.Examen,
+          as: "examen",
+          where: mesCondition,
+          include: [{ model: models.Pregunta, as: "pregunta" }],
+        },
+      ],
+    });
+
+    const format2 = reporteAcum?.rows?.map((item) => {
+      return {
+        reporte: {
+          asistenciaExamen: item?.asistenciaExamen,
+        },
+      }
+    })
+
+    const acumulado = format2.filter(m => m.reporte.asistenciaExamen === true)
     const format = reporte?.rows?.map((item) => {
       return {
         trabajadorId: item?.trabajador?.id,
@@ -166,6 +249,7 @@ router.get("/", async (req, res) => {
 
     const pageInfo = {
       total: reporte.count,
+      acumulado: acumulado.length,
       page: page,
       limit: limit,
       totalPage: Math.ceil(reporte.count / limit),
