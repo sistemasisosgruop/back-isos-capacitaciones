@@ -22,6 +22,19 @@ router.get('/', async(req, res, next)=>{
         next(error);
     }
 })
+
+router.get('/empresa/:id', async(req, res, next)=>{
+    try {
+        const {id} = req.params;
+        const capacitaciones = await models.Capacitacion.findAll({
+            include: ['examen', 'Empresas'],
+            where: {'$Empresas->CapacitacionEmpresa.empresa_id$': id}
+        });
+        res.json(capacitaciones)
+    } catch (error) {
+        next(error);
+    }
+})
 router.get('/capacitador/:id', async(req, res, next)=>{
     try {
         const {id} = req.params;
