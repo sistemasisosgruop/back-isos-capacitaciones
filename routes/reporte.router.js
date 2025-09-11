@@ -18,14 +18,14 @@ router.get("/", async (req, res) => {
     page = page ? parseInt(page) : 1;
     limit = all === "true" ? null : limit ? parseInt(limit) : 15;
     const offset = all === "true" ? null : (page - 1) * limit;
-    
+
+
     let currentYear = moment().year();
     if (year ===  currentYear) {
       currentYear = year - 1;
     } else {
       currentYear = year;
     }
-
     const startOfMonth = moment()
       .set({ year: year !== undefined && year !== "" ? currentYear : parseInt(year), month: mes - 1, date: 1 })
       .startOf("day")
@@ -48,7 +48,7 @@ router.get("/", async (req, res) => {
       nombreEmpresa !== undefined && nombreEmpresa !== ""
         ? { nombreEmpresa: { [Op.like]: `%${nombreEmpresa}%` } }
         : {};
-    
+
     const concat = {[Op.or]: [
       sequelize.where(
         sequelize.fn('CONCAT', sequelize.col('nombres'), ' ', sequelize.col('apellidoPaterno'), ' ', sequelize.col('apellidoMaterno')),
@@ -57,13 +57,14 @@ router.get("/", async (req, res) => {
         }
       ),
     ]}
-
+    
     const dninameCondition =
       dniname !== undefined && dniname !== ""
         ? dniname.length === 8 ? {dni: `${dniname}`} : concat
         : {};
     const capacitacionCondition =
       capacitacion !== undefined && capacitacion !== ""
+        // ? { nombre: { [Op.like]: `%${capacitacion}` } }
         ? { codigo: { [Op.match]: `${capacitacion}` } }
         : {};
     // Set default values for page and limit
@@ -77,7 +78,13 @@ router.get("/", async (req, res) => {
       include: [
         {
           model: models.Trabajador,
-          where: { habilitado: true },
+          // Add consulta where nombres y dni,
+          where: {
+            [Op.and]: [
+              { habilitado: true },
+              dninameCondition
+            ]
+          },
           attributes: [
             "id",
             "nombres",
@@ -119,7 +126,6 @@ router.get("/", async (req, res) => {
       limit,
       offset,
     });
-
     const reporteAcum = await models.Reporte.findAndCountAll({
       distinct: true,
       include: [
@@ -346,7 +352,7 @@ router.patch(
           examenId: examen.id,
         },
       });
-      console.log(reporte);
+      // console.log(reporte);
       const reporteact = await reporte.update({
         notaExamen: notaExamen,
         asistenciaExamen: true,
