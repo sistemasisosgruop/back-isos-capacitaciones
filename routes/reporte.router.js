@@ -19,31 +19,74 @@ router.get("/", async (req, res) => {
     limit = all === "true" ? null : limit ? parseInt(limit) : 15;
     const offset = all === "true" ? null : (page - 1) * limit;
 
-
-    let currentYear = moment().year();
-    if (year ===  currentYear) {
-      currentYear = year - 1;
-    } else {
-      currentYear = year;
-    }
-    const startOfMonth = moment()
-      .set({ year: year !== undefined && year !== "" ? currentYear : parseInt(year), month: mes - 1, date: 1 })
-      .startOf("day")
-      .format("YYYY-MM-DD");
-    const endOfMonth = moment()
-      .set({ year: year !== undefined && year !== "" ? currentYear : parseInt(year), month: mes - 1 })
-      .endOf("month")
-      .endOf("day")
-      .format("YYYY-MM-DD");
-
-    const mesCondition =
-      mes !== undefined && mes !== ""
+    let startOfMonth;
+    let endOfMonth;
+    const currentYear = moment().year();
+    let mesCondition;
+    if (mes && (year === '' || year === undefined)) {
+      console.log(mes)
+      startOfMonth = moment()
+        .set({ year: currentYear, month: mes - 1, date: 1 })
+        .startOf("day")
+        .format("YYYY-MM-DD");
+      endOfMonth = moment()
+        .set({ year: currentYear, month: mes - 1, date: 1 })
+        .endOf("month")
+        .endOf("day")
+        .format("YYYY-MM-DD");
+      
+      mesCondition =
+      mes !== undefined || mes !== ""
         ? {
             created_at: {
               [Op.between]: [startOfMonth, endOfMonth],
             },
           }
         : {};
+    } else if (year && (mes === '' || mes === undefined)) {
+      console.log(year)
+      startOfMonth = moment()
+        .set({ year: year, month: 0, date: 1 })
+        .startOf("day")
+        .format("YYYY-MM-DD");
+      endOfMonth = moment()
+        .set({ year: year, month: 11, date: 1 })
+        .endOf("month")
+        .endOf("day")
+        .format("YYYY-MM-DD");
+      
+      mesCondition =
+      mes !== undefined || mes !== ""
+        ? {
+            created_at: {
+              [Op.between]: [startOfMonth, endOfMonth],
+            },
+          }
+        : {};
+    } else if (mes && year) {
+      console.log(mes)
+      console.log('----')
+      console.log(year)
+      startOfMonth = moment()
+        .set({ year: year, month: mes - 1, date: 1 })
+        .startOf("day")
+        .format("YYYY-MM-DD");
+      endOfMonth = moment()
+        .set({ year: year, month: mes - 1 })
+        .endOf("month")
+        .endOf("day")
+        .format("YYYY-MM-DD");
+      
+      mesCondition =
+      mes !== undefined || mes !== ""
+        ? {
+            created_at: {
+              [Op.between]: [startOfMonth, endOfMonth],
+            },
+          }
+        : {};
+    }
+
     const empresaCondition =
       nombreEmpresa !== undefined && nombreEmpresa !== ""
         ? { nombreEmpresa: { [Op.like]: `%${nombreEmpresa}%` } }
