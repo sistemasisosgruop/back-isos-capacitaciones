@@ -8,6 +8,7 @@ const moment = require("moment");
 const { checkWorkRol } = require("./../middlewares/auth.handler");
 const { Op } = require("sequelize");
 const { botonGenerarReporte } = require("../services/reporte.service");
+const sequelize = require("./../libs/sequelize");
 let globalProgress = { total: 0, completado: 0 };
 
 router.get("/", async (req, res) => {
