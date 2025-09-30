@@ -1,7 +1,7 @@
 const { Router } = require("express");
 
 const router = Router();
-const { models, sequelize } = require("./../libs/sequelize");
+const { models } = require("./../libs/sequelize");
 const passport = require("passport");
 const moment = require("moment");
 
