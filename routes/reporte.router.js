@@ -8,11 +8,12 @@ const moment = require("moment");
 const { checkWorkRol } = require("./../middlewares/auth.handler");
 const { Op, fn, col, where, Sequelize } = require("sequelize");
 const { botonGenerarReporte } = require("../services/reporte.service");
+const sequelize = require("./../libs/sequelize");
 let globalProgress = { total: 0, completado: 0 };
 
 router.get("/", async (req, res) => {
   try {
-    let { page, limit, nombreEmpresa, capacitacion, mes,codigo,anio, all } = req.query;
+    let { page, limit, nombreEmpresa, capacitacion, mes, codigo, anio, all, dniname } = req.query;
     page = page ? parseInt(page) : 1;
     limit = all === "true" ? null : limit ? parseInt(limit) : 15;
     const offset = all === "true" ? null : (page - 1) * limit;
@@ -51,9 +52,24 @@ router.get("/", async (req, res) => {
         ? { nombreEmpresa: { [Op.iLike]: `%${nombreEmpresa}%` } }
         : {};
 
+    const concat = {[Op.or]: [
+      sequelize.where(
+        sequelize.fn('CONCAT', sequelize.col('nombres'), ' ', sequelize.col('apellidoPaterno'), ' ', sequelize.col('apellidoMaterno')),
+        {
+          [Op.like]: `%${dniname}%`, // dniname is the name's input
+        }
+      ),
+    ]}
+
+    const dninameCondition =
+      dniname !== undefined && dniname !== ""
+        ? dniname.length === 8 ? {dni: `${dniname}`} : concat
+        : {};
+
     const capacitacionCondition =
       capacitacion && capacitacion.trim() !== ""
-        ? { nombre: { [Op.iLike]: `%${capacitacion}%` } }
+        // ? { nombre: { [Op.iLike]: `%${capacitacion}%` } }
+        ? { codigo: { [Op.match]: `${capacitacion}` } }
         : {};
 
     const codigoCondition =
@@ -72,7 +88,12 @@ router.get("/", async (req, res) => {
       include: [
         {
           model: models.Trabajador,
-          where: { habilitado: true },
+          where: {
+            [Op.and]: [
+              { habilitado: true },
+              dninameCondition
+            ]
+          },
           attributes: [
             "id",
             "nombres",
@@ -193,8 +214,19 @@ router.get("/", async (req, res) => {
     }).flat();
 
 
+    const format2 = reporte?.rows?.map((item) => {
+      return {
+        reporte: {
+          asistenciaExamen: item?.asistenciaExamen,
+        },
+      }
+    })
+
+    const acumulado = format2.filter(m => m.reporte.asistenciaExamen === true)
+
     const pageInfo = {
       total: reporte.count,
+      acumulado: acumulado.length,
       page: page,
       limit: limit,
       totalPage: Math.ceil(reporte.count / limit),
@@ -209,7 +241,309 @@ router.get("/", async (req, res) => {
   }
 });
 
+// router.get("/supervisores", async (req, res) => {
+//   try {
+//     let { page, limit, nombreEmpresa, capacitacion, mes, all, year, dniname } = req.query;
 
+//     page = page ? parseInt(page) : 1;
+//     limit = all === "true" ? null : limit ? parseInt(limit) : 15;
+//     const offset = all === "true" ? null : (page - 1) * limit;
+
+//     let startOfMonth;
+//     let endOfMonth;
+//     const currentYear = moment().year();
+//     let mesCondition;
+//     if (mes && (year === '' || year === undefined)) {
+//       console.log(mes)
+//       startOfMonth = moment()
+//         .set({ year: currentYear, month: mes - 1, date: 1 })
+//         .startOf("day")
+//         .format("YYYY-MM-DD");
+//       endOfMonth = moment()
+//         .set({ year: currentYear, month: mes - 1, date: 1 })
+//         .endOf("month")
+//         .endOf("day")
+//         .format("YYYY-MM-DD");
+      
+//       mesCondition =
+//       mes !== undefined || mes !== ""
+//         ? {
+//             created_at: {
+//               [Op.between]: [startOfMonth, endOfMonth],
+//             },
+//           }
+//         : {};
+//     } else if (year && (mes === '' || mes === undefined)) {
+//       console.log(year)
+//       startOfMonth = moment()
+//         .set({ year: year, month: 0, date: 1 })
+//         .startOf("day")
+//         .format("YYYY-MM-DD");
+//       endOfMonth = moment()
+//         .set({ year: year, month: 11, date: 1 })
+//         .endOf("month")
+//         .endOf("day")
+//         .format("YYYY-MM-DD");
+      
+//       mesCondition =
+//       mes !== undefined || mes !== ""
+//         ? {
+//             created_at: {
+//               [Op.between]: [startOfMonth, endOfMonth],
+//             },
+//           }
+//         : {};
+//     } else if (mes && year) {
+//       console.log(mes)
+//       console.log('----')
+//       console.log(year)
+//       startOfMonth = moment()
+//         .set({ year: year, month: mes - 1, date: 1 })
+//         .startOf("day")
+//         .format("YYYY-MM-DD");
+//       endOfMonth = moment()
+//         .set({ year: year, month: mes - 1 })
+//         .endOf("month")
+//         .endOf("day")
+//         .format("YYYY-MM-DD");
+      
+//       mesCondition =
+//       mes !== undefined || mes !== ""
+//         ? {
+//             created_at: {
+//               [Op.between]: [startOfMonth, endOfMonth],
+//             },
+//           }
+//         : {};
+//     }
+
+//     const empresaCondition =
+//       nombreEmpresa !== undefined && nombreEmpresa !== ""
+//         ? { nombreEmpresa: { [Op.like]: `%${nombreEmpresa}%` } }
+//         : {};
+
+//     const concat = {[Op.or]: [
+//       sequelize.where(
+//         sequelize.fn('CONCAT', sequelize.col('nombres'), ' ', sequelize.col('apellidoPaterno'), ' ', sequelize.col('apellidoMaterno')),
+//         {
+//           [Op.like]: `%${dniname}%`, // dniname is the name's input
+//         }
+//       ),
+//     ]}
+    
+//     const dninameCondition =
+//       dniname !== undefined && dniname !== ""
+//         ? dniname.length === 8 ? {dni: `${dniname}`} : concat
+//         : {};
+//     const capacitacionCondition =
+//       capacitacion !== undefined && capacitacion !== ""
+//         // ? { nombre: { [Op.like]: `%${capacitacion}` } }
+//         ? { codigo: { [Op.match]: `${capacitacion}` } }
+//         : {};
+//     // Set default values for page and limit
+
+//     if (page < 1) {
+//       return res.status(400).json({ message: "Invalid page value" });
+//     }
+
+//     const reporte = await models.Reporte.findAndCountAll({
+//       distinct: true,
+//       include: [
+//         {
+//           model: models.Trabajador,
+//           // Add consulta where nombres y dni,
+//           where: {
+//             [Op.and]: [
+//               { habilitado: true },
+//               dninameCondition
+//             ]
+//           },
+//           attributes: [
+//             "id",
+//             "nombres",
+//             "apellidoMaterno",
+//             "apellidoPaterno",
+//             "dni",
+//             "cargo",
+//             "edad",
+//             "genero",
+//             "empresaId",
+//           ],
+//           as: "trabajador",
+//           include: [
+//             {
+//               model: models.Empresa,
+//               as: "empresa",
+//               where: empresaCondition,
+//               attributes: [
+//                 "id",
+//                 "nombreEmpresa",
+//                 "imagenLogo",
+//                 "imagenCertificado",
+//               ],
+//             },
+//           ],
+//         },
+//         {
+//           model: models.Capacitacion,
+//           as: "capacitacion",
+//           where: capacitacionCondition,
+//         },
+//         {
+//           model: models.Examen,
+//           as: "examen",
+//           where: mesCondition,
+//           include: [{ model: models.Pregunta, as: "pregunta" }],
+//         },
+//       ],
+//       limit,
+//       offset,
+//     });
+    
+//     const reporteAcum = await models.Reporte.findAndCountAll({
+//       distinct: true,
+//       include: [
+//         {
+//           model: models.Trabajador,
+//           // Add consulta where nombres y dni,
+//           where: {
+//             [Op.and]: [
+//               { habilitado: true },
+//               dninameCondition
+//             ]
+//           },
+//           attributes: [
+//             "id",
+//             "nombres",
+//             "apellidoMaterno",
+//             "apellidoPaterno",
+//             "dni",
+//             "cargo",
+//             "edad",
+//             "genero",
+//             "empresaId",
+//           ],
+//           as: "trabajador",
+//           include: [
+//             {
+//               model: models.Empresa,
+//               as: "empresa",
+//               where: empresaCondition,
+//               attributes: [
+//                 "id",
+//                 "nombreEmpresa",
+//                 "imagenLogo",
+//                 "imagenCertificado",
+//               ],
+//             },
+//           ],
+//         },
+//         {
+//           model: models.Capacitacion,
+//           as: "capacitacion",
+//           where: capacitacionCondition,
+//         },
+//         {
+//           model: models.Examen,
+//           as: "examen",
+//           where: mesCondition,
+//           include: [{ model: models.Pregunta, as: "pregunta" }],
+//         },
+//       ],
+//     });
+
+//     const format2 = reporteAcum?.rows?.map((item) => {
+//       return {
+//         reporte: {
+//           asistenciaExamen: item?.asistenciaExamen,
+//         },
+//       }
+//     })
+
+//     const acumulado = format2.filter(m => m.reporte.asistenciaExamen === true)
+//     const format = reporte?.rows?.map((item) => {
+//       return {
+//         trabajadorId: item?.trabajador?.id,
+//         nombreTrabajador:
+//           item?.trabajador?.apellidoPaterno +
+//           " " +
+//           item?.trabajador?.apellidoMaterno +
+//           " " +
+//           item?.trabajador?.nombres,
+//         nombreCapacitacion: item?.capacitacion?.nombreCapacitacion,
+//         nombreEmpresa: item?.trabajador?.empresa?.nombreEmpresa,
+//         empresaId: item?.trabajador?.empresa?.id,
+//         fechaExamen: moment(item?.examen?.fechadeExamen).format("DD-MM-YYYY"),
+//         notaExamen: item?.notaExamen,
+//         examen: item.examen,
+//         asistenciaExamen: item?.asistenciaExamen,
+//         mesExamen: moment(item?.examen?.fechadeExamen)?.month() + 1,
+//         examenId: item?.examen?.id,
+//         examenId: item?.examen,
+//         capacitacion: {
+//           certificado: item?.capacitacion?.certificado,
+//           createdAt: item?.capacitacion?.createdAt,
+//           fechaAplazo: item?.capacitacion?.fechaAplazo,
+//           fechaCulminacion: item?.capacitacion?.fechaCulminacion,
+//           fechaInicio: item?.capacitacion?.fechaInicio,
+//           horas: item?.capacitacion?.horas,
+//           habilitado: item?.capacitacion?.habilitado,
+//           id: item?.capacitacion?.id,
+//           instructor: item?.capacitacion?.instructor,
+//           nombre: item?.capacitacion?.nombre,
+//           urlVideo: item?.capacitacion?.urlVideo,
+//         },
+//         createdAt: moment(item?.capacitacion?.createdAt),
+//         nombreCapacitacion: item?.capacitacion?.nombre,
+//         capacitacionId: item?.capacitacion?.id,
+//         pregunta: item?.examen?.pregunta.sort((a, b) => {
+//           // Extraer el número del texto de cada pregunta
+//           const numA = a.texto ? parseInt(a.texto.split(".")[0]) : 0;
+//           const numB = b.texto ? parseInt(b.texto.split(".")[0]) : 0;
+
+//           // Devolver la diferencia entre los números para ordenar
+//           return numA - numB;
+//         }),
+//         trabajador: {
+//           id: item?.trabajador?.id,
+//           apellidoMaterno: item?.trabajador?.apellidoMaterno,
+//           apellidoPaterno: item?.trabajador?.apellidoPaterno,
+//           nombres: item?.trabajador?.nombres,
+//           cargo: item?.trabajador?.cargo,
+//           edad: item?.trabajador?.edad,
+//           genero: item?.trabajador?.genero,
+//           dni: item?.trabajador?.dni,
+//         },
+//         empresa: item?.trabajador?.empresa,
+//         reporte: {
+//           id: item?.id,
+//           notaExamen: item?.notaExamen,
+//           asistenciaExamen: item?.asistenciaExamen,
+//           rptpregunta1: item?.rptpregunta1,
+//           rptpregunta2: item?.rptpregunta2,
+//           rptpregunta3: item?.rptpregunta3,
+//           rptpregunta4: item?.rptpregunta4,
+//           rptpregunta5: item?.rptpregunta5,
+//         },
+//       };
+//     });
+
+//     const pageInfo = {
+//       total: reporte.count,
+//       acumulado: acumulado.length,
+//       page: page,
+//       limit: limit,
+//       totalPage: Math.ceil(reporte.count / limit),
+//       next: parseInt(page) + 1,
+//     };
+
+//     // Enviar la respuesta con la paginación
+//     res.json({ data: format, pageInfo });
+//   } catch (error) {
+//     console.log(error);
+//     res.json({ message: "no encuentra reportes" });
+//   }
+// });
 
 router.get("/constancias", async (req, res) => {
   try {
