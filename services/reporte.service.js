@@ -39,15 +39,15 @@ const generarReporte = async (id, trabajador) => {
     }
 
   } catch (error) {
-    console.log("====================================");
     console.log(error);
-    console.log("====================================");
   }
 };
 
 const botonGenerarReporte = async (globalProgress) => {
   const capacitaciones = await models.Capacitacion.findAll({
-    where: { habilitado: true },
+    where: {
+      [Op.or]: [{ habilitado: true }, { recuperacion: true }]
+     },
     include: ["examen", "Empresas"],
   });
 
@@ -56,33 +56,45 @@ const botonGenerarReporte = async (globalProgress) => {
 
   for (const capacitacion of capacitaciones) {
     if (capacitacion.Empresas.length && capacitacion.examen) {
-      const empresas = capacitacion.Empresas;
-      for (const empresa of empresas) {
-        const trabajadores = await models.Trabajador.findAll({
-          where: { empresaId: empresa.id },
-        });
-        for (const trabajador of trabajadores) {
-          const reporteExistente = await models.Reporte.findOne({
-            where: {
-              trabajadorId: trabajador.id,
-              capacitacionId: capacitacion.id,
-            },
-          });
-          if (!reporteExistente) {
-            await models.Reporte.create({
-              notaExamen: 0,
-              asistenciaExamen: false,
-              rptpregunta1: 0,
-              rptpregunta2: 0,
-              rptpregunta3: 0,
-              rptpregunta4: 0,
-              rptpregunta5: 0,
-              trabajadorId: trabajador.id,
-              examenId: capacitacion.examen.id,
-              capacitacionId: capacitacion.id,
-            });
+      // Obtener todos los trabajadores relacionados con las empresas de esta capacitación
+      const trabajadores = await models.Trabajador.findAll({
+        include: [{
+          model: models.Empresa,
+          as: 'empresas',
+          where: {
+            id: capacitacion.Empresas.map(empresa => empresa.id)
           }
+        }]
+      });
+
+      // Crear reportes faltantes para los trabajadores encontrados
+      const reportesACrear = [];
+      for (const trabajador of trabajadores) {
+        const reporteExistente = await models.Reporte.findOne({
+          where: {
+            trabajadorId: trabajador.id,
+            capacitacionId: capacitacion.id,
+          },
+        });
+
+        if (!reporteExistente) {
+          reportesACrear.push({
+            notaExamen: 0,
+            asistenciaExamen: false,
+            rptpregunta1: 0,
+            rptpregunta2: 0,
+            rptpregunta3: 0,
+            rptpregunta4: 0,
+            rptpregunta5: 0,
+            trabajadorId: trabajador.id,
+            examenId: capacitacion.examen.id,
+            capacitacionId: capacitacion.id,
+          });
         }
+      }
+
+      if (reportesACrear.length > 0) {
+        await models.Reporte.bulkCreate(reportesACrear);
       }
     }
     globalProgress.completado++;

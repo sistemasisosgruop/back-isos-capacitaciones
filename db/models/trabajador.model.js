@@ -2,6 +2,8 @@ const { Model, DataTypes, Sequelize } = require("sequelize");
 
 const { USUARIO_TABLE } = require("./usuario.model");
 const { EMPRESA_TABLE } = require("./empresa.model");
+const { EMPRESA_TRABAJADOR_TABLE } = require("./empresaTrabajador.model");
+
 const TRABAJADOR_TABLE = "trabajadores";
 
 const TrabajadorSchema = {
@@ -65,6 +67,10 @@ const TrabajadorSchema = {
     type: DataTypes.STRING,
     defaultValue: true,
   },
+  state_created: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
+  },
   createdAt: {
     allowNull: false,
     type: DataTypes.DATE,
@@ -83,17 +89,6 @@ const TrabajadorSchema = {
     onUpdate: "CASCADE",
     onDelete: "SET NULL",
   },
-  empresaId: {
-    field: "empresa_id",
-    allowNull: true,
-    type: DataTypes.INTEGER,
-    references: {
-      model: EMPRESA_TABLE,
-      key: "id",
-    },
-    onUpdate: "CASCADE",
-    onDelete: "SET NULL",
-  },
 };
 
 class Trabajador extends Model {
@@ -101,9 +96,6 @@ class Trabajador extends Model {
     //wait
     this.belongsTo(models.Usuario, {
       as: "user",
-    });
-    this.belongsTo(models.Empresa, {
-      as: "empresa",
     });
     this.hasOne(models.Reporte, {
       as: "reporte",
@@ -118,6 +110,13 @@ class Trabajador extends Model {
       as: "registroDescarga",
       foreignKey: "trabajador_id",
     });
+    this.belongsToMany(models.Empresa, {
+      as: "empresas",
+      through: models.EmpresaTrabajador,
+      foreignKey: "trabajadorId",
+      otherKey: "empresaId",
+    });
+    
   }
   static config(sequelize) {
     return {

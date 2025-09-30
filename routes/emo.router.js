@@ -17,23 +17,35 @@ router.get("/", async (req, res) => {
     const Trabajadores = await models.Trabajador.findAll({
       include: [
         { model: models.Emo, as: "emo" },
-        { model: models.Empresa, as: "empresa" },
+        { model: models.Empresa, as: "empresas" },
         { model: models.registroDescarga, as: "registroDescarga" },
       ],
+      order: [['emo', 'createdAt', 'DESC']] 
     });
-
-    // console.log(Trabajadores)
+    
+    const hoy = moment().format("YYYY-MM-DD");
     const newData = Trabajadores?.map((item, index) => {
-      return {
+      const fechaVencimiento = item?.emo?.at(0)?.fecha_vencimiento
+      ? moment(item?.emo?.at(0)?.fecha_vencimiento, [
+          "YYYY-MM-DD",
+          "DD-MM-YYYY",
+        ]).format("YYYY-MM-DD")
+      : '01-01-2000';
+      return item?.empresas?.map((empresa) => ({
         nro: index + 1,
         id: item?.emo?.at(0)?.id,
         trabajador_id: item?.id,
+        actualizado_fecha_caducidad: item?.emo?.at(0)?.actualizado_fecha_caducidad,
+        actualizado_fecha_examen: item?.emo?.at(0)?.actualizado_fecha_examen,
         apellidoPaterno: item?.apellidoPaterno,
         apellidoMaterno: item?.apellidoMaterno,
         nombres: item?.nombres,
         dni: item?.dni,
+        empresa_id: empresa.id,
+        nombreEmpresa: empresa.nombreEmpresa,
         celular: item?.celular,
         email: item?.email,
+        state_created: item?.state_created,
         edad: item?.edad,
         area: item?.areadetrabajo,
         cargo: item?.cargo,
@@ -42,7 +54,7 @@ router.get("/", async (req, res) => {
               "YYYY-MM-DD",
               "DD-MM-YYYY",
             ]).format("YYYY-MM-DD")
-          : "",
+          : '01-01-2000',
         condicion_aptitud: item?.emo?.at(0)?.condicion_aptitud,
         clinica: item?.emo?.at(0)?.clinica,
         fecha_lectura: item?.emo?.at(0)?.fecha_lectura
@@ -50,16 +62,10 @@ router.get("/", async (req, res) => {
               "YYYY-MM-DD",
               "DD-MM-YYYY",
             ]).format("YYYY-MM-DD")
-          : "",
-        fecha_vencimiento: item?.emo?.at(0)?.fecha_vencimiento
-          ? moment(item?.emo?.at(0)?.fecha_vencimiento, [
-              "YYYY-MM-DD",
-              "DD-MM-YYYY",
-            ]).format("YYYY-MM-DD")
-          : "",
-        logo: item?.empresa?.imagenLogo,
-        nombreEmpresa: item?.empresa?.nombreEmpresa,
-        empresa_id: item?.empresa?.id,
+          : '01-01-2000',
+        fecha_vencimiento: fechaVencimiento,
+        logo: empresa?.imagenLogo,
+        empresas: empresa,
         fecha_email: item?.emo?.at(0)?.fecha_email
           ? moment(item?.emo?.at(0)?.fecha_email, [
               "YYYY-MM-DD HH:mm:ss",
@@ -80,18 +86,83 @@ router.get("/", async (req, res) => {
               "DD-MM-YYYY HH:mm:ss",
             ]).format("YYYY-MM-DD HH:mm:ss")
           : "",
-        estado_emo: item?.emo?.at(0)?.estado_emo,
+        estado_emo: 
+          item?.emo?.at(0)?.estado_emo !== "" 
+            ? (item?.emo?.at(0)?.estado !== "ACTUALIZADO" && 
+              moment(fechaVencimiento).isSameOrAfter(hoy))
+              ? "ENVIADO" 
+              : "PENDIENTE"
+            : "PENDIENTE",
         fecha_emo_whatsapp: item?.emo?.at(0)?.fecha_emo_whatsapp
           ? moment(item?.emo?.at(0)?.fecha_emo_whatsapp, [
               "YYYY-MM-DD HH:mm:ss",
               "DD-MM-YYYY HH:mm:ss",
             ]).format("YYYY-MM-DD HH:mm:ss")
           : "",
-        estado_emo_whatsapp: item?.emo?.at(0)?.estado_emo_whatsapp,
-        estado: item?.emo?.at(0)?.estado,
+        estado_emo_whatsapp: 
+          item?.emo?.at(0)?.estado_emo_whatsapp !== "" 
+            ? (item?.emo?.at(0)?.estado !== "ACTUALIZADO" && 
+               moment(fechaVencimiento).isSameOrAfter(hoy)) 
+              ? "ENVIADO" 
+              : "PENDIENTE"
+            : "PENDIENTE",
+        estado: item?.emo?.at(0)?.fecha_vencimiento && item?.emo?.at(0)?.estado == "ACTUALIZADO" ? "ACTUALIZADO" : 
+                (item?.emo?.at(0)?.fecha_vencimiento
+                  ? (moment(fechaVencimiento).isSameOrAfter(hoy) ? "VALIDO" : "VENCIDO")
+                  : "SIN EMO"),
         registroDescarga: item.registroDescarga
-      };
+      }));
+    })?.flat();
+    return res.status(200).json({ data: newData });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json({ msg: "No se pudo obtener los trabajadores." });
+  }
+});
+
+
+router.get("/emo/:dni", async (req, res) => {
+  try {
+    const { dni } = req.params;
+    const ultimoEmo = await models.Emo.findOne({
+      where: { trabajadorId: dni },
+      order: [['fecha_examen', 'DESC']],
+      include: [
+        {
+          model: models.Trabajador,
+          as: 'trabajador',
+        }
+      ]
     });
+
+    const newData = [
+      {
+        nro: 1,
+        id: ultimoEmo?.id,
+        trabajador_id: ultimoEmo?.trabajadorId,
+        apellidoPaterno: ultimoEmo?.trabajador?.apellidoPaterno,
+        apellidoMaterno: ultimoEmo?.trabajador?.apellidoMaterno,
+        nombres: ultimoEmo?.trabajador?.nombres,
+        controles: ultimoEmo?.controles,
+        recomendaciones: ultimoEmo?.recomendaciones,
+        dni: ultimoEmo?.trabajador?.dni,
+        clinica: ultimoEmo?.clinica,
+        fecha_examen: ultimoEmo?.fecha_examen
+          ? moment(ultimoEmo?.fecha_examen, [
+              "YYYY-MM-DD",
+              "DD-MM-YYYY",
+            ]).format("YYYY-MM-DD")
+          : "",
+        fecha_vencimiento: ultimoEmo?.fecha_vencimiento
+          ? moment(ultimoEmo?.fecha_vencimiento, [
+              "YYYY-MM-DD",
+              "DD-MM-YYYY",
+            ]).format("YYYY-MM-DD")
+          : "",
+      },
+    ];
 
     return res.status(200).json({ data: newData });
   } catch (error) {
@@ -152,7 +223,7 @@ router.get("/reporte", async (req, res) => {
             {
               model: models.Empresa,
               where: empresaCondition,
-              as: "empresa",
+              as: "empresas",
               attributes: ["nombreEmpresa"],
             },
           ],
@@ -163,17 +234,17 @@ router.get("/reporte", async (req, res) => {
     });
 
     const formatData = reportes?.rows?.map((item) => {
-      return {
+      return item?.trabajador?.empresas?.map(empresa => ({
         id: item?.id,
         trabajador_id: item?.trabajador_id,
         fecha: item?.fecha,
         hora: item?.hora,
         apellidoMaterno: item?.trabajador?.apellidoMaterno,
         apellidoPaterno: item?.trabajador?.apellidoPaterno,
-        nombre: item?.trabajador?.nombres,
-        empresa: item?.trabajador?.empresa?.nombreEmpresa,
-      };
-    });
+          nombre: item?.trabajador?.nombres,
+          empresa: empresa?.nombreEmpresa,
+        }));
+    }).flat();
     const pageInfo = {
       total: reportes.count,
       page: page,
@@ -193,7 +264,7 @@ router.get("/reporte-descarga/:id", async (req, res) => {
     const Trabajadores = await models.Trabajador.findAll({
       include: [
         { model: models.registroDescarga, as: "registroDescarga" },
-        { model: models.Empresa, as: "empresa" },
+        { model: models.Empresa, as: "empresas" },
       ],
       where: { id }
     });
@@ -289,6 +360,94 @@ router.get("/descargar/constancia/:id", async (req, res) => {
     }
   });
 });
+
+router.get("/generar/constancia/:id", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const { empresa_id } = req.query;
+
+    // Buscar el trabajador y su último EMO
+    const trabajador = await models.Trabajador.findOne({
+      where: { id: id },
+      include: [{
+        model: models.Emo,
+        as: 'emo',
+        order: [['fecha_examen', 'DESC']],
+        limit: 1
+      }]
+    });
+
+    if (!trabajador || !trabajador.emo) {
+      return res.status(404).json("No se encontró EMO para el trabajador");
+    }
+
+    // Obtener el último EMO del trabajador
+    const ultimoEmo = await models.Emo.findOne({
+      where: { trabajadorId: trabajador.dni },
+      order: [['fecha_examen', 'DESC']]
+    });
+
+
+    if (!ultimoEmo) {
+      return res.status(404).json("No se encontró EMO para el trabajador");
+    }
+
+    // Buscar la empresa para obtener el logo
+    const empresa = await models.Empresa.findByPk(empresa_id);
+    if (!empresa) {
+      return res.status(404).json("No se encontró la empresa");
+    }
+
+    // Construir la ruta del logo
+    const logoPath = empresa.imagenLogo ? path.join(__dirname, "..", "images", empresa.imagenLogo) : null;
+    // Buscar el último serial para este trabajador y empresa
+    const ultimaConstancia = await models.Constancia.findOne({
+      where: {
+        trabajador_id: id,
+        empresa_id: empresa_id
+      },
+      order: [['serial', 'DESC']]
+    });
+
+    // Calcular el nuevo serial
+    const nuevoSerial = ultimaConstancia ? ultimaConstancia.serial + 1 : 1;
+
+    // Crear el registro de la nueva constancia
+    await models.Constancia.create({
+      trabajador_id: id,
+      empresa_id: empresa_id,
+      emo_id: ultimoEmo.id, 
+      serial: nuevoSerial,
+      fecha: moment().format('YYYY-MM-DD'),
+      hora: moment().format('HH:mm:ss')
+    });
+
+    // Construir los datos para el PDF incluyendo el logo
+    const pdfData = {
+      ...trabajador.toJSON(),
+      emo: ultimoEmo.toJSON(),
+      empresa: empresa.toJSON(),
+      logoPath: logoPath,
+      serial: nuevoSerial
+    };
+
+    console.log(pdfData);
+
+
+    // Generar el PDF con el logo
+    await buildPDF(pdfData, 'constancia');
+
+    // Construye la ruta del archivo PDF
+    const filePath = path.join(__dirname, "..", "constancia", `${id}.pdf`);
+    res.setHeader("Content-Type", "application/pdf");
+    return res.status(200).json({ serial: nuevoSerial});
+    
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json("Error en el proceso.");
+  }
+});
+
 router.get("/descargar/emo/:id", async (req, res) => {
   const id = parseInt(req.params.id);
 
@@ -360,6 +519,13 @@ router.post("/subir/:id", emo.single("file"), async (req, res) => {
       // Actualizar el campo emoPdf del trabajador en la base de datos
       trabajador.emoPdf = newFileName;
       await trabajador.save();
+
+      await models.Emo.update(
+        { 
+          fecha_lectura: moment().format('YYYY-MM-DD'),
+        }, 
+        { where: { trabajadorId: trabajador.dni } }
+      );
 
       return res.status(200).json("Se guardó correctamente el PDF.");
     } else {
@@ -487,15 +653,29 @@ router.put("/:id", async (req, res) => {
     const body = req.body;
     const emos = await models.Emo.findOne({
       where: { trabajadorId: id },
+      order: [['fecha_examen', 'DESC']]
     });
-    // console.log(body, id);
     const nuevoData = {
       ...body,
       trabajadorId: id,
     };
-    emos == null
-      ? await models.Emo.create(nuevoData)
-      : await models.Emo.update(body, { where: { trabajadorId: id } });
+
+    if (emos == null){
+      await models.Emo.create(nuevoData)
+    }else{
+      if(new Date(emos.fecha_vencimiento).getTime() != new Date(body.fecha_vencimiento).getTime()){
+        console.log("Se actualiza fecha vencimiento");
+        body.actualizado_fecha_caducidad = true;
+        body.estado = "ACTUALIZADO";
+      }
+      if(new Date(emos.fecha_examen).getTime() != new Date(body.fecha_examen).getTime()){
+        console.log("Se actualiza fecha Examen");
+        body.actualizado_fecha_examen = true;
+        body.estado = "ACTUALIZADO";
+      }
+      console.log(body);
+      await models.Emo.update(body, { where: { trabajadorId: id } });
+    }
     
     res.status(200).json({ msg: "Se actualizaron los datos con éxito!" });
   } catch (error) {
@@ -548,11 +728,28 @@ router.post("/send-email", async (req, res) => {
         };
         // Registra el nuevo registro de descarga en la tabla registro_descargas
         await models.registroDescarga.create(dataRegister);
+
+        // Actualizar estado del trabajador
+        await models.Trabajador.update(
+          { state_created: false },
+          { where: { id: body.trabajador_id } }
+        );
+
+        // Actualizar estados del EMO
+        await models.Emo.update(
+          {
+            fecha_email: moment().format("DD-MM-YYYY HH:mm:ss"),
+            estado_email: 'Enviado',
+            actualizado_fecha_caducidad: false,
+            actualizado_fecha_examen: false,
+            estado: "VALIDO"
+          },
+          { where: { trabajadorId: body.dni } }
+        );
       } catch (error) {
         console.log(error);
       }
       // console.log(body.dni);
-      await models.Emo.update(data, { where: { trabajadorId: body.dni } });
       res.status(200).json({ msg: "Se actualizaron los datos con éxito!" });
     }
   });
@@ -560,29 +757,21 @@ router.post("/send-email", async (req, res) => {
 
 router.post("/send-emo-email", async (req, res) => {
   const body = req.body;
-  // buildPDF(body, 'emo');
-  // console.log(body);
   let mailOption = {
     from: process.env.USER_GMAIL_ENV,
     to: body.email,
     subject: 'Envio del Examen Médico Ocupacional',
     html: `<p>Saludos cordiales</p> <h5>${body.nombres} ${body.apellidoPaterno} ${body.apellidoMaterno}</h5><p>Nos es grato contactarnos con usted vía correo electrónico y le hacemos llegar su Examen Médico Ocupacional.</p><p>Atentamente.</p><br>MÉDICO OCUPACIONAL<br><h5>${ body.nombreEmpresa }</h5>`,
-    attachments:[
-      {
-        filename: 'pdf',
-        path: `emo/${body.trabajador_id}.pdf`
-      }
-    ]
+    attachments:[{
+      filename: 'pdf',
+      path: `emo/${body.trabajador_id}.pdf`
+    }]
   }
-
-  const data = {
-    fecha_emo: moment().format("DD-MM-YYYY HH:mm:ss"),
-    estado_emo: 'Enviado'
-  };
 
   transporter.sendMail(mailOption, async (error, info) => {
     if (error) {
       console.log('Ocurrió un error ' + error);
+    
     } else {
       console.log('Email enviado correctamente a ' + mailOption.to);
 
@@ -593,27 +782,37 @@ router.post("/send-emo-email", async (req, res) => {
           hora: moment().format("HH:mm:ss"),
           tipo: 'emo',
         };
-        // Registra el nuevo registro de descarga en la tabla registro_descargas
         await models.registroDescarga.create(dataRegister);
+
+        // Actualizar estado del trabajador
+        await models.Trabajador.update(
+          { state_created: false },
+          { where: { id: body.trabajador_id } }
+        );
+
+        // Actualizar estados del EMO
+        await models.Emo.update(
+          {
+            fecha_emo: moment().format("DD-MM-YYYY HH:mm:ss"),
+            estado_emo: 'Enviado',
+            actualizado_fecha_caducidad: false,
+            actualizado_fecha_examen: false,
+            estado: "VALIDO"
+          },
+          { where: { trabajadorId: body.dni } }
+        );
+
+        res.status(200).json({ msg: "Se actualizaron los datos con éxito!" });
       } catch (error) {
         console.log(error);
+        res.status(500).json({ msg: "Error al actualizar los datos" });
       }
-      // console.log(body.dni);
-      await models.Emo.update(data, { where: { trabajadorId: body.dni } });
-      res.status(200).json({ msg: "Se actualizaron los datos con éxito!" });
     }
   });
 });
+
 router.post("/send-whatsapp", async(req, res) => {
   const body = req.body;
-
-  const data = {
-    fecha_whatsapp: moment().format("DD-MM-YYYY HH:mm:ss"),
-    estado_whatsapp: 'Enviado'
-  };
-
-  console.log('Whatsapp enviado correctamente a ' + body.celular);
-
   try {
     buildPDF(body, 'constancia');
 
@@ -623,44 +822,69 @@ router.post("/send-whatsapp", async(req, res) => {
       hora: moment().format("HH:mm:ss"),
       tipo: 'whatsapp',
     };
-    // Registra el nuevo registro de descarga en la tabla registro_descargas
     await models.registroDescarga.create(dataRegister);
-    // res.status(200).json({ msg: "Constancia EMO creada y enviada con éxito!" });
+
+    // Actualizar estado del trabajador
+    await models.Trabajador.update(
+      { state_created: false },
+      { where: { id: body.trabajador_id } }
+    );
+
+    // Actualizar estados del EMO
+    await models.Emo.update(
+      {
+        fecha_whatsapp: moment().format("DD-MM-YYYY HH:mm:ss"),
+        estado_whatsapp: 'Enviado',
+        actualizado_fecha_caducidad: false,
+        actualizado_fecha_examen: false,
+        estado: "VALIDO"
+      },
+      { where: { trabajadorId: body.dni } }
+    );
+
+    console.log('Whatsapp enviado correctamente a ' + body.celular);
+    res.status(200).json({ msg: "Se actualizaron los datos con éxito!" });
   } catch (error) {
     console.log(error);
+    res.status(500).json({ msg: "Error al actualizar los datos" });
   }
-  // console.log(body.dni);
-  await models.Emo.update(data, { where: { trabajadorId: body.dni } });
-  res.status(200).json({ msg: "Se actualizaron los datos con éxito!" });
 });
+
 router.post("/send-emo-whatsapp", async(req, res) => {
   const body = req.body;
-
-  const data = {
-    fecha_emo_whatsapp: moment().format("DD-MM-YYYY HH:mm:ss"),
-    estado_emo_whatsapp: 'Enviado'
-  };
-
-  console.log('Whatsapp enviado correctamente a ' + body.celular);
-
   try {
-    // buildPDF(body, 'emo');
-
     const dataRegister = {
       trabajador_id: parseInt(body.trabajador_id),
       fecha: moment().format("DD-MM-YYYY"),
       hora: moment().format("HH:mm:ss"),
       tipo: 'emo-whatsapp',
     };
-    // Registra el nuevo registro de descarga en la tabla registro_descargas
     await models.registroDescarga.create(dataRegister);
-    // res.status(200).json({ msg: "Constancia EMO creada y enviada con éxito!" });
+
+    // Actualizar estado del trabajador
+    await models.Trabajador.update(
+      { state_created: false },
+      { where: { id: body.trabajador_id } }
+    );
+
+    // Actualizar estados del EMO
+    await models.Emo.update(
+      {
+        fecha_emo_whatsapp: moment().format("DD-MM-YYYY HH:mm:ss"),
+        estado_emo_whatsapp: 'Enviado',
+        actualizado_fecha_caducidad: false,
+        actualizado_fecha_examen: false,
+        estado: "VALIDO"
+      },
+      { where: { trabajadorId: body.dni } }
+    );
+
+    console.log('Whatsapp enviado correctamente a ' + body.celular);
+    res.status(200).json({ msg: "Se actualizaron los datos con éxito!" });
   } catch (error) {
     console.log(error);
+    res.status(500).json({ msg: "Error al actualizar los datos" });
   }
-  // console.log(body.dni);
-  await models.Emo.update(data, { where: { trabajadorId: body.dni } });
-  res.status(200).json({ msg: "Se actualizaron los datos con éxito!" });
 });
 
 module.exports = router;

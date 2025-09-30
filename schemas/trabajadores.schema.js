@@ -5,7 +5,7 @@ const id = Joi.number().integer();
 const nombres = Joi.string();
 const apellidoPaterno = Joi.string();
 const apellidoMaterno = Joi.string();
-const email = Joi.string();
+const email = Joi.string().email().allow('').optional();
 const dni = Joi.string().min(8).max(8);
 const genero = Joi.string();
 const edad = Joi.number();
@@ -30,7 +30,7 @@ const userId = Joi.number().integer()
 const username = Joi.string()
 const contraseña = Joi.string().min(8);
 const rol = Joi.string();
-const empresaId = Joi.number().integer();
+const empresas = Joi.array().items(Joi.number().integer());
 
 const createTrabajadorSchema = Joi.object({
     nombres : nombres.required(),
@@ -49,7 +49,7 @@ const createTrabajadorSchema = Joi.object({
       contraseña : contraseña.required(),
       rol: rol,
     }),
-    empresaId: empresaId.required(),
+    empresas: empresas.required(),
 });
 
 const updateTrabajadorSchema = Joi.object({
@@ -66,12 +66,14 @@ const updateTrabajadorSchema = Joi.object({
     habilitado: habilitado,
     celular: celular,
     rol:rol,
+    state_created: Joi.boolean().optional(), 
+    emo: Joi.array().optional(), 
     user: Joi.object({
       username: username,
       contraseña: contraseña,
       rol: rol
     }),
-    empresaId: empresaId,
+    empresas: empresas,
 });
 
 const getTrabajadorSchema = Joi.object({

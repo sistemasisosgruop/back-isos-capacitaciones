@@ -1,4 +1,5 @@
 const { Model, DataTypes, Sequelize } = require('sequelize');
+const moment = require('moment-timezone');
 
 const { CAPACITACION_TABLE } = require('./capacitacion.model');
 const { EXAMEN_TABLE } = require('./examen.model')
@@ -52,6 +53,21 @@ const ReportesSchema = {
         type: DataTypes.DATE,
         field: 'created_at',
         defaultValue: Sequelize.NOW
+    },
+    fechaExamen: {
+        allowNull: false,
+        type: DataTypes.DATE(6),
+        field: 'fecha_examen',
+        defaultValue: DataTypes.NOW,
+        get() {
+            return moment(this.getDataValue('fechaExamen')).tz('America/Lima');
+        }
+    },
+    isRecuperacion: {
+        field: 'is_recuperacion',
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false
     },
     trabajadorId: {
       field: 'trabajador_id',

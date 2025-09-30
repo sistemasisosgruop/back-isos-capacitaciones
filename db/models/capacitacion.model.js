@@ -10,6 +10,10 @@ const CapacitacionSchema = {
         autoIncrement: true,
         type: DataTypes.INTEGER,
     },
+    codigo: {
+        allowNull: false,
+        type: DataTypes.STRING,
+    },
     nombre:{
         allowNull: false,
         type: DataTypes.STRING,
@@ -47,6 +51,11 @@ const CapacitacionSchema = {
         type: DataTypes.BOOLEAN,
         allowNull: false,
         defaultValue: true
+    },
+    recuperacion: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false
     },
     createdAt:{
         allowNull: false,

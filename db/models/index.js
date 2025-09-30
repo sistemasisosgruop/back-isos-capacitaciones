@@ -5,6 +5,7 @@ const {
   CapacitacionEmpresaSchema,
 } = require("./capacitacionEmpresa.model");
 const { Empresa, EmpresaSchema } = require("./empresa.model");
+const { EmpresaRelaciones, EmpresaRelacionesSchema } = require("./empresaRelaciones.model");
 const { Test, TestSchema } = require("./test.model");
 const { Trabajador, TrabajadorSchema } = require("./trabajador.model");
 const { Capacitador, CapacitadorSchema } = require("./capacitador.model");
@@ -14,6 +15,8 @@ const { Pregunta, PreguntaSchema } = require("./pregunta.model");
 const { TestEmpresa, TestEmpresaSchema } = require("./testEmpresa.model");
 const { Reporte, ReportesSchema } = require("./reportes.model");
 const { Emo, EmoSchema } = require("./emo.model");
+const { Constancia, ConstanciaSchema} = require("./constancia.model");
+const { EmpresaTrabajador, EmpresaTrabajadorSchema } = require("./empresaTrabajador.model");
 const {
   RegistroDescarga,
   RegistroDescargaSchema,
@@ -25,6 +28,7 @@ function setupModels(sequelize) {
   Capacitador.init(CapacitadorSchema, Capacitador.config(sequelize));
   Administrador.init(AdministradorSchema, Administrador.config(sequelize));
   Empresa.init(EmpresaSchema, Empresa.config(sequelize));
+  EmpresaRelaciones.init(EmpresaRelacionesSchema, EmpresaRelaciones.config(sequelize));
   Test.init(TestSchema, Test.config(sequelize));
   Capacitacion.init(CapacitacionSchema, Capacitacion.config(sequelize));
   CapacitacionEmpresa.init(
@@ -36,16 +40,23 @@ function setupModels(sequelize) {
   TestEmpresa.init(TestEmpresaSchema, TestEmpresa.config(sequelize));
   Reporte.init(ReportesSchema, Reporte.config(sequelize));
   Emo.init(EmoSchema, Emo.config(sequelize));
+  EmpresaTrabajador.init(EmpresaTrabajadorSchema, EmpresaTrabajador.config(sequelize));
   RegistroDescarga.init(
     RegistroDescargaSchema,
     RegistroDescarga.config(sequelize)
   );
+  Constancia.init(
+    ConstanciaSchema,
+    Constancia.config(sequelize)
+  )
 
+  Constancia.associate(sequelize.models)
   Usuario.associate(sequelize.models);
   Trabajador.associate(sequelize.models);
   Capacitador.associate(sequelize.models);
   Administrador.associate(sequelize.models);
   Empresa.associate(sequelize.models);
+  EmpresaRelaciones.associate(sequelize.models);
   Test.associate(sequelize.models);
   Capacitacion.associate(sequelize.models);
   Examen.associate(sequelize.models);
@@ -53,6 +64,7 @@ function setupModels(sequelize) {
   Reporte.associate(sequelize.models);
   Emo.associate(sequelize.models);
   RegistroDescarga.associate(sequelize.models)
+  EmpresaTrabajador.associate(sequelize.models)
 }
 
 module.exports = setupModels;

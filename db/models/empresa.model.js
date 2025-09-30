@@ -47,10 +47,6 @@ const EmpresaSchema = {
 
 class Empresa extends Model{
     static associate(models){
-        this.hasMany(models.Trabajador, {
-            as: 'trabajadores',
-            foreignKey: 'empresaId'
-        })
         this.belongsToMany(models.Test,{
             through: models.TestEmpresa,
             foreignKey: 'empresaId' 
@@ -59,6 +55,18 @@ class Empresa extends Model{
             through: models.CapacitacionEmpresa,
             foreignKey: 'empresaId',
         });
+        this.belongsToMany(models.Empresa, {
+            as: 'relacionadas',
+            through: models.EmpresaRelaciones,
+            foreignKey: 'empresaId',
+            otherKey: 'relacionadaConEmpresaId'
+        });
+        this.belongsToMany(models.Trabajador, {
+            as: "trabajadores",
+            through: models.EmpresaTrabajador, 
+            foreignKey: "empresaId",
+            otherKey: "trabajadorId",
+          });
     }
     static config(sequelize){
         return{
