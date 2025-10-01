@@ -146,6 +146,68 @@ router.get("/", async (req, res) => {
       limit,
       offset,
     });
+
+    const reporteAcum = await models.Reporte.findAndCountAll({
+      distinct: true,
+      where: dateCondition,
+      include: [
+        {
+          model: models.Trabajador,
+          // Add consulta where nombres y dni,
+          where: {
+            [Op.and]: [
+              { habilitado: true },
+              dninameCondition
+            ]
+          },
+          attributes: [
+            "id",
+            "nombres",
+            "apellidoMaterno",
+            "apellidoPaterno",
+            "dni",
+            "cargo",
+            "edad",
+            "genero",
+          ],
+          as: "trabajador",
+          include: [
+            {
+              model: models.Empresa,
+              as: "empresas",
+              where: empresaCondition,
+              attributes: [
+                "id",
+                "nombreEmpresa",
+                "imagenLogo",
+                "imagenCertificado",
+              ],
+            },
+          ],
+        },
+        {
+          model: models.Capacitacion,
+          as: "capacitacion",
+          where: {
+            ...capacitacionCondition,
+            ...codigoCondition,
+          },
+          include: [
+            {
+              model: models.Empresa,
+              as: 'Empresas',
+              through: { attributes: [] },
+              where: nombreEmpresa ? { nombreEmpresa } : {}
+            }
+          ]
+        },
+        {
+          model: models.Examen,
+          as: "examen",
+          include: [{ model: models.Pregunta, as: "pregunta" }],
+        },
+      ],
+    });
     const format = reporte?.rows?.map((item) => {
       return item?.trabajador?.empresas?.map(empresa => ({
         trabajadorId: item?.trabajador?.id,
@@ -215,7 +277,7 @@ router.get("/", async (req, res) => {
     }).flat();
 
 
-    const format2 = reporte?.rows?.map((item) => {
+    const format2 = reporteAcum?.rows?.map((item) => {
       return {
         reporte: {
           asistenciaExamen: item?.asistenciaExamen,
